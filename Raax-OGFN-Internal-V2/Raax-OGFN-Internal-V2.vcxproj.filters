@@ -23,6 +23,8 @@
     <ClCompile Include="utils\log.cpp" />
     <ClCompile Include="cheat\SDK\Basic.cpp" />
     <ClCompile Include="cheat\SDK\CoreUObject.cpp" />
+    <ClCompile Include="cheat\gui\gui.cpp" />
+    <ClCompile Include="cheat\gui\dx11\dx11.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="extern\imgui\imconfig.h" />
@@ -53,5 +55,7 @@
     <ClInclude Include="cheat\SDK\ObjectArray.h" />
     <ClInclude Include="extern\loguru\loguru.hpp" />
     <ClInclude Include="cheat\SDK\Containers.h" />
+    <ClInclude Include="cheat\gui\gui.h" />
+    <ClInclude Include="cheat\gui\dx11\dx11.h" />
   </ItemGroup>
 </Project>

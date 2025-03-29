@@ -2,6 +2,8 @@
 #include <globals.h>
 #include <cheat/SDK/sdk.h>
 #include <utils/log.h>
+#include <cheat/gui/gui.h>
+#include <cheat/hooks.h>
 
 bool Core::Init()
 {
@@ -11,5 +13,15 @@ bool Core::Init()
 #if CFG_SHOWCONSOLE
     CreateConsole();
 #endif
-    return SDK::Init();
+    return Hooks::Init() && SDK::Init() && GUI::Init();
+}
+
+void Core::Destroy()
+{
+    GUI::Destroy();
+    Hooks::Destroy();
+
+#if CFG_SHOWCONSOLE
+    DestroyConsole();
+#endif
 }

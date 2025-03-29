@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Core
+namespace GUI::DX11
 {
     bool Init();
     void Destroy();

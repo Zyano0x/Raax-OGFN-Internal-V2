@@ -22,16 +22,17 @@ std::string GenerateTimeDateStamp()
     return ss.str();
 }
 
+
+void SetThreadLogName(const std::string& Name)
+{
+    loguru::set_thread_name(Name.c_str());
+}
+
 void InitLogger()
 {
     std::string LogFilePath = "raax_" + GenerateTimeDateStamp() + ".log";
     loguru::add_file(LogFilePath.c_str(), loguru::FileMode::Truncate, loguru::g_stderr_verbosity);
     SetThreadLogName("InitThread");
-}
-
-void SetThreadLogName(const std::string& Name)
-{
-    loguru::set_thread_name(Name.c_str());
 }
 
 
@@ -43,4 +44,11 @@ void CreateConsole()
     freopen_s(&out, "CONOUT$", "w", stdout);
     FILE* err;
     freopen_s(&err, "CONOUT$", "w", stderr);
+}
+
+void DestroyConsole()
+{
+    fclose(stdout);
+    fclose(stderr);
+    FreeConsole();
 }

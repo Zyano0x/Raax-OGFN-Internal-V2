@@ -9,8 +9,8 @@
 #define LOG_TRACE loguru::Verbosity_1
 
 #if CFG_USELOGGING
-void InitLogger();
 void SetThreadLogName(const std::string& Name);
+void InitLogger();
 #define LOG(LogLevel, Message, ...) VLOG_F(LogLevel, Message, ##__VA_ARGS__)
 #else
 #define LOG void(0)
@@ -18,4 +18,5 @@ void SetThreadLogName(const std::string& Name);
 
 #if CFG_SHOWCONSOLE
 void CreateConsole();
+void DestroyConsole();
 #endif

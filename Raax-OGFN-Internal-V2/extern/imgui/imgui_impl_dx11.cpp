@@ -617,6 +617,23 @@ void ImGui_ImplDX11_Shutdown()
     IM_DELETE(bd);
 }
 
+// Scuffed solution to prevent ImGui from attempting to free DX11 resources which we don't own
+void ImGui_ImplDX11_CustomShutdown()
+{
+    ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
+    IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui_ImplDX11_InvalidateDeviceObjects();
+    if (bd->pFactory)             { bd->pFactory->Release(); }
+    //if (bd->pd3dDevice)           { bd->pd3dDevice->Release(); }
+    //if (bd->pd3dDeviceContext)    { bd->pd3dDeviceContext->Release(); }
+    io.BackendRendererName = nullptr;
+    io.BackendRendererUserData = nullptr;
+    io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
+    IM_DELETE(bd);
+}
+
 void ImGui_ImplDX11_NewFrame()
 {
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();

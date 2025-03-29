@@ -42,7 +42,7 @@ namespace Memory
     * @param Pattern - The pattern to search for (supports wildcard '?').
     * @param Offset - The offset to apply when computing the final address (default: -1).
     * @param RelativeAddress - If true, computes a relative address based on OperandSize.
-    * @param Backwards - Whether to scan backwards or forwards.
+    * @param Backwards - Whether to scan backwards or forwards. This means it will move ScanSize backwards from StartAddress instead of forwards.
     * @return The address of the first match found, or 0 if no match is found.
     */
     template<typename OperandSize>
