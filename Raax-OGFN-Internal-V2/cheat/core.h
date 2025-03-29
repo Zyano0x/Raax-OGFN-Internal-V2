@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Cheat::Core
+namespace Core
 {
     bool Init();
 }

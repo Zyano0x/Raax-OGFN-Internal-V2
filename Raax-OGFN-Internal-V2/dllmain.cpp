@@ -1,13 +1,32 @@
 #include <Windows.h>
+#include <globals.h>
 #include <cheat/core.h>
+#include <cheat/SDK/sdk.h>
+#include <utils/log.h>
 
-void Main()
+DWORD Main(LPVOID)
 {
-    g_Core = std::make_unique<RaaxCore>();
-    if (!g_Core->Valid())
+    Core::Init();
+
+#if 0
+    for (int i = 0; i < SDK::UObject::Objects.Num(); i++)
     {
-        ThrowError()
+        SDK::UObject* Obj = SDK::UObject::Objects.GetByIndex(i);
+        if (!Obj)
+            continue;
+
+        LOG(LOG_INFO, "Found Object -> %s", Obj->GetFullName().c_str());
     }
+#endif
+
+#if 0
+    SDK::FName test = "hi";
+    LOG(LOG_INFO, "%s", test.ToString().c_str());
+    test = "hi2";
+    LOG(LOG_INFO, "%s", test.ToString().c_str());
+#endif
+
+    return 0;
 }
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -19,7 +38,11 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     {
     case DLL_PROCESS_ATTACH:
         DisableThreadLibraryCalls(hModule);
-        CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)Main, nullptr, 0, nullptr);
+#if CFG_CREATETHREAD
+        CreateThread(nullptr, 0, Main, nullptr, 0, nullptr);
+#else
+        Main(nullptr);
+#endif
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:

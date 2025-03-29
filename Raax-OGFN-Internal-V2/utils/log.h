@@ -1,11 +1,21 @@
 #pragma once
+#include <globals.h>
+#include <string>
+#include <extern/loguru/loguru.hpp>
 
-#define LOG_NONE 0
-#define LOG_ERROR 1
-#define LOG_WARN 2
-#define LOG_OFFSET 3
-#define LOG_INFO 4
-#define LOG_ALL 4
-#define LOG_LEVEL_MAX 5
+#define LOG_ERROR loguru::Verbosity_ERROR
+#define LOG_WARN loguru::Verbosity_WARNING
+#define LOG_INFO loguru::Verbosity_INFO
+#define LOG_TRACE loguru::Verbosity_1
 
-#define LOG(LogLevel, Message, ...)
+#if CFG_USELOGGING
+void InitLogger();
+void SetThreadLogName(const std::string& Name);
+#define LOG(LogLevel, Message, ...) VLOG_F(LogLevel, Message, ##__VA_ARGS__)
+#else
+#define LOG void(0)
+#endif
+
+#if CFG_SHOWCONSOLE
+void CreateConsole();
+#endif
