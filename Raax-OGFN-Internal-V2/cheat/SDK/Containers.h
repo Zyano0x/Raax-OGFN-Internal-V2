@@ -19,6 +19,30 @@ namespace SDK
         inline bool IsValid() {
             return Data != nullptr;
         }
+
+        inline int32_t Num() {
+            return NumElements;
+        }
+
+        inline int32_t Max() {
+            return MaxElements;
+        }
+
+        inline int32_t GetSlack() {
+            return MaxElements - NumElements;
+        }
+
+        inline ElementType* GetData() {
+            return Data;
+        }
+
+    public:
+        inline ElementType& operator[](int32_t Index) {
+            return Data[Index];
+        }
+        inline const ElementType& operator[](int32_t Index) const {
+            return Data[Index];
+        }
     };
 
     class FString : public TArray<wchar_t>

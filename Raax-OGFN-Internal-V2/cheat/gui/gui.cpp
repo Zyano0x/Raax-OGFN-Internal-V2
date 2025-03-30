@@ -15,7 +15,7 @@ LRESULT __stdcall GUI::h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	if (GUI::SetupImGui)
 		ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
 
-	return CallWindowProc(o_WndProc, hWnd, uMsg, wParam, lParam);
+	return o_WndProc(hWnd, uMsg, wParam, lParam);
 }
 
 

@@ -144,4 +144,50 @@ namespace SDK
 	inline constexpr SDK::EClassCastFlags operator|(SDK::EClassCastFlags Left, SDK::EClassCastFlags Right) {
 		return (SDK::EClassCastFlags)((std::underlying_type<SDK::EClassCastFlags>::type)(Left) | (std::underlying_type<SDK::EClassCastFlags>::type)(Right));
 	}
+
+	struct FVector
+	{
+	public:
+		float X;
+		float Y;
+		float Z;
+
+	public:
+		inline FVector() : X(0.0), Y(0.0), Z(0.0) { }
+		inline FVector(float X, float Y, float Z) : X(X), Y(Y), Z(Z) { }
+	};
+
+	struct FVector2D
+	{
+	public:
+		float X;
+		float Y;
+
+	public:
+		inline FVector2D() : X(0.0), Y(0.0) { }
+		inline FVector2D(float X, float Y) : X(X), Y(Y) { }
+	};
+
+	struct FMatrix
+	{
+	public:
+		float M[4][4];
+
+	public:
+		FMatrix operator*(const FMatrix& m2) const {
+			FMatrix out;
+			for (uint8_t r = 0; r < 4; r++) {
+				for (uint8_t c = 0; c < 4; c++) {
+					float sum = 0.f;
+
+					for (uint8_t i = 0; i < 4; i++)
+						sum += M[r][i] * m2.M[i][c];
+
+					out.M[r][c] = sum;
+				}
+			}
+
+			return out;
+		}
+	};
 }

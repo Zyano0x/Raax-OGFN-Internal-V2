@@ -43,6 +43,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate</IntDir>
+    <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate</IntDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -96,6 +104,7 @@
     <ClCompile Include="cheat\hooks.cpp" />
     <ClCompile Include="cheat\sdk\Basic.cpp" />
     <ClCompile Include="cheat\sdk\CoreUObject.cpp" />
+    <ClCompile Include="cheat\sdk\Engine.cpp" />
     <ClCompile Include="cheat\sdk\sdk.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="extern\imgui\imgui.cpp" />
@@ -123,6 +132,7 @@
     <ClInclude Include="cheat\sdk\Basic.h" />
     <ClInclude Include="cheat\sdk\Containers.h" />
     <ClInclude Include="cheat\sdk\CoreUObject.h" />
+    <ClInclude Include="cheat\sdk\Engine.h" />
     <ClInclude Include="cheat\sdk\ObjectArray.h" />
     <ClInclude Include="cheat\sdk\sdk.h" />
     <ClInclude Include="extern\imgui\imconfig.h" />

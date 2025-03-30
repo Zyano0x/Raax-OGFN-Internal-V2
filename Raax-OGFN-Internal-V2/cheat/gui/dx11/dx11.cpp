@@ -7,6 +7,7 @@
 #include <extern/imgui/imgui.h>
 #include <extern/imgui/imgui_impl_win32.h>
 #include <extern/imgui/imgui_impl_dx11.h>
+#include <cheat/sdk/sdk.h> // TEMP
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -20,6 +21,7 @@ inline ID3D11RenderTargetView* g_RenderTargetView;
 inline HWND g_Window = nullptr;
 inline void* g_PresentFunc = nullptr;
 inline void* g_ResizeBuffersFunc = nullptr;
+inline void* g_WndProc = nullptr;
 
 typedef HRESULT(__stdcall* t_Present) (IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
 inline t_Present o_Present = nullptr;
@@ -45,7 +47,9 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 			ImGui_ImplWin32_Init(g_Window);
 			ImGui_ImplDX11_Init(g_Device, g_DeviceContext);
 
-			GUI::o_WndProc = (WNDPROC)SetWindowLongPtr(g_Window, GWLP_WNDPROC, (__int3264)(LONG_PTR)GUI::h_WndProc);
+			g_WndProc = (void*)GetWindowLongPtrW(g_Window, GWLP_WNDPROC);
+			Hooks::CreateHook(g_WndProc, &GUI::h_WndProc, (void**)&GUI::o_WndProc);
+			Hooks::EnableHook(g_WndProc);
 		}
 	}
 
@@ -54,6 +58,27 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 	ImGui::NewFrame();
 
 	ImGui::Begin("hi");
+	SDK::FVector pos = SDK::GetLocalPawn()->RootComponent()->RelativeLocation();
+	ImGui::Text("%.2f, %.2f, %.2f", pos.X, pos.Y, pos.Z);
+
+	SDK::FVector2D pos2 = SDK::Project(pos);
+	ImGui::GetBackgroundDrawList()->AddText(ImVec2(pos2.X, pos2.Y), ImColor(1.f, 0.f, 0.f, 1.f), "player");
+
+	int32_t ScreenWidth = SDK::GetCanvas()->SizeX();
+	int32_t ScreenHeight = SDK::GetCanvas()->SizeY();
+	ImGui::Text("%d, %d", ScreenWidth, ScreenHeight);
+
+	auto Actors = SDK::GetWorld()->PersistentLevel()->Actors();
+	for (int i = 0; i < Actors.Num(); i++) {
+		SDK::AActor* Actor = Actors[i];
+		if (!Actor)
+			continue;
+
+		SDK::FVector ActorPos = Actor->RootComponent()->RelativeLocation();
+		SDK::FVector2D ActorPos2 = SDK::Project(ActorPos);
+		ImGui::GetBackgroundDrawList()->AddText(ImVec2(ActorPos2.X, ActorPos2.Y), ImColor(1.f, 0.f, 0.f, 1.f), Actor->GetName().c_str());
+	}
+
 	ImGui::End();
 
 	ImGui::EndFrame();
@@ -154,10 +179,10 @@ bool GUI::DX11::Init() {
 void GUI::DX11::Destroy() {
 	Hooks::RemoveHook(g_PresentFunc);
 	Hooks::RemoveHook(g_ResizeBuffersFunc);
+	Hooks::RemoveHook(g_WndProc);
 
 	if (GUI::SetupImGui) {
 		GUI::SetupImGui = false;
-		SetWindowLongPtr(g_Window, GWLP_WNDPROC, (LONG_PTR)o_WndProc);
 
 		ImGui_ImplDX11_CustomShutdown();
 		ImGui_ImplWin32_Shutdown();

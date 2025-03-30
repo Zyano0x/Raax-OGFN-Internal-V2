@@ -209,8 +209,8 @@ bool SetupProcessEvent() {
         if (!VTable[i] || !Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VTable[i])))
             break;
 
-        if (Memory::PatternScanRangeBytes<int32_t>(Resolve32BitRelativeJump(VTable[i]), 0x400, { 0xF7, -0x1, (int32_t)SDK::UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x04, 0x0, 0x0 })
-            && Memory::PatternScanRangeBytes<int32_t>(Resolve32BitRelativeJump(VTable[i]), 0x400, { 0xF7, -0x1, (int32_t)SDK::UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40, 0x0 })) {
+        if (Memory::PatternScanRangeBytes<int32_t>(Resolve32BitRelativeJump(VTable[i]), 0x400, { 0xF7, -0x1, (int32_t)SDK::UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x04, 0x0, 0x0 }, false, -1, false, false)
+            && Memory::PatternScanRangeBytes<int32_t>(Resolve32BitRelativeJump(VTable[i]), 0x400, { 0xF7, -0x1, (int32_t)SDK::UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40, 0x0 }, false, -1, false, false)) {
             SDK::UObject::ProcessEvent_Idx = i;
             LOG(LOG_INFO, "Found UObject::ProcessEvent VFT index: 0x%X", SDK::UObject::ProcessEvent_Idx);
             return true;
@@ -220,9 +220,63 @@ bool SetupProcessEvent() {
     LOG(LOG_ERROR, "Failed to find UObject::ProcessEvent VFT index!");
     return false;
 }
+bool SetupViewProjectionMatrix() {
+    uintptr_t StringReference = Memory::FindStringRef(L"/Engine/EngineResources/GradientTexture0.");
+    if (StringReference) {
+        // Resolve the jmp if the function is split into multiple parts.
+        uintptr_t Jmp = Memory::PatternScanRange<int32_t>(StringReference, 0x30, "E9", false, 1, true);
+        if (Jmp)
+            StringReference = Jmp;
+
+        // The signature we are looking for is:
+        /*
+        0F 28 05 50 50 22 02      movaps  xmm0, cs:xmmword_474C280
+        0F 11 83 C0 02 00 00      movups  xmmword ptr [rbx+2C0h], xmm0
+        0F 28 0D 02 50 22 02      movaps  xmm1, cs:xmmword_474C240
+        0F 11 8B 80 02 00 00      movups  xmmword ptr [rbx+280h], xmm1
+        */
+
+        // The second movups instruction is writing to the ViewProjectionMatrix, so we will get the offset of that instruction.
+        uintptr_t Sig = Memory::PatternScanRange<int32_t>(StringReference, 0x500, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ?");
+        if (Sig) {
+            SDK::UCanvas::ViewProjectionMatrix_Offset = *(uint32_t*)(Sig + 24);
+            LOG(LOG_INFO, "Found UCanvas::ViewProjectionMatrix offset: 0x%X", SDK::UCanvas::ViewProjectionMatrix_Offset);
+            return true;
+        }
+    }
+
+    LOG(LOG_ERROR, "Failed to find UCanvas::ViewProjectionMatrix offset!");
+    return false;
+}
+bool SetupLevelActors() {
+    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("Level", "OwningWorld");
+    SDK::ULevel* Level = SDK::GetWorld()->PersistentLevel();
+    if (Info.Found && Level) {
+        for (int i = 0x70; i < Info.Offset; i += 8)
+        {
+            // We will check if the address is a valid TArray<AActor*>
+            // by checking if the Max() is greater than Num()
+            // and if the pointer to the data is valid.
+            SDK::TArray<SDK::AActor*>* Actors = reinterpret_cast<SDK::TArray<SDK::AActor*>*>((uintptr_t)Level + i);
+            if (!Actors->IsValid())
+                continue;
+            if (Actors->Max() <= 0 || Actors->Num() <= 0)
+                continue;
+            if (Actors->Max() < Actors->Num())
+                continue;
+
+            SDK::ULevel::Actors_Offset = i;
+            LOG(LOG_INFO, "Found ULevel::Actors offset: 0x%X", SDK::ULevel::Actors_Offset);
+            return true;
+        }
+    }
+
+    LOG(LOG_ERROR, "Failed to find ULevel::Actors offset!");
+    return false;
+}
 
 bool SetupUnrealFortniteOffsets() {
-    return SetupProcessEvent();
+    return SetupProcessEvent() && SetupViewProjectionMatrix() && SetupLevelActors();
 }
 
 

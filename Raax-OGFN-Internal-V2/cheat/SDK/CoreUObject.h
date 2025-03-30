@@ -3,8 +3,34 @@
 #include "ObjectArray.h"
 #include "Basic.h"
 
+/* @brief Sets up StaticClass() and GetDefaultObj() functions. */
+#define STATICCLASS_DEFAULTOBJECT(ClassName, Type) \
+    static UClass* StaticClass() { \
+        static UClass* Clss = nullptr; \
+        if (!Clss) \
+            Clss = UObject::FindObjectFast<UClass>(ClassName, SDK::EClassCastFlags::Class); \
+        return Clss; \
+    } \
+    static Type* GetDefaultObj() { \
+        static Type* Default = nullptr; \
+        if (!Default) \
+            Default = static_cast<Type*>(StaticClass()->ClassDefaultObject()); \
+        return Default; \
+    }
+
 namespace SDK
 {
+    /* @brief Struct used for finding properties. */
+    struct PropertyInfo
+    {
+        bool Found = false;
+        int32_t Offset;
+        //uint8_t ByteMask;
+        class UProperty* Property;
+    };
+
+
+
     class UObject
     {
     public:
@@ -24,7 +50,7 @@ namespace SDK
     public:
         void ProcessEvent(class UFunction* Function, void* Parms);
 
-        //bool IsA(class UClass* Class) const;
+        bool IsA(class UClass* Class) const;
         bool IsDefaultObject() const;
 
         bool HasTypeFlag(EClassCastFlags TypeFlag) const;
@@ -50,15 +76,13 @@ namespace SDK
         }
 
         template<typename UEType = UObject>
-        static UEType* FindObjectFast(const std::string& Name, EClassCastFlags RequiredType = EClassCastFlags::None) {
-            FName TargetName = Name.c_str();
-
+        static UEType* FindObjectFast(const FName& Name, EClassCastFlags RequiredType = EClassCastFlags::None) {
             for (int i = 0; i < Objects.Num(); ++i) {
                 UObject* Object = Objects.GetByIndex(i);
                 if (!Object)
                     continue;
 
-                if (Object->HasTypeFlag(RequiredType) && Object->Name == TargetName)
+                if (Object->HasTypeFlag(RequiredType) && Object->Name == Name)
                     return static_cast<UEType*>(Object);
             }
 
@@ -66,21 +90,21 @@ namespace SDK
         }
 
         template<typename UEType = UObject>
-        static UEType* FindObjectFastWithOuter(const std::string& Name, const std::string& OuterName) {
-            FName TargetName = Name.c_str();
-            FName TargetOuterName = OuterName.c_str();
-
+        static UEType* FindObjectFastWithOuter(const FName& Name, const FName& OuterName) {
             for (int i = 0; i < Objects.Num(); ++i) {
                 UObject* Object = Objects.GetByIndex(i);
                 if (!Object || !Object->Outer)
                     continue;
 
-                if (Object->Name == TargetName && Object->Outer->Name == TargetOuterName)
+                if (Object->Name == Name && Object->Outer->Name == OuterName)
                     return reinterpret_cast<UEType*>(Object);
             }
 
             return nullptr;
         }
+
+        static PropertyInfo GetPropertyInfo(const FName& ClassName, const FName& PropertyName);
+        static UFunction* GetFunction(const FName& ClassName, const FName& FunctionName);
     };
 
     class UStruct : public UObject
@@ -94,6 +118,10 @@ namespace SDK
         class UStruct* SuperStruct();
         class UField* Children();
         //class FField* ChildProperties();
+
+    public:
+        PropertyInfo FindProperty(const FName& Name);
+        class UFunction* FindFunction(const FName& Name);
     };
 
     class UClass : public UStruct

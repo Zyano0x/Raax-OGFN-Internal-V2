@@ -42,13 +42,14 @@ namespace Memory
      * @param StartAddress - The starting address for the scan.
      * @param ScanSize - The size of the memory region to scan.
      * @param Bytes - The raw bytes to scan for (use -1 for wildcard).
-     * @param Offset - The offset to apply when computing the final address (default: -1).
-     * @param RelativeAddress - If true, computes a relative address based on OperandSize.
      * @param Backwards - Whether to scan backwards or forwards. This means it will move ScanSize backwards from StartAddress instead of forwards.
+     * @param Offset - The offset to apply when computing the final address.
+     * @param RelativeAddress - If true, computes a relative address based on OperandSize.
+     * @param WarnIfNotFound - Log a warning message if the pattern is not found.
      * @return The address of the first match found, or 0 if no match is found.
      */
     template<typename OperandSize>
-    static uintptr_t PatternScanRangeBytes(uintptr_t StartAddress, uint64_t ScanSize, const std::vector<int>& Bytes, bool Backwards = false, int Offset = -1, bool RelativeAddress = false) {
+    static uintptr_t PatternScanRangeBytes(uintptr_t StartAddress, uint64_t ScanSize, const std::vector<int>& Bytes, bool Backwards = false, int Offset = -1, bool RelativeAddress = false, bool WarnIfNotFound = true) {
         const size_t PatternLength = Bytes.size();
         const uint8_t* ScanBytes = reinterpret_cast<uint8_t*>(StartAddress);
 
@@ -95,7 +96,9 @@ namespace Memory
             }
         }
 
-        LOG(LOG_WARN, "Failed to find pattern! (0x%p, 0x%p)", StartAddress, ScanSize);
+        if (WarnIfNotFound)
+            LOG(LOG_WARN, "Failed to find pattern! (0x%p, 0x%p)", StartAddress, ScanSize);
+
         return 0;
     }
 
@@ -106,9 +109,9 @@ namespace Memory
     * @param StartAddress - The starting address for the scan.
     * @param ScanSize - The size of the memory region to scan.
     * @param Pattern - The pattern to search for (supports wildcard '?').
-    * @param Offset - The offset to apply when computing the final address (default: -1).
-    * @param RelativeAddress - If true, computes a relative address based on OperandSize.
     * @param Backwards - Whether to scan backwards or forwards. This means it will move ScanSize backwards from StartAddress instead of forwards.
+    * @param Offset - The offset to apply when computing the final address.
+    * @param RelativeAddress - If true, computes a relative address based on OperandSize.
     * @return The address of the first match found, or 0 if no match is found.
     */
     template<typename OperandSize>

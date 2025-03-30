@@ -25,6 +25,7 @@
     <ClCompile Include="cheat\sdk\CoreUObject.cpp" />
     <ClCompile Include="cheat\gui\gui.cpp" />
     <ClCompile Include="cheat\gui\dx11\dx11.cpp" />
+    <ClCompile Include="cheat\sdk\Engine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="extern\imgui\imconfig.h" />
@@ -57,5 +58,6 @@
     <ClInclude Include="cheat\sdk\Containers.h" />
     <ClInclude Include="cheat\gui\gui.h" />
     <ClInclude Include="cheat\gui\dx11\dx11.h" />
+    <ClInclude Include="cheat\sdk\Engine.h" />
   </ItemGroup>
 </Project>

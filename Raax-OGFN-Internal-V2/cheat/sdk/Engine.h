@@ -1,0 +1,221 @@
+#pragma once
+#include "Containers.h"
+#include "CoreUObject.h"
+
+namespace SDK
+{
+	class UEngine : public UObject
+	{
+	public:
+		inline class UGameViewportClient* GameViewport() {
+			static PropertyInfo Prop = GetPropertyInfo("Engine", "GameViewport");
+			if (this && Prop.Found)
+				return *(class UGameViewportClient**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Engine", UEngine)
+	};
+
+	class UWorld : public UObject
+	{
+	public:
+		inline class ULevel* PersistentLevel() {
+			static PropertyInfo Prop = GetPropertyInfo("World", "PersistentLevel");
+			if (this && Prop.Found)
+				return *(class ULevel**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("World", UWorld)
+	};
+
+	class ULevel : public UObject
+	{
+	public:
+		static inline uint32_t Actors_Offset;
+
+	public:
+		inline TArray<class AActor*> Actors() {
+			if (this)
+				return *(TArray<class AActor*>*)((uintptr_t)this + Actors_Offset);
+			return {};
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Level", ULevel)
+	};
+
+	class UGameInstance : public UObject
+	{
+	public:
+		inline TArray<class ULocalPlayer*> LocalPlayers() {
+			static PropertyInfo Prop = GetPropertyInfo("GameInstance", "LocalPlayers");
+			if (this && Prop.Found)
+				return *(TArray<class ULocalPlayer*>*)((uintptr_t)this + Prop.Offset);
+			return {};
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("GameInstance", UGameInstance)
+	};
+
+	class UGameViewportClient : public UObject
+	{
+	public:
+		inline class UWorld* World() {
+			static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "World");
+			if (this && Prop.Found)
+				return *(class UWorld**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+		inline class UGameInstance* GameInstance() {
+			static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "GameInstance");
+			if (this && Prop.Found)
+				return *(class UGameInstance**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("GameViewportClient", UGameViewportClient)
+	};
+
+	class UCanvas : public UObject
+	{
+	public:
+		static inline uint32_t ViewProjectionMatrix_Offset;
+
+	public:
+		inline int32_t SizeX() {
+			static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeX");
+			if (this && Prop.Found)
+				return *(int32_t*)((uintptr_t)this + Prop.Offset);
+			return {};
+		}
+		inline int32_t SizeY() {
+			static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeY");
+			if (this && Prop.Found)
+				return *(int32_t*)((uintptr_t)this + Prop.Offset);
+			return {};
+		}
+		inline FMatrix* ViewProjectionMatrix() {
+			if (this)
+				return (FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Canvas", UCanvas)
+	};
+
+
+	class UPlayer : public UObject
+	{
+	public:
+		class APlayerController* PlayerController() {
+			static PropertyInfo Prop = GetPropertyInfo("Player", "PlayerController");
+			if (this && Prop.Found)
+				return *(class APlayerController**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Player", UPlayer)
+	};
+
+	class ULocalPlayer : public UPlayer
+	{
+	public:
+		STATICCLASS_DEFAULTOBJECT("LocalPlayer", ULocalPlayer)
+	};
+
+	class USceneComponent : public UObject
+	{
+	public:
+		FVector RelativeLocation() {
+			static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "RelativeLocation");
+			if (this && Prop.Found)
+				return *(FVector*)((uintptr_t)this + Prop.Offset);
+			return {};
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("SceneComponent", USceneComponent)
+	};
+
+
+	class AActor : public UObject
+	{
+	public:
+		class USceneComponent* RootComponent() {
+			static PropertyInfo Prop = GetPropertyInfo("Actor", "RootComponent");
+			if (this && Prop.Found)
+				return *(class USceneComponent**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Actor", AActor)
+	};
+
+	class APlayerController : public AActor
+	{
+	public:
+		class APawn* AcknowledgedPawn() {
+			static PropertyInfo Prop = GetPropertyInfo("PlayerController", "AcknowledgedPawn");
+			if (this && Prop.Found)
+				return *(class APawn**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("PlayerController", APlayerController)
+	};
+
+	class APawn : public AActor
+	{
+	public:
+		class APlayerState* PlayerState() {
+			static PropertyInfo Prop = GetPropertyInfo("Pawn", "PlayerState");
+			if (this && Prop.Found)
+				return *(class APlayerState**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Pawn", APawn)
+	};
+
+	class APlayerState : public AActor
+	{
+	public:
+		inline FString GetPlayerName() {
+			static UFunction* Func = GetFunction("PlayerState", "GetPlayerName");
+			struct {
+				FString return_value;
+			} params_GetPlayerName{};
+
+			if (this && Func)
+				ProcessEvent(Func, &params_GetPlayerName);
+
+			return params_GetPlayerName.return_value;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("PlayerState", APlayerState)
+	};
+
+
+	class ULocalPlayer* GetLocalPlayer();
+	class APlayerController* GetLocalController();
+	class APawn* GetLocalPawn();
+
+	class UEngine* GetEngine();
+	class UWorld* GetWorld();
+	class UCanvas* GetCanvas();
+
+	FVector Project3D(const FVector& Location);
+	FVector2D Project(const FVector& Location);
+}

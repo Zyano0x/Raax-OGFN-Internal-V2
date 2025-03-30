@@ -625,7 +625,7 @@ void ImGui_ImplDX11_CustomShutdown()
     ImGuiIO& io = ImGui::GetIO();
 
     ImGui_ImplDX11_InvalidateDeviceObjects();
-    if (bd->pFactory)             { bd->pFactory->Release(); }
+    //if (bd->pFactory)             { bd->pFactory->Release(); }
     //if (bd->pd3dDevice)           { bd->pd3dDevice->Release(); }
     //if (bd->pd3dDeviceContext)    { bd->pd3dDeviceContext->Release(); }
     io.BackendRendererName = nullptr;

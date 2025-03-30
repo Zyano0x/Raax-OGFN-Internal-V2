@@ -3,12 +3,18 @@
 namespace SDK
 {
     void UObject::ProcessEvent(class UFunction* Function, void* Parms) {
-        if (this) {
-            void(*PE)(class UObject* Object, class UFunction* Function, void* Parms) = (decltype(PE))this->VTable[ProcessEvent_Idx];
-            PE(this, Function, Parms);
-        }
+        void(*PE)(class UObject* Object, class UFunction* Function, void* Parms) = (decltype(PE))this->VTable[ProcessEvent_Idx];
+        PE(this, Function, Parms);
     }
 
+    bool UObject::IsA(class UClass* Clss) const {
+        for (UStruct* Super = Class; Super; Super = Super->SuperStruct()) {
+            if (Super == Clss)
+                return true;
+        }
+
+        return false;
+    }
     bool UObject::IsDefaultObject() const {
         return (Flags & 0x10) == 0x10;
     }
@@ -48,6 +54,13 @@ namespace SDK
         return L"None";
     }
 
+    PropertyInfo UObject::GetPropertyInfo(const FName& ClassName, const FName& PropertyName) {
+        return FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindProperty(PropertyName);
+    }
+    UFunction* UObject::GetFunction(const FName& ClassName, const FName& FunctionName) {
+        return FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindFunction(FunctionName);
+    }
+
     class UStruct* UStruct::SuperStruct() {
         return this ? *(UStruct**)((uintptr_t)this + SuperStruct_Offset) : nullptr;
     }
@@ -57,6 +70,44 @@ namespace SDK
     //class FField* UStruct::ChildProperties() {
     //    return this ? *(FField**)((uintptr_t)this + ChildProperties_Offset) : nullptr;
     //}
+
+    PropertyInfo UStruct::FindProperty(const FName& Name) {
+        PropertyInfo Result = { .Found = false };
+
+        for (UField* Child = Children(); Child; Child = Child->Next()) {
+            if (!Child->HasTypeFlag(EClassCastFlags::Property))
+                continue;
+
+            UProperty* Property = reinterpret_cast<UProperty*>(Child);
+            if (Property->Name == Name) {
+                Result.Found = true;
+                Result.Offset = Property->Offset_Internal();
+                Result.Property = Property;
+
+                //if (Property->HasTypeFlag(EClassCastFlags::BoolProperty)) {
+                //    UBoolProperty* BoolProperty = reinterpret_cast<UBoolProperty*>(Property);
+                //    if (!BoolProperty->IsNativeBool())
+                //        Result.ByteMask = BoolProperty->GetFieldMask();
+                //}
+
+                return Result;
+            }
+        }
+
+        return Result;
+    }
+    UFunction* UStruct::FindFunction(const FName& Name) {
+        for (UField* Child = Children(); Child; Child = Child->Next()) {
+            if (!Child->HasTypeFlag(EClassCastFlags::Function))
+                continue;
+
+            UFunction* Function = reinterpret_cast<UFunction*>(Child);
+            if (Function->Name == Name)
+                return Function;
+        }
+
+        return nullptr;
+    }
 
     EClassCastFlags UClass::ClassCastFlags() {
         return this ? *(EClassCastFlags*)((uintptr_t)this + ClassCastFlags_Offset) : EClassCastFlags::None;
