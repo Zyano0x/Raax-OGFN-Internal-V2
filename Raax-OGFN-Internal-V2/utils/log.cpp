@@ -4,8 +4,7 @@
 #include <sstream>
 #include <ctime>
 
-std::string GenerateTimeDateStamp()
-{
+std::string GenerateTimeDateStamp() {
     std::time_t t = std::time(nullptr);
     std::tm tm_info;
     localtime_s(&tm_info, &t);
@@ -23,21 +22,18 @@ std::string GenerateTimeDateStamp()
 }
 
 
-void SetThreadLogName(const std::string& Name)
-{
+void SetThreadLogName(const std::string& Name) {
     loguru::set_thread_name(Name.c_str());
 }
 
-void InitLogger()
-{
+void InitLogger() {
     std::string LogFilePath = "raax_" + GenerateTimeDateStamp() + ".log";
     loguru::add_file(LogFilePath.c_str(), loguru::FileMode::Truncate, loguru::g_stderr_verbosity);
     SetThreadLogName("InitThread");
 }
 
 
-void CreateConsole()
-{
+void CreateConsole() {
     AllocConsole();
 
     FILE* out;
@@ -46,8 +42,7 @@ void CreateConsole()
     freopen_s(&err, "CONOUT$", "w", stderr);
 }
 
-void DestroyConsole()
-{
+void DestroyConsole() {
     fclose(stdout);
     fclose(stderr);
     FreeConsole();

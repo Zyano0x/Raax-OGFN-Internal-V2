@@ -19,12 +19,10 @@ LRESULT __stdcall GUI::h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 }
 
 
-bool GUI::Init()
-{
+bool GUI::Init() {
 	return GUI::DX11::Init();
 }
 
-void GUI::Destroy()
-{
+void GUI::Destroy() {
 	return GUI::DX11::Destroy();
 }

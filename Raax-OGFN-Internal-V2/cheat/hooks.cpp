@@ -2,8 +2,7 @@
 #include <extern/minhook/include/MinHook.h>
 #include <utils/log.h>
 
-bool Hooks::Init()
-{
+bool Hooks::Init() {
     MH_STATUS Result = MH_Initialize();
     if (Result == MH_OK)
         return true;
@@ -12,14 +11,12 @@ bool Hooks::Init()
     return false;
 }
 
-void Hooks::Destroy()
-{
+void Hooks::Destroy() {
     MH_Uninitialize();
 }
 
 
-bool Hooks::CreateHook(void* Target, void* Detour, void** Original)
-{
+bool Hooks::CreateHook(void* Target, void* Detour, void** Original) {
     MH_STATUS Result = MH_CreateHook(Target, Detour, Original);
     if (Result == MH_OK)
         return true;
@@ -28,8 +25,7 @@ bool Hooks::CreateHook(void* Target, void* Detour, void** Original)
     return false;
 }
 
-bool Hooks::EnableHook(void* Target)
-{
+bool Hooks::EnableHook(void* Target) {
     MH_STATUS Result = MH_EnableHook(Target);
     if (Result == MH_OK)
         return true;
@@ -38,8 +34,7 @@ bool Hooks::EnableHook(void* Target)
     return false;
 }
 
-bool Hooks::RemoveHook(void* Target)
-{
+bool Hooks::RemoveHook(void* Target) {
     MH_STATUS Result = MH_RemoveHook(Target);
     if (Result == MH_OK)
         return true;
@@ -48,8 +43,7 @@ bool Hooks::RemoveHook(void* Target)
     return false;
 }
 
-bool Hooks::DisableHook(void* Target)
-{
+bool Hooks::DisableHook(void* Target) {
     MH_STATUS Result = MH_DisableHook(Target);
     if (Result == MH_OK)
         return true;

@@ -23,10 +23,8 @@ inline void* g_ResizeBuffersFunc = nullptr;
 
 typedef HRESULT(__stdcall* t_Present) (IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
 inline t_Present o_Present = nullptr;
-HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags)
-{
-	if (!GUI::SetupImGui)
-	{
+HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags) {
+	if (!GUI::SetupImGui) {
 		GUI::SetupImGui = true;
 
 		if (SUCCEEDED(SwapChain->GetDevice(__uuidof(ID3D11Device), (void**)&g_Device))) {
@@ -70,10 +68,8 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 
 using t_ResizeBuffers = HRESULT(*)(IDXGISwapChain* pThis, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags);
 inline t_ResizeBuffers o_ResizeBuffers = nullptr;
-HRESULT __stdcall h_ResizeBuffers(IDXGISwapChain* pThis, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags)
-{
-	if (g_RenderTargetView)
-	{
+HRESULT __stdcall h_ResizeBuffers(IDXGISwapChain* pThis, UINT BufferCount, UINT Width, UINT Height, DXGI_FORMAT NewFormat, UINT SwapChainFlags) {
+	if (g_RenderTargetView) {
 		g_DeviceContext->OMSetRenderTargets(0, 0, 0);
 		g_RenderTargetView->Release();
 	}
@@ -101,8 +97,7 @@ HRESULT __stdcall h_ResizeBuffers(IDXGISwapChain* pThis, UINT BufferCount, UINT 
 }
 
 
-bool GUI::DX11::Init()
-{
+bool GUI::DX11::Init() {
 	HMODULE D3D11 = GetModuleHandleA("d3d11.dll");
 	if (!D3D11)
 		return false;
@@ -156,8 +151,7 @@ bool GUI::DX11::Init()
 		Hooks::CreateHook(g_ResizeBuffersFunc, h_ResizeBuffers, reinterpret_cast<void**>(&o_ResizeBuffers)) && Hooks::EnableHook(g_ResizeBuffersFunc);
 }
 
-void GUI::DX11::Destroy()
-{
+void GUI::DX11::Destroy() {
 	Hooks::RemoveHook(g_PresentFunc);
 	Hooks::RemoveHook(g_ResizeBuffersFunc);
 

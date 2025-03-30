@@ -1,12 +1,11 @@
 #include "core.h"
 #include <globals.h>
-#include <cheat/SDK/sdk.h>
+#include <cheat/sdk/sdk.h>
 #include <utils/log.h>
 #include <cheat/gui/gui.h>
 #include <cheat/hooks.h>
 
-bool Core::Init()
-{
+bool Core::Init() {
 #if CFG_USELOGGING
     InitLogger();
 #endif
@@ -16,8 +15,7 @@ bool Core::Init()
     return Hooks::Init() && SDK::Init() && GUI::Init();
 }
 
-void Core::Destroy()
-{
+void Core::Destroy() {
     GUI::Destroy();
     Hooks::Destroy();
 

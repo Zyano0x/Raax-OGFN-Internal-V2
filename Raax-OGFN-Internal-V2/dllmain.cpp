@@ -1,21 +1,25 @@
 #include <Windows.h>
 #include <globals.h>
 #include <cheat/core.h>
-#include <cheat/SDK/sdk.h>
+#include <cheat/sdk/sdk.h>
 #include <utils/log.h>
 
-DWORD Main(LPVOID)
-{
+DWORD Main(LPVOID) {
     LOG(LOG_INFO, "Core::Init() -> %d", Core::Init());
 
 #if 0
-    for (int i = 0; i < SDK::UObject::Objects.Num(); i++)
-    {
+    for (int i = 0; i < SDK::UObject::Objects.Num(); i++) {
         SDK::UObject* Obj = SDK::UObject::Objects.GetByIndex(i);
-        if (!Obj)
+        if (!Obj || !Obj->Class || !Obj->IsDefaultObject() || !Obj->Class->Children())
             continue;
 
         LOG(LOG_INFO, "Found Object -> %s", Obj->GetFullName().c_str());
+        for (SDK::UField* Child = Obj->Class->Children(); Child; Child = Child->Next()) {
+            if (Child->HasTypeFlag(SDK::EClassCastFlags::Property))
+                LOG(LOG_INFO, "     Prop  -> 0x%X - %s", ((SDK::UProperty*)Child)->Offset(), Child->GetName().c_str());
+            else
+                LOG(LOG_INFO, "     Child -> %s", Child->GetName().c_str());
+        }
     }
 #endif
 
@@ -29,12 +33,9 @@ DWORD Main(LPVOID)
     return 0;
 }
 
-DWORD Unload(LPVOID hModule)
-{
-    while (true)
-    {
-        if (GetAsyncKeyState(VK_F5) & 1)
-        {
+DWORD Unload(LPVOID hModule) {
+    while (true) {
+        if (GetAsyncKeyState(VK_F5) & 1) {
             LOG(LOG_INFO, "Unloading...");
             Core::Destroy();
             break;
@@ -55,8 +56,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        DisableThreadLibraryCalls(hModule);
 #if CFG_MAINTHREAD
+        DisableThreadLibraryCalls(hModule);
         CreateThread(nullptr, 0, Main, nullptr, 0, nullptr);
 #else
         Main(nullptr);

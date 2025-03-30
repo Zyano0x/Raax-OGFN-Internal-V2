@@ -16,8 +16,7 @@ namespace SDK
         TArray() : Data(nullptr), NumElements(0), MaxElements(0) {};
 
     public:
-        inline bool IsValid()
-        {
+        inline bool IsValid() {
             return Data != nullptr;
         }
     };
@@ -25,15 +24,12 @@ namespace SDK
     class FString : public TArray<wchar_t>
     {
     public:
-        inline std::wstring ToWString()
-        {
+        inline std::wstring ToWString() {
             return IsValid() ? Data : L"";
         }
 
-        inline std::string ToString()
-        {
-            if (IsValid())
-            {
+        inline std::string ToString() {
+            if (IsValid()) {
                 std::wstring WData = ToWString();
                 return std::string(WData.begin(), WData.end());
             }

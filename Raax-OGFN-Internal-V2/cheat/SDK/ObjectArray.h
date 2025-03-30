@@ -32,18 +32,15 @@ namespace SDK
 
 
 	public:
-		inline int32_t Num() const
-		{
+		inline int32_t Num() const {
 			return NumElements;
 		}
 
-		inline FUObjectItem** GetDecrytedObjPtr() const
-		{
+		inline FUObjectItem** GetDecrytedObjPtr() const {
 			return reinterpret_cast<FUObjectItem**>(DecryptPtr(Objects));
 		}
 
-		inline class UObject* GetByIndex(const int32_t Index) const
-		{
+		inline class UObject* GetByIndex(const int32_t Index) const {
 			if (Index < 0 || Index > NumElements)
 				return nullptr;
 
@@ -67,18 +64,15 @@ namespace SDK
 		int32_t NumElements;
 
 	public:
-		inline int Num() const
-		{
+		inline int Num() const {
 			return NumElements;
 		}
 
-		inline FUObjectItem* GetDecrytedObjPtr() const
-		{
+		inline FUObjectItem* GetDecrytedObjPtr() const {
 			return reinterpret_cast<FUObjectItem*>(DecryptPtr(Objects));
 		}
 
-		inline class UObject* GetByIndex(const int32_t Index) const
-		{
+		inline class UObject* GetByIndex(const int32_t Index) const {
 			if (Index < 0 || Index > NumElements)
 				return nullptr;
 
@@ -89,31 +83,28 @@ namespace SDK
 	class TUObjectArray
 	{
 	private:
-		void* ObjectArray;
-		bool IsChunked;
+		void* m_ObjectArray;
+		bool m_IsChunked;
 
 	public:
-		TUObjectArray() : ObjectArray(nullptr), IsChunked(false) {}
+		TUObjectArray() : m_ObjectArray(nullptr), m_IsChunked(false) {}
 
 	public:
-		inline void Initialize(void* Address, bool isChunked)
-		{
-			ObjectArray = Address;
-			IsChunked = isChunked;
+		inline void Initialize(void* Address, bool IsChunked) {
+			m_ObjectArray = Address;
+			m_IsChunked = IsChunked;
 		}
 
-		inline int32_t Num() const
-		{
-			return IsChunked
-				? static_cast<Chunked_TUObjectArray*>(ObjectArray)->Num()
-				: static_cast<Fixed_TUObjectArray*>(ObjectArray)->Num();
+		inline int32_t Num() const {
+			return m_IsChunked
+				? static_cast<Chunked_TUObjectArray*>(m_ObjectArray)->Num()
+				: static_cast<Fixed_TUObjectArray*>(m_ObjectArray)->Num();
 		}
 
-		inline class UObject* GetByIndex(int32_t Index) const
-		{
-			return IsChunked
-				? static_cast<Chunked_TUObjectArray*>(ObjectArray)->GetByIndex(Index)
-				: static_cast<Fixed_TUObjectArray*>(ObjectArray)->GetByIndex(Index);
+		inline class UObject* GetByIndex(int32_t Index) const {
+			return m_IsChunked
+				? static_cast<Chunked_TUObjectArray*>(m_ObjectArray)->GetByIndex(Index)
+				: static_cast<Fixed_TUObjectArray*>(m_ObjectArray)->GetByIndex(Index);
 		}
 	};
 }

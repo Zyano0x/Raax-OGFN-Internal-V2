@@ -18,11 +18,11 @@
     <ClCompile Include="utils\error.cpp" />
     <ClCompile Include="cheat\core.cpp" />
     <ClCompile Include="utils\memory.cpp" />
-    <ClCompile Include="cheat\SDK\sdk.cpp" />
+    <ClCompile Include="cheat\sdk\sdk.cpp" />
     <ClCompile Include="extern\loguru\loguru.cpp" />
     <ClCompile Include="utils\log.cpp" />
-    <ClCompile Include="cheat\SDK\Basic.cpp" />
-    <ClCompile Include="cheat\SDK\CoreUObject.cpp" />
+    <ClCompile Include="cheat\sdk\Basic.cpp" />
+    <ClCompile Include="cheat\sdk\CoreUObject.cpp" />
     <ClCompile Include="cheat\gui\gui.cpp" />
     <ClCompile Include="cheat\gui\dx11\dx11.cpp" />
   </ItemGroup>
@@ -48,13 +48,13 @@
     <ClInclude Include="cheat\core.h" />
     <ClInclude Include="utils\log.h" />
     <ClInclude Include="utils\memory.h" />
-    <ClInclude Include="cheat\SDK\sdk.h" />
-    <ClInclude Include="cheat\SDK\CoreUObject.h" />
-    <ClInclude Include="cheat\SDK\Basic.h" />
+    <ClInclude Include="cheat\sdk\sdk.h" />
+    <ClInclude Include="cheat\sdk\CoreUObject.h" />
+    <ClInclude Include="cheat\sdk\Basic.h" />
     <ClInclude Include="globals.h" />
-    <ClInclude Include="cheat\SDK\ObjectArray.h" />
+    <ClInclude Include="cheat\sdk\ObjectArray.h" />
     <ClInclude Include="extern\loguru\loguru.hpp" />
-    <ClInclude Include="cheat\SDK\Containers.h" />
+    <ClInclude Include="cheat\sdk\Containers.h" />
     <ClInclude Include="cheat\gui\gui.h" />
     <ClInclude Include="cheat\gui\dx11\dx11.h" />
   </ItemGroup>
