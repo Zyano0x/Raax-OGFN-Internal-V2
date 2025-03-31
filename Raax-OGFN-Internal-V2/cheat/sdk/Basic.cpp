@@ -50,4 +50,10 @@ namespace SDK
         ComparisonIndex = New.ComparisonIndex;
         Number = New.Number;
     }
+
+    const FLinearColor FLinearColor::White = FLinearColor(1.f, 1.f, 1.f, 1.f);
+    const FLinearColor FLinearColor::Black = FLinearColor(0.f, 0.f, 0.f, 1.f);
+    const FLinearColor FLinearColor::Red = FLinearColor(1.f, 0.f, 0.f, 1.f);
+    const FLinearColor FLinearColor::Green = FLinearColor(0.f, 1.f, 0.f, 1.f);
+    const FLinearColor FLinearColor::Blue = FLinearColor(0.f, 0.f, 1.f, 1.f);
 }

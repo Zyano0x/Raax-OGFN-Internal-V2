@@ -134,15 +134,65 @@ namespace SDK
 	class USceneComponent : public UObject
 	{
 	public:
+		static inline uint32_t ComponentToWorld_Offset;
+
+	public:
 		FVector RelativeLocation() {
 			static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "RelativeLocation");
 			if (this && Prop.Found)
 				return *(FVector*)((uintptr_t)this + Prop.Offset);
 			return {};
 		}
+		FTransform ComponentToWorld() {
+			if (this)
+				return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
+			return {};
+		}
 
 	public:
 		STATICCLASS_DEFAULTOBJECT("SceneComponent", USceneComponent)
+	};
+
+	class USkinnedMeshComponent : public USceneComponent
+	{
+	public:
+		static inline uint32_t ComponentSpaceTransformsArray_Offset;
+
+	public:
+		TArray<FTransform> ComponentSpaceTransformsArray() {
+			if (this) {
+				TArray<FTransform> FirstArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
+				if (FirstArray.IsValid())
+					return FirstArray;
+
+				TArray<FTransform> SecondArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
+				if (SecondArray.IsValid())
+					return SecondArray;
+			}
+			return {};
+		}
+	};
+
+	class USkeletalMeshComponent : public USkinnedMeshComponent
+	{
+	public:
+		FTransform GetBoneMatrix(int32_t BoneIndex) {
+			if (this) {
+				TArray<FTransform> Array = ComponentSpaceTransformsArray();
+				return Array[BoneIndex];
+			}
+			return {};
+		}
+		FVector GetBoneLocation(int32_t BoneIndex) {
+			if (this) {
+				FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
+				FTransform ComponentToWrld = ComponentToWorld();
+
+				FMatrix Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
+				return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
+			}
+			return {};
+		}
 	};
 
 
@@ -186,6 +236,20 @@ namespace SDK
 
 	public:
 		STATICCLASS_DEFAULTOBJECT("Pawn", APawn)
+	};
+
+	class ACharacter : public APawn
+	{
+	public:
+		class USkeletalMeshComponent* Mesh() {
+			static PropertyInfo Prop = GetPropertyInfo("Character", "Mesh");
+			if (this && Prop.Found)
+				return *(class USkeletalMeshComponent**)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("Character", ACharacter)
 	};
 
 	class APlayerState : public AActor

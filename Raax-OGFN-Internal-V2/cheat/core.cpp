@@ -2,7 +2,7 @@
 #include <globals.h>
 #include <cheat/sdk/sdk.h>
 #include <utils/log.h>
-#include <cheat/gui/gui.h>
+#include <gui/gui.h>
 #include <cheat/hooks.h>
 
 bool Core::Init() {

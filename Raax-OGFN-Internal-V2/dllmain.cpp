@@ -70,6 +70,7 @@ DWORD Unload(LPVOID hModule) {
         Sleep(100);
     }
 
+    Sleep(100);
     FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), 0);
 }
 

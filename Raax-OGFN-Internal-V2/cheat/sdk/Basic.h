@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <immintrin.h>
 
 namespace SDK
 {
@@ -174,7 +175,8 @@ namespace SDK
 		float M[4][4];
 
 	public:
-		FMatrix operator*(const FMatrix& m2) const {
+		FMatrix operator*(const FMatrix& B) const {
+#if 0
 			FMatrix out;
 			for (uint8_t r = 0; r < 4; r++) {
 				for (uint8_t c = 0; c < 4; c++) {
@@ -188,6 +190,179 @@ namespace SDK
 			}
 
 			return out;
+#else
+			FMatrix result = {0}; // Initialize to zero
+
+			__m128 rightRow[4];  // Rows from B matrix
+			__m128 resultRow[4]; // Rows for result matrix
+
+			// Load rows from B matrix
+			for (int i = 0; i < 4; ++i) {
+				rightRow[i] = _mm_loadu_ps(B.M[i]);
+			}
+
+			// Initialize result rows to zero
+			__m128 zero = _mm_setzero_ps();
+			for (int i = 0; i < 4; ++i) {
+				resultRow[i] = zero;
+			}
+
+			// Perform multiplication and accumulation
+			for (int i = 0; i < 4; ++i) {          // For each row in A
+				for (int j = 0; j < 4; ++j) {      // For each column in A
+					__m128 a = _mm_set1_ps(this->M[i][j]); // Broadcast A[i][j]
+					resultRow[i] = _mm_add_ps(resultRow[i], _mm_mul_ps(a, rightRow[j]));
+				}
+				_mm_storeu_ps(result.M[i], resultRow[i]);
+			}
+
+			return result;
+#endif
 		}
+	};
+
+	struct FQuat
+	{
+	public:
+		float X;
+		float Y;
+		float Z;
+		float W;
+	};
+
+	struct FTransform
+	{
+	public:
+		FQuat Rotation;
+		FVector Translation;
+		int _pad1;
+		FVector Scale;
+		int _pad2;
+
+	public:
+		FMatrix ToMatrixWithScale() const {
+#if 0
+			FMatrix m;
+			m.M[3][0] = Translation.X;
+			m.M[3][1] = Translation.Y;
+			m.M[3][2] = Translation.Z;
+
+			float x2 = Rotation.X + Rotation.X;
+			float y2 = Rotation.Y + Rotation.Y;
+			float z2 = Rotation.Z + Rotation.Z;
+
+			float xx2 = Rotation.X * x2;
+			float yy2 = Rotation.Y * y2;
+			float zz2 = Rotation.Z * z2;
+			m.M[0][0] = (1.f - (yy2 + zz2)) * Scale.X;
+			m.M[1][1] = (1.f - (xx2 + zz2)) * Scale.Y;
+			m.M[2][2] = (1.f - (xx2 + yy2)) * Scale.Z;
+
+			float yz2 = Rotation.Y * z2;
+			float wx2 = Rotation.W * x2;
+			m.M[2][1] = (yz2 - wx2) * Scale.Z;
+			m.M[1][2] = (yz2 + wx2) * Scale.Y;
+
+			float xy2 = Rotation.X * y2;
+			float wz2 = Rotation.W * z2;
+			m.M[1][0] = (xy2 - wz2) * Scale.Y;
+			m.M[0][1] = (xy2 + wz2) * Scale.X;
+
+			float xz2 = Rotation.X * z2;
+			float wy2 = Rotation.W * y2;
+			m.M[2][0] = (xz2 + wy2) * Scale.Z;
+			m.M[0][2] = (xz2 - wy2) * Scale.X;
+
+			m.M[0][3] = 0.f;
+			m.M[1][3] = 0.f;
+			m.M[2][3] = 0.f;
+			m.M[3][3] = 1.f;
+
+			return m;
+#else
+			FMatrix m;
+
+			// Translation part
+			m.M[3][0] = Translation.X;
+			m.M[3][1] = Translation.Y;
+			m.M[3][2] = Translation.Z;
+			m.M[3][3] = 1.0f;
+
+			// Load quaternion components into vectors
+			__m128 vec_X = _mm_set1_ps(Rotation.X);
+			__m128 vec_Y = _mm_set1_ps(Rotation.Y);
+			__m128 vec_Z = _mm_set1_ps(Rotation.Z);
+			__m128 vec_W = _mm_set1_ps(Rotation.W);
+
+			// Compute products needed for rotation matrix
+			__m128 vec_XY = _mm_mul_ps(vec_X, vec_Y);
+			__m128 vec_XZ = _mm_mul_ps(vec_X, vec_Z);
+			__m128 vec_YZ = _mm_mul_ps(vec_Y, vec_Z);
+			__m128 vec_WX = _mm_mul_ps(vec_W, vec_X);
+			__m128 vec_WY = _mm_mul_ps(vec_W, vec_Y);
+			__m128 vec_WZ = _mm_mul_ps(vec_W, vec_Z);
+
+			// Compute squares for diagonal terms
+			__m128 vec_XX = _mm_mul_ps(vec_X, vec_X);
+			__m128 vec_YY = _mm_mul_ps(vec_Y, vec_Y);
+			__m128 vec_ZZ = _mm_mul_ps(vec_Z, vec_Z);
+
+			// Compute sums for diagonal terms and multiply by 2
+			float yy2_plus_zz2 = 2.0f * _mm_cvtss_f32(_mm_add_ps(vec_YY, vec_ZZ));
+			float xx2_plus_zz2 = 2.0f * _mm_cvtss_f32(_mm_add_ps(vec_XX, vec_ZZ));
+			float xx2_plus_yy2 = 2.0f * _mm_cvtss_f32(_mm_add_ps(vec_XX, vec_YY));
+
+			// Compute diagonal elements
+			m.M[0][0] = (1.0f - yy2_plus_zz2) * Scale.X;
+			m.M[1][1] = (1.0f - xx2_plus_zz2) * Scale.Y;
+			m.M[2][2] = (1.0f - xx2_plus_yy2) * Scale.Z;
+
+			// Compute off-diagonal terms using SIMD and apply scale per row
+			// Row 0: Scale.X
+			__m128 row0_b = _mm_mul_ps(_mm_add_ps(vec_XY, vec_WZ), _mm_set1_ps(2.0f * Scale.X));
+			__m128 row0_c = _mm_mul_ps(_mm_sub_ps(vec_XZ, vec_WY), _mm_set1_ps(2.0f * Scale.X));
+			m.M[0][1] = _mm_cvtss_f32(row0_b);
+			m.M[0][2] = _mm_cvtss_f32(row0_c);
+
+			// Row 1: Scale.Y
+			__m128 row1_b = _mm_mul_ps(_mm_sub_ps(vec_XY, vec_WZ), _mm_set1_ps(2.0f * Scale.Y));
+			__m128 row1_c = _mm_mul_ps(_mm_add_ps(vec_YZ, vec_WX), _mm_set1_ps(2.0f * Scale.Y));
+			m.M[1][0] = _mm_cvtss_f32(row1_b);
+			m.M[1][2] = _mm_cvtss_f32(row1_c);
+
+			// Row 2: Scale.Z
+			__m128 row2_b = _mm_mul_ps(_mm_add_ps(vec_XZ, vec_WY), _mm_set1_ps(2.0f * Scale.Z));
+			__m128 row2_c = _mm_mul_ps(_mm_sub_ps(vec_YZ, vec_WX), _mm_set1_ps(2.0f * Scale.Z));
+			m.M[2][0] = _mm_cvtss_f32(row2_b);
+			m.M[2][1] = _mm_cvtss_f32(row2_c);
+
+			// Set remaining elements
+			m.M[0][3] = 0.0f;
+			m.M[1][3] = 0.0f;
+			m.M[2][3] = 0.0f;
+
+			return m;
+#endif
+		}
+	};
+
+	struct FLinearColor
+	{
+	public:
+		float R;
+		float G;
+		float B;
+		float A;
+
+	public:
+		inline FLinearColor() : R(0), G(0), B(0), A(0) {}
+		inline FLinearColor(float R, float G, float B, float A) : R(R), G(G), B(B), A(A) {}
+
+	public:
+		static const FLinearColor White;
+		static const FLinearColor Black;
+		static const FLinearColor Red;
+		static const FLinearColor Green;
+		static const FLinearColor Blue;
 	};
 }

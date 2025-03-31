@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -99,8 +99,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cheat\core.cpp" />
-    <ClCompile Include="cheat\gui\dx11\dx11.cpp" />
-    <ClCompile Include="cheat\gui\gui.cpp" />
+    <ClCompile Include="drawing\drawing.cpp" />
+    <ClCompile Include="gui\dx11\dx11.cpp" />
+    <ClCompile Include="gui\gui.cpp" />
     <ClCompile Include="cheat\hooks.cpp" />
     <ClCompile Include="cheat\sdk\Basic.cpp" />
     <ClCompile Include="cheat\sdk\CoreUObject.cpp" />
@@ -126,8 +127,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\core.h" />
-    <ClInclude Include="cheat\gui\dx11\dx11.h" />
-    <ClInclude Include="cheat\gui\gui.h" />
+    <ClInclude Include="drawing\drawing.h" />
+    <ClInclude Include="drawing\fontdata.h" />
+    <ClInclude Include="gui\dx11\dx11.h" />
+    <ClInclude Include="gui\gui.h" />
     <ClInclude Include="cheat\hooks.h" />
     <ClInclude Include="cheat\sdk\Basic.h" />
     <ClInclude Include="cheat\sdk\Containers.h" />

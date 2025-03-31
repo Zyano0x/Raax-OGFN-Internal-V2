@@ -274,9 +274,31 @@ bool SetupLevelActors() {
     LOG(LOG_ERROR, "Failed to find ULevel::Actors offset!");
     return false;
 }
+bool SetupComponentSpaceTransformsArray() {
+    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("SkinnedMeshComponent", "MasterPoseComponent");
+    if (Info.Found) {
+        SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset = Info.Offset + 8;
+        LOG(LOG_INFO, "Found USkinnedMeshComponent::ComponentSpaceTransformsArray offset: 0x%X", SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset);
+        return true;
+    }
+
+    LOG(LOG_ERROR, "Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
+    return false;
+}
+bool FindComponentToWorldOffset() {
+    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("CameraComponent", "FieldOfView");
+    if (Info.Found) {
+        SDK::USceneComponent::ComponentToWorld_Offset = Info.Offset - sizeof(SDK::FTransform);
+        LOG(LOG_INFO, "Found USceneComponent::ComponentToWorld offset: 0x%X", SDK::USceneComponent::ComponentToWorld_Offset);
+        return true;
+    }
+
+    LOG(LOG_ERROR, "Failed to find USceneComponent::ComponentToWorld offset!");
+    return false;
+}
 
 bool SetupUnrealFortniteOffsets() {
-    return SetupProcessEvent() && SetupViewProjectionMatrix() && SetupLevelActors();
+    return SetupProcessEvent() && SetupViewProjectionMatrix() && SetupLevelActors() && SetupComponentSpaceTransformsArray() && FindComponentToWorldOffset();
 }
 
 
