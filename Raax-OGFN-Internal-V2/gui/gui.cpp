@@ -12,17 +12,22 @@
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 LRESULT __stdcall GUI::h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	std::lock_guard<std::recursive_mutex> lock(WndProcMutex);
 	if (GUI::SetupImGui)
 		ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
 
-	return o_WndProc(hWnd, uMsg, wParam, lParam);
+	if (SetupImGui)
+		return o_WndProc(hWnd, uMsg, wParam, lParam);
+	return 0;
 }
 
 
 bool GUI::Init() {
+	LOG(LOG_TRACE, "Setting up GUI...");
 	return GUI::DX11::Init();
 }
 
 void GUI::Destroy() {
+	LOG(LOG_TRACE, "Destroying GUI...");
 	return GUI::DX11::Destroy();
 }

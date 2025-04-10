@@ -48,7 +48,7 @@ namespace Memory
      * @param WarnIfNotFound - Log a warning message if the pattern is not found.
      * @return The address of the first match found, or 0 if no match is found.
      */
-    template<typename OperandSize>
+    template<typename OperandSize = int32_t>
     static uintptr_t PatternScanRangeBytes(uintptr_t StartAddress, uint64_t ScanSize, const std::vector<int>& Bytes, bool Backwards = false, int Offset = -1, bool RelativeAddress = false, bool WarnIfNotFound = true) {
         const size_t PatternLength = Bytes.size();
         const uint8_t* ScanBytes = reinterpret_cast<uint8_t*>(StartAddress);
@@ -114,7 +114,7 @@ namespace Memory
     * @param RelativeAddress - If true, computes a relative address based on OperandSize.
     * @return The address of the first match found, or 0 if no match is found.
     */
-    template<typename OperandSize>
+    template<typename OperandSize = int32_t>
     static uintptr_t PatternScanRange(uintptr_t StartAddress, uint64_t ScanSize, const char* Pattern, bool Backwards = false, int Offset = -1, bool RelativeAddress = false) {
         static auto PatternToByte = [](const char* Pattern) {
                 std::vector<int> Result;
@@ -148,7 +148,7 @@ namespace Memory
     * @brief Scans the main executable image for a byte pattern.
     * This function is a convenience wrapper around PatternScan, automatically scanning the main executable image.
     */
-    template<typename OperandSize>
+    template<typename OperandSize = int32_t>
     static uintptr_t PatternScan(const char* Pattern, int Offset = -1, bool RelativeAddress = false) {
         return PatternScanRange<OperandSize>(GetImageBase(), GetImageSize(), Pattern, false, Offset, RelativeAddress);
     }

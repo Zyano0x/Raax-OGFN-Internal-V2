@@ -1,9 +1,33 @@
 #pragma once
 #include "Containers.h"
 #include "CoreUObject.h"
+#include <utils/log.h>
+#include <vector>
 
 namespace SDK
 {
+	class UKismetSystemLibrary : public UObject
+	{
+	public:
+		static FString GetEngineVersion() {
+			static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
+			struct {
+				FString ReturnValue;
+			} params{};
+
+			if (Func)
+				StaticClass()->ProcessEvent(Func, &params);
+			else
+				LOG(LOG_WARN, "Failed to find UKismetSystemLibrary::GetEngineVersion!");
+
+			return params.ReturnValue;
+		}
+
+	public:
+		STATICCLASS_DEFAULTOBJECT("KismetSystemLibrary", UKismetSystemLibrary)
+	};
+
+
 	class UEngine : public UObject
 	{
 	public:
@@ -86,6 +110,7 @@ namespace SDK
 	{
 	public:
 		static inline uint32_t ViewProjectionMatrix_Offset;
+		static inline int PostRender_Idx;
 
 	public:
 		inline int32_t SizeX() {
@@ -144,8 +169,25 @@ namespace SDK
 			return {};
 		}
 		FTransform ComponentToWorld() {
-			if (this)
-				return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
+			if (this) {
+				if (ComponentToWorld_Offset) {
+					return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
+				}
+				else {
+					static UFunction* Func = GetFunction("SceneComponent", "K2_GetComponentToWorld");
+					struct {
+						FTransform ReturnValue;
+					} params{};
+
+					if (Func)
+						ProcessEvent(Func, &params);
+					else
+						LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld!");
+
+					return params.ReturnValue;
+				}
+			}
+
 			return {};
 		}
 
@@ -171,6 +213,20 @@ namespace SDK
 			}
 			return {};
 		}
+		int32_t GetBoneIndex(FName BoneName) {
+			static UFunction* Func = GetFunction("SkinnedMeshComponent", "GetBoneIndex");
+			struct {
+				FName BoneName;
+				int32_t ReturnValue;
+			} params{};
+
+			params.BoneName = BoneName;
+
+			if (this && Func)
+				ProcessEvent(Func, &params);
+
+			return params.ReturnValue;
+		}
 	};
 
 	class USkeletalMeshComponent : public USkinnedMeshComponent
@@ -179,7 +235,8 @@ namespace SDK
 		FTransform GetBoneMatrix(int32_t BoneIndex) {
 			if (this) {
 				TArray<FTransform> Array = ComponentSpaceTransformsArray();
-				return Array[BoneIndex];
+				if (Array.IsValid())
+					return Array[BoneIndex];
 			}
 			return {};
 		}
@@ -282,4 +339,33 @@ namespace SDK
 
 	FVector Project3D(const FVector& Location);
 	FVector2D Project(const FVector& Location);
+
+	template<typename UEType = AActor>
+	inline std::vector<UEType*> GetAllActorsOfClass() {
+		static_assert(std::is_base_of_v<AActor, UEType>, "Cannot call GetAllActorsOfClass with class that doesn't inherit from AActor!");
+		std::vector<UEType*> Result;
+
+		UWorld* World = GetWorld();
+		if (!World)
+			return Result;
+
+		ULevel* PersistentLevel = World->PersistentLevel();
+		if (!PersistentLevel)
+			return Result;
+
+		TArray<AActor*> Actors = PersistentLevel->Actors();
+		if (!Actors.IsValid() || Actors.Num() <= 0)
+			return Result;
+
+		for (int i = 0; i < Actors.Num(); i++) {
+			AActor* Actor = Actors[i];
+			if (!Actor)
+				continue;
+
+			if (Actor->IsA(UEType::StaticClass()))
+				Result.push_back(static_cast<UEType*>(Actor));
+		}
+
+		return Result;
+	}
 }

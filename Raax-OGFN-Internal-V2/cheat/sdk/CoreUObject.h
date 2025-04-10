@@ -2,6 +2,7 @@
 #include <string>
 #include "ObjectArray.h"
 #include "Basic.h"
+#include "FProperty.h"
 
 /* @brief Sets up StaticClass() and GetDefaultObj() functions. */
 #define STATICCLASS_DEFAULTOBJECT(ClassName, Type) \
@@ -26,7 +27,10 @@ namespace SDK
         bool Found = false;
         int32_t Offset;
         //uint8_t ByteMask;
-        class UProperty* Property;
+        union {
+            class UProperty* Prop;
+            class FProperty* FProp;
+        };
     };
 
 
@@ -112,12 +116,12 @@ namespace SDK
     public:
         static inline uint32_t SuperStruct_Offset;
         static inline uint32_t Children_Offset;
-        //static inline uint32_t ChildProperties_Offset;
+        static inline uint32_t ChildProperties_Offset;
 
     public:
         class UStruct* SuperStruct();
         class UField* Children();
-        //class FField* ChildProperties();
+        class FField* ChildProperties();
 
     public:
         PropertyInfo FindProperty(const FName& Name);
@@ -156,8 +160,10 @@ namespace SDK
     {
     public:
         static inline uint32_t FunctionFlags_Offset;
+        static inline uint32_t FuncPtr_Offset;
 
     public:
         EFunctionFlags FunctionFlags();
+        void* FuncPtr();
     };
 }

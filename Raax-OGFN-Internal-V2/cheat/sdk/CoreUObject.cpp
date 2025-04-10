@@ -1,4 +1,6 @@
 #include "CoreUObject.h"
+#include "sdk.h"
+#include <utils/log.h>
 
 namespace SDK
 {
@@ -67,33 +69,49 @@ namespace SDK
     class UField* UStruct::Children() {
         return this ? *(UField**)((uintptr_t)this + Children_Offset) : nullptr;
     }
-    //class FField* UStruct::ChildProperties() {
-    //    return this ? *(FField**)((uintptr_t)this + ChildProperties_Offset) : nullptr;
-    //}
+    class FField* UStruct::ChildProperties() {
+        return this ? *(FField**)((uintptr_t)this + ChildProperties_Offset) : nullptr;
+    }
 
     PropertyInfo UStruct::FindProperty(const FName& Name) {
         PropertyInfo Result = { .Found = false };
 
-        for (UField* Child = Children(); Child; Child = Child->Next()) {
-            if (!Child->HasTypeFlag(EClassCastFlags::Property))
-                continue;
+        if (SDK::EngineVersion < 4.25) {
+            for (UField* Child = Children(); Child; Child = Child->Next()) {
+                if (!Child->HasTypeFlag(EClassCastFlags::Property))
+                    continue;
 
-            UProperty* Property = reinterpret_cast<UProperty*>(Child);
-            if (Property->Name == Name) {
-                Result.Found = true;
-                Result.Offset = Property->Offset_Internal();
-                Result.Property = Property;
+                UProperty* Property = reinterpret_cast<UProperty*>(Child);
+                if (Property->Name == Name) {
+                    Result.Found = true;
+                    Result.Offset = Property->Offset_Internal();
+                    Result.Prop = Property;
 
-                //if (Property->HasTypeFlag(EClassCastFlags::BoolProperty)) {
-                //    UBoolProperty* BoolProperty = reinterpret_cast<UBoolProperty*>(Property);
-                //    if (!BoolProperty->IsNativeBool())
-                //        Result.ByteMask = BoolProperty->GetFieldMask();
-                //}
+                    //if (Property->HasTypeFlag(EClassCastFlags::BoolProperty)) {
+                    //    UBoolProperty* BoolProperty = reinterpret_cast<UBoolProperty*>(Property);
+                    //    if (!BoolProperty->IsNativeBool())
+                    //        Result.ByteMask = BoolProperty->GetFieldMask();
+                    //}
 
-                return Result;
+                    return Result;
+                }
+            }
+        }
+        else {
+            for (FField* ChildProperty = ChildProperties(); ChildProperty && ChildProperty->Class; ChildProperty = ChildProperty->Next) {
+                if (ChildProperty->HasTypeFlag(EClassCastFlags::Property) && ChildProperty->Name == Name) {
+                    FProperty* Property = reinterpret_cast<FProperty*>(ChildProperty);
+
+                    Result.Found = true;
+                    Result.Offset = Property->Offset;
+                    Result.FProp = Property;
+
+                    return Result;
+                }
             }
         }
 
+        LOG(LOG_WARN, "Failed to find property: %s", Name.ToString().c_str());
         return Result;
     }
     UFunction* UStruct::FindFunction(const FName& Name) {
@@ -106,6 +124,7 @@ namespace SDK
                 return Function;
         }
 
+        LOG(LOG_WARN, "Failed to find UFunction: %s", Name.ToString().c_str());
         return nullptr;
     }
 
@@ -126,5 +145,8 @@ namespace SDK
 
     EFunctionFlags UFunction::FunctionFlags() {
         return this ? *(EFunctionFlags*)((uintptr_t)this + FunctionFlags_Offset) : EFunctionFlags::None;
+    }
+    void* UFunction::FuncPtr() {
+        return this ? *(void**)((uintptr_t)this + FuncPtr_Offset) : nullptr;
     }
 }

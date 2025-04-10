@@ -3,6 +3,8 @@
 #include <utils/log.h>
 
 bool Hooks::Init() {
+    LOG(LOG_TRACE, "Setting up Hooks...");
+
     MH_STATUS Result = MH_Initialize();
     if (Result == MH_OK)
         return true;
@@ -12,6 +14,7 @@ bool Hooks::Init() {
 }
 
 void Hooks::Destroy() {
+    LOG(LOG_TRACE, "Destroying Hooks...");
     MH_Uninitialize();
 }
 
@@ -21,7 +24,7 @@ bool Hooks::CreateHook(void* Target, void* Detour, void** Original) {
     if (Result == MH_OK)
         return true;
 
-    LOG(LOG_WARN, "CreateHook failed! (%d, %s)", Result, MH_StatusToString(Result));
+    LOG(LOG_WARN, "MH_CreateHook failed! (%d, %s)", Result, MH_StatusToString(Result));
     return false;
 }
 
@@ -30,7 +33,7 @@ bool Hooks::EnableHook(void* Target) {
     if (Result == MH_OK)
         return true;
 
-    LOG(LOG_WARN, "EnableHook failed! (%d, %s)", Result, MH_StatusToString(Result));
+    LOG(LOG_WARN, "MH_EnableHook failed! (%d, %s)", Result, MH_StatusToString(Result));
     return false;
 }
 
@@ -39,7 +42,7 @@ bool Hooks::RemoveHook(void* Target) {
     if (Result == MH_OK)
         return true;
 
-    LOG(LOG_WARN, "RemoveHook failed! (%d, %s)", Result, MH_StatusToString(Result));
+    LOG(LOG_WARN, "MH_RemoveHook failed! (%d, %s)", Result, MH_StatusToString(Result));
     return false;
 }
 
@@ -48,6 +51,6 @@ bool Hooks::DisableHook(void* Target) {
     if (Result == MH_OK)
         return true;
 
-    LOG(LOG_WARN, "DisableHook failed! (%d, %s)", Result, MH_StatusToString(Result));
+    LOG(LOG_WARN, "MH_DisableHook failed! (%d, %s)", Result, MH_StatusToString(Result));
     return false;
 }

@@ -156,6 +156,109 @@ namespace SDK
 	public:
 		inline FVector() : X(0.0), Y(0.0), Z(0.0) { }
 		inline FVector(float X, float Y, float Z) : X(X), Y(Y), Z(Z) { }
+
+	public:
+		FVector operator+(const FVector& Other) const {
+			return FVector(X + Other.X, Y + Other.Y, Z + Other.Z);
+		}
+
+		FVector operator-(const FVector& Other) const {
+			return FVector(X - Other.X, Y - Other.Y, Z - Other.Z);
+		}
+
+		FVector operator*(const FVector& Other) const {
+			return FVector(X * Other.X, Y * Other.Y, Z * Other.Z);
+		}
+
+		FVector operator/(const FVector& Other) const {
+			return FVector(X / Other.X, Y / Other.Y, Z / Other.Z);
+		}
+
+		bool operator==(const FVector& Other) const {
+			return X == Other.X && Y == Other.Y && Z == Other.Z;
+		}
+
+		bool operator!=(const FVector& Other) const {
+			return X != Other.X || Y != Other.Y || Z != Other.Z;
+		}
+
+		FVector operator+=(const FVector& Other) {
+			X += Other.X;
+			Y += Other.Y;
+			Z += Other.Z;
+			return *this;
+		}
+
+		FVector operator-=(const FVector& Other) {
+			X -= Other.X;
+			Y -= Other.Y;
+			Z -= Other.Z;
+			return *this;
+		}
+
+		FVector operator*=(const FVector& Other) {
+			X *= Other.X;
+			Y *= Other.Y;
+			Z *= Other.Z;
+			return *this;
+		}
+
+		FVector operator/=(const FVector& Other) {
+			X /= Other.X;
+			Y /= Other.Y;
+			Z /= Other.Z;
+			return *this;
+		}
+
+		FVector operator*(float Scale) const {
+			return FVector(X * Scale, Y * Scale, Z * Scale);
+		}
+
+		FVector operator/(float Scale) const {
+			const float RScale = 1.f / Scale;
+			return FVector(X * RScale, Y * RScale, Z * RScale);
+		}
+
+		FVector operator+=(float Scale) {
+			X += Scale;
+			Y += Scale;
+			Z += Scale;
+			return *this;
+		}
+
+		FVector operator-=(float Scale) {
+			X -= Scale;
+			Y -= Scale;
+			Z -= Scale;
+			return *this;
+		}
+
+		FVector operator*=(float Scale) {
+			X *= Scale;
+			Y *= Scale;
+			Z *= Scale;
+			return *this;
+		}
+
+		FVector operator/=(float Scale) {
+			const float RScale = 1.f / Scale;
+			X *= RScale;
+			Y *= RScale;
+			Z *= RScale;
+			return *this;
+		}
+
+		float Dot(const FVector& Other) const {
+			return X * Other.X + Y * Other.Y + Z * Other.Z;
+		}
+
+		FVector Cross(const FVector& Other) const {
+			return FVector(
+				Y * Other.Z - Z * Other.Y,
+				Z * Other.X - X * Other.Z,
+				X * Other.Y - Y * Other.X
+			);
+		}
 	};
 
 	struct FVector2D

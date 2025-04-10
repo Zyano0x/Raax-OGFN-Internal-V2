@@ -99,6 +99,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cheat\core.cpp" />
+    <ClCompile Include="cheat\features\player.cpp" />
     <ClCompile Include="drawing\drawing.cpp" />
     <ClCompile Include="gui\dx11\dx11.cpp" />
     <ClCompile Include="gui\gui.cpp" />
@@ -127,6 +128,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\core.h" />
+    <ClInclude Include="cheat\features\player.h" />
+    <ClInclude Include="cheat\sdk\FortniteGame.h" />
+    <ClInclude Include="cheat\sdk\FProperty.h" />
     <ClInclude Include="drawing\drawing.h" />
     <ClInclude Include="drawing\fontdata.h" />
     <ClInclude Include="gui\dx11\dx11.h" />

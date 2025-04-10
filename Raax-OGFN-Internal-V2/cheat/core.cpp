@@ -6,6 +6,7 @@
 #include <cheat/hooks.h>
 
 bool Core::Init() {
+    LOG(LOG_TRACE, "Setting up core...");
 #if CFG_USELOGGING
     InitLogger();
 #endif

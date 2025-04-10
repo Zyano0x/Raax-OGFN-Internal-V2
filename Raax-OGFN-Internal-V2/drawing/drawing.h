@@ -4,6 +4,7 @@
 namespace Drawing
 {
     void Init();
+    void Tick();
 
     // add outline soon
     void Line(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPositionB,

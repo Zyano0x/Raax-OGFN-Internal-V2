@@ -9,6 +9,7 @@
 #include <extern/imgui/imgui_impl_dx11.h>
 #include <cheat/sdk/sdk.h> // TEMP
 #include <drawing/drawing.h>
+#include <cheat/features/player.h>
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -24,10 +25,12 @@ inline void* g_PresentFunc = nullptr;
 inline void* g_ResizeBuffersFunc = nullptr;
 inline void* g_WndProc = nullptr;
 inline bool g_PendingShutdown = false;
+inline bool g_Hooked = false;
 
 typedef HRESULT(__stdcall* t_Present) (IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
 inline t_Present o_Present = nullptr;
 HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags) {
+	std::lock_guard<std::recursive_mutex> lock(GUI::WndProcMutex);
 	if (!GUI::SetupImGui) {
 		GUI::SetupImGui = true;
 
@@ -62,10 +65,18 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	Drawing::Tick();
+
 	ImGui::Begin("hi");
 
 	ImGui::Text("Thank you for using my cheat! I hope you find it fun and useful.");
 	ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
+
+
+	//Features::Player::Tick();
+
+#if 0
+	auto array = SDK::GetAllActorsOfClass();
 
 	auto Actors = SDK::GetWorld()->PersistentLevel()->Actors();
 	for (int i = 0; i < Actors.Num(); i++) {
@@ -82,7 +93,6 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 		}
 	}
 
-#if 0
 	auto arr = ((SDK::ACharacter*)SDK::GetLocalPawn())->Mesh()->ComponentSpaceTransformsArray();
 	if (arr.Num() > 80) {
 		for (int i = 0; i < 60; i++) {
@@ -93,6 +103,7 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 			Drawing::Text(std::to_string(i).c_str(), Pos2);
 		}
 	}
+
 
 	int32_t ScreenWidth = SDK::GetCanvas()->SizeX();
 	int32_t ScreenHeight = SDK::GetCanvas()->SizeY();
@@ -223,12 +234,17 @@ bool GUI::DX11::Init() {
 	Device->Release();
 	DeviceContext->Release();
 
-	return Hooks::CreateHook(g_PresentFunc, h_Present, reinterpret_cast<void**>(&o_Present)) && Hooks::EnableHook(g_PresentFunc) &&
+	g_Hooked = Hooks::CreateHook(g_PresentFunc, h_Present, reinterpret_cast<void**>(&o_Present)) && Hooks::EnableHook(g_PresentFunc) &&
 		Hooks::CreateHook(g_ResizeBuffersFunc, h_ResizeBuffers, reinterpret_cast<void**>(&o_ResizeBuffers)) && Hooks::EnableHook(g_ResizeBuffersFunc);
+	return g_Hooked;
 }
 
 void GUI::DX11::Destroy() {
 	// Spin until h_Present has finished...
-	g_PendingShutdown = true;
-	while (g_PendingShutdown == true) {}
+	if (g_Hooked) {
+		g_PendingShutdown = true;
+		while (g_PendingShutdown) {
+			Sleep(100);
+		}
+	}
 }

@@ -27,6 +27,7 @@
     <ClCompile Include="gui\dx11\dx11.cpp" />
     <ClCompile Include="cheat\sdk\Engine.cpp" />
     <ClCompile Include="drawing\drawing.cpp" />
+    <ClCompile Include="cheat\features\player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="extern\imgui\imconfig.h" />
@@ -62,5 +63,8 @@
     <ClInclude Include="cheat\sdk\Engine.h" />
     <ClInclude Include="drawing\drawing.h" />
     <ClInclude Include="drawing\fontdata.h" />
+    <ClInclude Include="cheat\features\player.h" />
+    <ClInclude Include="cheat\sdk\FortniteGame.h" />
+    <ClInclude Include="cheat\sdk\FProperty.h" />
   </ItemGroup>
 </Project>

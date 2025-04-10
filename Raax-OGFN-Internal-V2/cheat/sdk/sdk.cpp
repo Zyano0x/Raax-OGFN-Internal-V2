@@ -1,4 +1,5 @@
 #include "sdk.h"
+#include <sstream>
 #include <utils/error.h>
 #include <utils/memory.h>
 #include <utils/log.h>
@@ -22,13 +23,13 @@ bool SetupGObjects() {
         }
     }
 
-    LOG(LOG_ERROR, "Failed to find GObjects!");
+    Error::ThrowError("Failed to find GObjects!");
     return false;
 }
 bool SetupFNameToString() {
-    uintptr_t StringRef = Memory::FindStringRef(L"AController::InitPlayerState: the PlayerStateClass of game mode %s is null, falling back to APlayerState.");
+    uintptr_t StringRef = Memory::FindStringRef(L"TSoftObjectPtr<%s%s>");
     if (StringRef) {
-        uintptr_t FNameToString = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8", true, 1, true);
+        uintptr_t FNameToString = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8 ? ? ? ? 48", true, 1, true);
         if (FNameToString) {
             SDK::FName::FNameToString = reinterpret_cast<decltype(SDK::FName::FNameToString)>(FNameToString);
             LOG(LOG_INFO, "Found FNameToString offset: 0x%p", reinterpret_cast<uintptr_t>(SDK::FName::FNameToString) - Memory::GetImageBase());
@@ -36,7 +37,7 @@ bool SetupFNameToString() {
         }
     }
     
-    LOG(LOG_ERROR, "Failed to find FNameToString!");
+    Error::ThrowError("Failed to find FNameToString!");
     return false;
 }
 bool SetupFNameConstructorW() {
@@ -50,7 +51,7 @@ bool SetupFNameConstructorW() {
         }
     }
 
-    LOG(LOG_ERROR, "Failed to find FNameConstructorW!");
+    Error::ThrowError("Failed to find FNameConstructorW!");
     return false;
 }
 
@@ -80,7 +81,7 @@ bool Setup_UClass_ClassCastFlags() {
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find UClass::ClassCastFlags offset!");
+    Error::ThrowError("Failed to find UClass::ClassCastFlags offset!");
     return false;
 }
 bool Setup_UClass_ClassDefaultObject() {
@@ -95,7 +96,7 @@ bool Setup_UClass_ClassDefaultObject() {
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find UClass::ClassDefaultObject offset!");
+    Error::ThrowError("Failed to find UClass::ClassDefaultObject offset!");
     return false;
 }
 bool Setup_UStruct_SuperStruct() {
@@ -113,7 +114,7 @@ bool Setup_UStruct_SuperStruct() {
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find UStruct::SuperStruct offset!");
+    Error::ThrowError("Failed to find UStruct::SuperStruct offset!");
     return false;
 }
 bool Setup_UStruct_Children() {
@@ -124,6 +125,8 @@ bool Setup_UStruct_Children() {
 
     SDK::UStruct::Children_Offset = Memory::FindMatchingValueOffset(Pairs);
     if (!SDK::UStruct::Children_Offset) {
+        LOG(LOG_INFO, "Failed to find UStruct::Children with object pairs 1. Attempting again with object pairs 2.");
+
         Pairs = {
             { SDK::UObject::FindObjectFast("Vector"), SDK::UObject::FindObjectFastWithOuter("X", "Vector") },
             { SDK::UObject::FindObjectFast("Vector4"), SDK::UObject::FindObjectFastWithOuter("X", "Vector4") },
@@ -139,12 +142,16 @@ bool Setup_UStruct_Children() {
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find UStruct::Children offset!");
+    Error::ThrowError("Failed to find UStruct::Children offset!");
     return false;
+}
+bool Setup_UStruct_ChildProperties() {
+    SDK::UStruct::ChildProperties_Offset = 0x50; // temp
+    return true;
 }
 bool Setup_UField_Next() {
     std::vector<std::pair<void*, void*>> Pairs = {
-        { SDK::UObject::FindObjectFast<SDK::UClass>("KismetMathLibrary", SDK::EClassCastFlags::Class)->Children(), SDK::UObject::FindObjectFast<SDK::UClass>("Xor_Int64Int64", SDK::EClassCastFlags::Function) }
+        { SDK::UObject::FindObjectFast<SDK::UClass>("KismetArrayLibrary", SDK::EClassCastFlags::Class)->Children(), SDK::UObject::FindObjectFast<SDK::UClass>("FilterArray", SDK::EClassCastFlags::Function) }
     };
 
     SDK::UField::Next_Offset = Memory::FindMatchingValueOffset(Pairs, 0x10, 0x40);
@@ -153,7 +160,7 @@ bool Setup_UField_Next() {
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find UField::Next offset!");
+    Error::ThrowError("Failed to find UField::Next offset!");
     return false;
 }
 bool Setup_UFunction_FunctionFlags() {
@@ -175,7 +182,26 @@ bool Setup_UFunction_FunctionFlags() {
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find UFunction::FunctionFlags offset!");
+    Error::ThrowError("Failed to find UFunction::FunctionFlags offset!");
+    return false;
+}
+bool Setup_UFunction_FuncPtr() {
+    PIMAGE_SECTION_HEADER TextSection = Memory::GetImageTextSection();
+    uintptr_t TextStart = TextSection->VirtualAddress + Memory::GetImageBase();
+    uintptr_t TextEnd = TextStart + TextSection->Misc.VirtualSize;
+
+    SDK::UFunction* Func = SDK::UObject::FindObjectFast<SDK::UFunction>("WasInputKeyJustPressed");
+
+    for (int i = SDK::UFunction::FunctionFlags_Offset; i < SDK::UFunction::FunctionFlags_Offset + 0x30; i++) {
+        uintptr_t As64BitInt = *(uintptr_t*)((uintptr_t)Func + i);
+        if (As64BitInt > TextStart && As64BitInt < TextEnd) {
+            SDK::UFunction::FuncPtr_Offset = i;
+            LOG(LOG_INFO, "Found UFunction::FuncPtr offset: 0x%X", SDK::UFunction::FuncPtr_Offset);
+            return true;
+        }
+    }
+
+    Error::ThrowError("Failed to find UFunction::FuncPtr offset!");
     return false;
 }
 
@@ -185,8 +211,10 @@ bool SetupUnrealStructOffsets() {
         Setup_UClass_ClassDefaultObject() &&
         Setup_UStruct_SuperStruct() &&
         Setup_UStruct_Children() &&
+        Setup_UStruct_ChildProperties() &&
         Setup_UField_Next() &&
-        Setup_UFunction_FunctionFlags();
+        Setup_UFunction_FunctionFlags() &&
+        Setup_UFunction_FuncPtr();
 }
 
 
@@ -217,17 +245,66 @@ bool SetupProcessEvent() {
         }
     }
 
-    LOG(LOG_ERROR, "Failed to find UObject::ProcessEvent VFT index!");
+    Error::ThrowError("Failed to find UObject::ProcessEvent VFT index!");
+    return false;
+}
+bool SetupEngineVersion() {
+    SDK::FString EngineVersion = SDK::UKismetSystemLibrary::GetEngineVersion();
+
+    std::istringstream stream(EngineVersion.ToString());
+    std::string line;
+    while (std::getline(stream, line)) {
+        size_t DashPos = line.find('-');
+        std::string EngineStr = line.substr(0, DashPos);
+
+        size_t ReleasePos = line.find("Release-");
+        std::string GameStr = line.substr(ReleasePos + 8);
+
+        size_t PlusPos = line.find("+++");
+        std::string CLStr = line.substr(DashPos + 1, PlusPos - DashPos - 1);
+
+        SDK::EngineVersion = std::stof(EngineStr.substr(0, EngineStr.find_last_of('.')));
+        SDK::GameVersion = std::stof(GameStr);
+        SDK::CL = std::stoi(CLStr);
+    }
+
+    LOG(LOG_INFO, "EngineVersion: %f, GameVersions: %f, CL: %d (%s)", SDK::EngineVersion, SDK::GameVersion, SDK::CL, EngineVersion.ToString().c_str());
+    return true;
+}
+bool SetupPostRender() {
+    void** VTable = SDK::UObject::FindObjectFast("Default__GameViewportClient")->VTable;
+    for (int i = 0x30; i < 0x80 - 1; i++) {
+        if (!VTable[i] || !Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VTable[i])))
+            break;
+
+        uintptr_t Address = Memory::PatternScanRangeBytes<int32_t>((uintptr_t)VTable[i], 0x50, { 0x48, 0xFF, 0xA0 }, false, -1, false, false);
+        if (Address) {
+            int32_t Value = *(int32_t*)(Address + 3);
+            uint8_t* NextVF = (uint8_t*)VTable[i+1];
+            if (Value == (i+1)*8 && NextVF[0] == 0x48 && NextVF[0x89] && NextVF[0x74] && NextVF[0x24] && NextVF[0x10]) {
+                SDK::UCanvas::PostRender_Idx = i;
+                LOG(LOG_INFO, "Found UCanvas::PostRender VFT index: 0x%X", SDK::UCanvas::PostRender_Idx);
+                return true;
+            }
+        }
+    }
+
+    Error::ThrowError("Failed to find UCanvas::PostRender VFT index!");
     return false;
 }
 bool SetupViewProjectionMatrix() {
-    uintptr_t StringReference = Memory::FindStringRef(L"/Engine/EngineResources/GradientTexture0.");
-    if (StringReference) {
+    uintptr_t SearchStart = Memory::FindStringRef(L"/Engine/EngineResources/GradientTexture0.");
+    if (SearchStart) {
         // Resolve the jmp if the function is split into multiple parts.
-        uintptr_t Jmp = Memory::PatternScanRange<int32_t>(StringReference, 0x30, "E9", false, 1, true);
+        uintptr_t Jmp = Memory::PatternScanRange<int32_t>(SearchStart, 0x30, "E9", false, 1, true);
         if (Jmp)
-            StringReference = Jmp;
+            SearchStart = Jmp;
+    }
+    else {
+        SearchStart = Memory::PatternScan("89 ? 38 48 8B 05 ? ? ? ? 48 89 ? 60 48 8B 05");
+    }
 
+    if (SearchStart) {
         // The signature we are looking for is:
         /*
         0F 28 05 50 50 22 02      movaps  xmm0, cs:xmmword_474C280
@@ -237,23 +314,27 @@ bool SetupViewProjectionMatrix() {
         */
 
         // The second movups instruction is writing to the ViewProjectionMatrix, so we will get the offset of that instruction.
-        uintptr_t Sig = Memory::PatternScanRange<int32_t>(StringReference, 0x500, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ?");
+        uintptr_t Sig = Memory::PatternScanRange<int32_t>(SearchStart, 0x500, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 48");
         if (Sig) {
-            SDK::UCanvas::ViewProjectionMatrix_Offset = *(uint32_t*)(Sig + 24);
+            SDK::UCanvas::ViewProjectionMatrix_Offset = *(uint32_t*)(Sig - 18);
             LOG(LOG_INFO, "Found UCanvas::ViewProjectionMatrix offset: 0x%X", SDK::UCanvas::ViewProjectionMatrix_Offset);
             return true;
         }
     }
 
-    LOG(LOG_ERROR, "Failed to find UCanvas::ViewProjectionMatrix offset!");
+    Error::ThrowError("Failed to find UCanvas::ViewProjectionMatrix offset!");
     return false;
 }
 bool SetupLevelActors() {
     SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("Level", "OwningWorld");
     SDK::ULevel* Level = SDK::GetWorld()->PersistentLevel();
-    if (Info.Found && Level) {
-        for (int i = 0x70; i < Info.Offset; i += 8)
-        {
+    if (!Level) {
+        Error::ThrowError("Failed to get PersistentLevel to find ULevel::Actors offset! Injected DLL before game loaded?");
+        return false;
+    }
+
+    if (Info.Found) {
+        for (int i = 0x70; i < Info.Offset; i += 8) {
             // We will check if the address is a valid TArray<AActor*>
             // by checking if the Max() is greater than Num()
             // and if the pointer to the data is valid.
@@ -271,37 +352,56 @@ bool SetupLevelActors() {
         }
     }
 
-    LOG(LOG_ERROR, "Failed to find ULevel::Actors offset!");
+    Error::ThrowError("Failed to find ULevel::Actors offset!");
     return false;
 }
 bool SetupComponentSpaceTransformsArray() {
-    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("SkinnedMeshComponent", "MasterPoseComponent");
+    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("SkinnedMeshComponent", "VertexOffsetUsage");
+    int32_t Offset = Info.Offset + 0x10;
+    if (!Info.Found) {
+        Info = SDK::UObject::GetPropertyInfo("SkinnedMeshComponent", "MasterPoseComponent");
+        Offset = Info.Offset + 0x8;
+    }
+
     if (Info.Found) {
-        SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset = Info.Offset + 8;
+        SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset = Offset;
         LOG(LOG_INFO, "Found USkinnedMeshComponent::ComponentSpaceTransformsArray offset: 0x%X", SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset);
         return true;
     }
 
-    LOG(LOG_ERROR, "Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
+    Error::ThrowError("Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
     return false;
 }
-bool FindComponentToWorldOffset() {
-    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("CameraComponent", "FieldOfView");
-    if (Info.Found) {
-        SDK::USceneComponent::ComponentToWorld_Offset = Info.Offset - sizeof(SDK::FTransform);
-        LOG(LOG_INFO, "Found USceneComponent::ComponentToWorld offset: 0x%X", SDK::USceneComponent::ComponentToWorld_Offset);
-        return true;
+void FindComponentToWorldOffset() {
+    void* execK2_GetComponentToWorld = SDK::UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr();
+    if (execK2_GetComponentToWorld) {
+        uintptr_t K2_GetComponentToWorld = Memory::PatternScanRange<int32_t>((uintptr_t)execK2_GetComponentToWorld, 0x50, "E8", false, 1, true);
+        if (K2_GetComponentToWorld) {
+            uint8_t* Data = reinterpret_cast<uint8_t*>(K2_GetComponentToWorld);
+            if (Data[0] == 0x0F /*&& Data[1] == 0x10 && Data[2] == 0x89*/) {
+                SDK::USceneComponent::ComponentToWorld_Offset = *(uint32_t*)(Data + 3);
+                LOG(LOG_INFO, "Found USceneComponent::ComponentToWorld offset: 0x%X", SDK::USceneComponent::ComponentToWorld_Offset);
+                return;
+            }
+        }
     }
 
-    LOG(LOG_ERROR, "Failed to find USceneComponent::ComponentToWorld offset!");
-    return false;
+    LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld offset! Will fallback to calling UFunction.");
 }
 
 bool SetupUnrealFortniteOffsets() {
-    return SetupProcessEvent() && SetupViewProjectionMatrix() && SetupLevelActors() && SetupComponentSpaceTransformsArray() && FindComponentToWorldOffset();
+    bool Result = SetupProcessEvent() &&
+        SetupEngineVersion() &&
+        SetupPostRender() &&
+        SetupViewProjectionMatrix() &&
+        SetupLevelActors() &&
+        SetupComponentSpaceTransformsArray();
+    FindComponentToWorldOffset();
+    return Result;
 }
 
 
 bool SDK::Init() {
+    LOG(LOG_TRACE, "Setting up SDK...");
     return SetupUnrealGeneralOffsets() && SetupUnrealStructOffsets() && SetupUnrealFortniteOffsets();
 }
