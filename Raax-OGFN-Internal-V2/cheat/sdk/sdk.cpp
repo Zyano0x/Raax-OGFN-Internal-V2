@@ -7,8 +7,6 @@
 // Unreal-Engine general offsets...
 
 bool SetupGObjects() {
-    LOG(LOG_TRACE, "Searching for GObjects...");
-
     static const std::vector<std::pair<const std::string, const std::string>> Patterns = {
         { "Chunked", "48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1" },
         { "Fixed", "48 8B 05 ? ? ? ? 48 8D 14 C8 EB 02" }
@@ -24,6 +22,31 @@ bool SetupGObjects() {
     }
 
     Error::ThrowError("Failed to find GObjects!");
+    return false;
+}
+bool SetupFMemoryRealloc() {
+    // This signature has been very reliable from what I have tested.
+    // Since Realloc can be used as Alloc and Free aswell, it is easier to only get Realloc.
+    /*
+    48 89 5C 24 08	mov     [rsp+arg_0], rbx
+    48 89 74 24 10	mov     [rsp+arg_8], rsi
+    57				push    rdi
+    48 83 EC 20		sub     rsp, 20h
+    48 8B F1		mov     rsi, rcx
+    41 8B D8		mov     ebx, r8d
+    48 8B 0D 64		mov     rcx, cs:qword_6024FE0
+    5A 10 04
+    48 8B FA		mov     rdi, rdx
+    48 85 C9		test    rcx, rcx
+    */
+    uintptr_t FMemoryRealloc = Memory::PatternScan("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B F1 41 8B D8 48 8B 0D ? ? ? ? 48 8B FA 48 85 C9");
+    if (FMemoryRealloc) {
+        SDK::FMemory::FMemoryRealloc = reinterpret_cast<decltype(SDK::FMemory::FMemoryRealloc)>(FMemoryRealloc);
+        LOG(LOG_INFO, "Found FMemoryRealloc offset: 0x%p", reinterpret_cast<uintptr_t>(SDK::FMemory::FMemoryRealloc) - Memory::GetImageBase());
+        return true;
+    }
+
+    Error::ThrowError("Failed to find FMemoryRealloc!");
     return false;
 }
 bool SetupFNameToString() {
@@ -57,6 +80,7 @@ bool SetupFNameConstructorW() {
 
 bool SetupUnrealGeneralOffsets() {
     return SetupGObjects() &&
+        SetupFMemoryRealloc() &&
         SetupFNameToString() &&
         SetupFNameConstructorW();
 }
@@ -250,6 +274,7 @@ bool SetupProcessEvent() {
 }
 bool SetupEngineVersion() {
     SDK::FString EngineVersion = SDK::UKismetSystemLibrary::GetEngineVersion();
+    LOG(LOG_INFO, "%s", EngineVersion.ToString());
 
     std::istringstream stream(EngineVersion.ToString());
     std::string line;
@@ -271,25 +296,24 @@ bool SetupEngineVersion() {
     LOG(LOG_INFO, "EngineVersion: %f, GameVersions: %f, CL: %d (%s)", SDK::EngineVersion, SDK::GameVersion, SDK::CL, EngineVersion.ToString().c_str());
     return true;
 }
-bool SetupPostRender() {
+bool SetupDrawTransition() { // actually drawtransition but fake lier liar
     void** VTable = SDK::UObject::FindObjectFast("Default__GameViewportClient")->VTable;
+    SDK::PropertyInfo GameInstanceProp = SDK::UObject::GetPropertyInfo("GameViewportClient", "GameInstance");
+    int bSuppressTransitionMessage = GameInstanceProp.Offset + sizeof(void*);
+
     for (int i = 0x30; i < 0x80 - 1; i++) {
         if (!VTable[i] || !Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VTable[i])))
             break;
 
-        uintptr_t Address = Memory::PatternScanRangeBytes<int32_t>((uintptr_t)VTable[i], 0x50, { 0x48, 0xFF, 0xA0 }, false, -1, false, false);
+        uintptr_t Address = Memory::PatternScanRangeBytes<int32_t>((uintptr_t)VTable[i], 0x35, { 0x80, 0xB9, bSuppressTransitionMessage, 0x00, 0x00, 0x00, 0x00 }, false, -1, false, false);
         if (Address) {
-            int32_t Value = *(int32_t*)(Address + 3);
-            uint8_t* NextVF = (uint8_t*)VTable[i+1];
-            if (Value == (i+1)*8 && NextVF[0] == 0x48 && NextVF[0x89] && NextVF[0x74] && NextVF[0x24] && NextVF[0x10]) {
-                SDK::UCanvas::PostRender_Idx = i;
-                LOG(LOG_INFO, "Found UCanvas::PostRender VFT index: 0x%X", SDK::UCanvas::PostRender_Idx);
-                return true;
-            }
+            SDK::UGameViewportClient::DrawTransition_Idx = i;
+            LOG(LOG_INFO, "Found UGameViewportClient::DrawTransition VFT index: 0x%X", SDK::UGameViewportClient::DrawTransition_Idx);
+            return true;
         }
     }
 
-    Error::ThrowError("Failed to find UCanvas::PostRender VFT index!");
+    Error::ThrowError("Failed to find UCanvas::DrawTransition VFT index!");
     return false;
 }
 bool SetupViewProjectionMatrix() {
@@ -314,7 +338,10 @@ bool SetupViewProjectionMatrix() {
         */
 
         // The second movups instruction is writing to the ViewProjectionMatrix, so we will get the offset of that instruction.
-        uintptr_t Sig = Memory::PatternScanRange<int32_t>(SearchStart, 0x500, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 48");
+        uintptr_t Sig = Memory::PatternScanRange<int32_t>(SearchStart, 0x150, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 48");
+        if (!Sig)
+            Sig = Memory::PatternScanRange<int32_t>(SearchStart, 0x150, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 4C");
+
         if (Sig) {
             SDK::UCanvas::ViewProjectionMatrix_Offset = *(uint32_t*)(Sig - 18);
             LOG(LOG_INFO, "Found UCanvas::ViewProjectionMatrix offset: 0x%X", SDK::UCanvas::ViewProjectionMatrix_Offset);
@@ -392,7 +419,7 @@ void FindComponentToWorldOffset() {
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() &&
         SetupEngineVersion() &&
-        SetupPostRender() &&
+        SetupDrawTransition() &&
         SetupViewProjectionMatrix() &&
         SetupLevelActors() &&
         SetupComponentSpaceTransformsArray();

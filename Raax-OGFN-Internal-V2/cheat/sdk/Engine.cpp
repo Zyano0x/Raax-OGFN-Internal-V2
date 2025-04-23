@@ -78,7 +78,7 @@ namespace SDK
 
 		// If the depth (Z) value is not in front of the camera.
 		if (ScreenLocation.Z < 0.f)
-			return {};
+			return FVector2D(-1.f, -1.f);
 
 		return FVector2D(ScreenLocation.X, ScreenLocation.Y);
 	}

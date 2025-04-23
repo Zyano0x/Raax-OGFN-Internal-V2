@@ -89,6 +89,9 @@ namespace SDK
 	class UGameViewportClient : public UObject
 	{
 	public:
+		static inline int DrawTransition_Idx;
+
+	public:
 		inline class UWorld* World() {
 			static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "World");
 			if (this && Prop.Found)
@@ -110,7 +113,6 @@ namespace SDK
 	{
 	public:
 		static inline uint32_t ViewProjectionMatrix_Offset;
-		static inline int PostRender_Idx;
 
 	public:
 		inline int32_t SizeX() {

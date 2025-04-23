@@ -268,8 +268,99 @@ namespace SDK
 		float Y;
 
 	public:
-		inline FVector2D() : X(0.0), Y(0.0) { }
+		inline FVector2D() : X(0.0f), Y(0.0f) { }
 		inline FVector2D(float X, float Y) : X(X), Y(Y) { }
+
+	public:
+		FVector2D operator+(const FVector2D& Other) const {
+			return FVector2D(X + Other.X, Y + Other.Y);
+		}
+
+		FVector2D operator-(const FVector2D& Other) const {
+			return FVector2D(X - Other.X, Y - Other.Y);
+		}
+
+		FVector2D operator*(const FVector2D& Other) const {
+			return FVector2D(X * Other.X, Y * Other.Y);
+		}
+
+		FVector2D operator/(const FVector2D& Other) const {
+			return FVector2D(X / Other.X, Y / Other.Y);
+		}
+
+		bool operator==(const FVector2D& Other) const {
+			return X == Other.X && Y == Other.Y;
+		}
+
+		bool operator!=(const FVector2D& Other) const {
+			return X != Other.X || Y != Other.Y;
+		}
+
+		FVector2D operator+=(const FVector2D& Other) {
+			X += Other.X;
+			Y += Other.Y;
+			return *this;
+		}
+
+		FVector2D operator-=(const FVector2D& Other) {
+			X -= Other.X;
+			Y -= Other.Y;
+			return *this;
+		}
+
+		FVector2D operator*=(const FVector2D& Other) {
+			X *= Other.X;
+			Y *= Other.Y;
+			return *this;
+		}
+
+		FVector2D operator/=(const FVector2D& Other) {
+			X /= Other.X;
+			Y /= Other.Y;
+			return *this;
+		}
+
+		FVector2D operator*(float Scale) const {
+			return FVector2D(X * Scale, Y * Scale);
+		}
+
+		FVector2D operator/(float Scale) const {
+			const float RScale = 1.f / Scale;
+			return FVector2D(X * RScale, Y * RScale);
+		}
+
+		FVector2D operator+=(float Scale) {
+			X += Scale;
+			Y += Scale;
+			return *this;
+		}
+
+		FVector2D operator-=(float Scale) {
+			X -= Scale;
+			Y -= Scale;
+			return *this;
+		}
+
+		FVector2D operator*=(float Scale) {
+			X *= Scale;
+			Y *= Scale;
+			return *this;
+		}
+
+		FVector2D operator/=(float Scale) {
+			const float RScale = 1.f / Scale;
+			X *= RScale;
+			Y *= RScale;
+			return *this;
+		}
+
+		float Dot(const FVector2D& Other) const {
+			return X * Other.X + Y * Other.Y;
+		}
+
+		float Cross(const FVector2D& Other) const {
+			return X * Other.Y - Y * Other.X;
+		}
 	};
 
 	struct FMatrix
@@ -458,11 +549,28 @@ namespace SDK
 		float A;
 
 	public:
-		inline FLinearColor() : R(0), G(0), B(0), A(0) {}
-		inline FLinearColor(float R, float G, float B, float A) : R(R), G(G), B(B), A(A) {}
+		inline constexpr FLinearColor() : R(0), G(0), B(0), A(0) {}
+		inline constexpr FLinearColor(float R, float G, float B, float A) : R(R), G(G), B(B), A(A) {}
+
+	public:
+		bool operator==(const FLinearColor& Other) const {
+			return R == Other.R && G == Other.G && B == Other.B && A == Other.A;
+		}
+		bool operator!=(const FLinearColor& Other) const {
+			return !(*this == Other);
+		}
+
+	public:
+		std::string ToStr() const {
+			return std::to_string((int)(R * 255.f)) + "/" +
+				std::to_string((int)(G * 255.f)) + "/" +
+				std::to_string((int)(B * 255.f)) + "/" +
+				std::to_string((int)(A * 255.f));
+		}
 
 	public:
 		static const FLinearColor White;
+		static const FLinearColor Gray;
 		static const FLinearColor Black;
 		static const FLinearColor Red;
 		static const FLinearColor Green;

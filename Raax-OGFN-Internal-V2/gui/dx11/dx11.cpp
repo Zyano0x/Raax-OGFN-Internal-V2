@@ -7,9 +7,8 @@
 #include <extern/imgui/imgui.h>
 #include <extern/imgui/imgui_impl_win32.h>
 #include <extern/imgui/imgui_impl_dx11.h>
-#include <cheat/sdk/sdk.h> // TEMP
 #include <drawing/drawing.h>
-#include <cheat/features/player.h>
+#include <cheat/core.h>
 
 #pragma comment(lib, "d3d11.lib")
 
@@ -31,6 +30,8 @@ typedef HRESULT(__stdcall* t_Present) (IDXGISwapChain* SwapChain, UINT SyncInter
 inline t_Present o_Present = nullptr;
 HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags) {
 	std::lock_guard<std::recursive_mutex> lock(GUI::WndProcMutex);
+	std::lock_guard<std::mutex> lock2(Core::GameRenderThreadLock);
+
 	if (!GUI::SetupImGui) {
 		GUI::SetupImGui = true;
 
@@ -67,62 +68,8 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 
 	Drawing::Tick();
 
-	ImGui::Begin("hi");
-
-	ImGui::Text("Thank you for using my cheat! I hope you find it fun and useful.");
-	ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
-
-
-	//Features::Player::Tick();
-
-#if 0
-	auto array = SDK::GetAllActorsOfClass();
-
-	auto Actors = SDK::GetWorld()->PersistentLevel()->Actors();
-	for (int i = 0; i < Actors.Num(); i++) {
-		SDK::AActor* Actor = Actors[i];
-		if (!Actor || !Actor->IsA(SDK::ACharacter::StaticClass()))
-			continue;
-
-		SDK::ACharacter* Character = (SDK::ACharacter*)Actor;
-		SDK::TArray<SDK::FTransform> Bones = Character->Mesh()->ComponentSpaceTransformsArray();
-		for (int i2 = 0; i2 < Bones.Num(); i2++) {
-			SDK::FVector Pos = Character->Mesh()->GetBoneLocation(i2);
-			SDK::FVector2D Pos2 = SDK::Project(Pos);
-			Drawing::Text(std::to_string(i2).c_str(), Pos2);
-		}
-	}
-
-	auto arr = ((SDK::ACharacter*)SDK::GetLocalPawn())->Mesh()->ComponentSpaceTransformsArray();
-	if (arr.Num() > 80) {
-		for (int i = 0; i < 60; i++) {
-			SDK::FVector Pos = ((SDK::ACharacter*)SDK::GetLocalPawn())->Mesh()->GetBoneLocation(i);
-			ImGui::Text("%d - %.2f, %.2f, %.2f", i, arr[i].Translation.X, arr[i].Translation.Y, arr[i].Translation.Z);
-			SDK::FVector2D Pos2 = SDK::Project(Pos);
-			ImGui::Text("%d - %.2f, %.2f", i, Pos2.X, Pos2.Y, Pos2);
-			Drawing::Text(std::to_string(i).c_str(), Pos2);
-		}
-	}
-
-
-	int32_t ScreenWidth = SDK::GetCanvas()->SizeX();
-	int32_t ScreenHeight = SDK::GetCanvas()->SizeY();
-	ImGui::Text("%d, %d", ScreenWidth, ScreenHeight);
-
-	auto Actors = SDK::GetWorld()->PersistentLevel()->Actors();
-	for (int i = 0; i < Actors.Num(); i++) {
-		SDK::AActor* Actor = Actors[i];
-		if (!Actor)
-			continue;
-
-		SDK::FVector ActorPos = Actor->RootComponent()->RelativeLocation();
-		SDK::FVector2D ActorPos2 = SDK::Project(ActorPos);
-		Drawing::Text(Actor->GetName().c_str(), ActorPos2);
-		//ImGui::GetBackgroundDrawList()->AddText(ImVec2(ActorPos2.X, ActorPos2.Y), ImColor(1.f, 0.f, 0.f, 1.f), Actor->GetName().c_str());
-	}
-#endif
-
-	ImGui::End();
+	Core::TickRenderThread();
+	GUI::TickMainWindow();
 
 	ImGui::EndFrame();
 

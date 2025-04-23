@@ -27,7 +27,12 @@
     <ClCompile Include="gui\dx11\dx11.cpp" />
     <ClCompile Include="cheat\sdk\Engine.cpp" />
     <ClCompile Include="drawing\drawing.cpp" />
-    <ClCompile Include="cheat\features\player.cpp" />
+    <ClCompile Include="cheat\features\playerfeatures.cpp" />
+    <ClCompile Include="cheat\drawtransition.cpp" />
+    <ClCompile Include="config\config.cpp" />
+    <ClCompile Include="gui\mainwindow.cpp" />
+    <ClCompile Include="cheat\cache\playercache.cpp" />
+    <ClCompile Include="cheat\sdk\FMemory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="extern\imgui\imconfig.h" />
@@ -63,8 +68,12 @@
     <ClInclude Include="cheat\sdk\Engine.h" />
     <ClInclude Include="drawing\drawing.h" />
     <ClInclude Include="drawing\fontdata.h" />
-    <ClInclude Include="cheat\features\player.h" />
+    <ClInclude Include="cheat\features\playerfeatures.h" />
     <ClInclude Include="cheat\sdk\FortniteGame.h" />
     <ClInclude Include="cheat\sdk\FProperty.h" />
+    <ClInclude Include="cheat\drawtransition.h" />
+    <ClInclude Include="config\config.h" />
+    <ClInclude Include="cheat\cache\playercache.h" />
+    <ClInclude Include="cheat\sdk\FMemory.h" />
   </ItemGroup>
 </Project>

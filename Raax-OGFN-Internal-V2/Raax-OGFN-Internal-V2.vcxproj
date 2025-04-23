@@ -98,8 +98,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cheat\cache\playercache.cpp" />
     <ClCompile Include="cheat\core.cpp" />
-    <ClCompile Include="cheat\features\player.cpp" />
+    <ClCompile Include="cheat\features\playerfeatures.cpp" />
+    <ClCompile Include="cheat\drawtransition.cpp" />
+    <ClCompile Include="cheat\sdk\FMemory.cpp" />
+    <ClCompile Include="config\config.cpp" />
     <ClCompile Include="drawing\drawing.cpp" />
     <ClCompile Include="gui\dx11\dx11.cpp" />
     <ClCompile Include="gui\gui.cpp" />
@@ -122,15 +126,20 @@
     <ClCompile Include="extern\minhook\src\hde\hde64.c" />
     <ClCompile Include="extern\minhook\src\hook.c" />
     <ClCompile Include="extern\minhook\src\trampoline.c" />
+    <ClCompile Include="gui\mainwindow.cpp" />
     <ClCompile Include="utils\error.cpp" />
     <ClCompile Include="utils\log.cpp" />
     <ClCompile Include="utils\memory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cheat\cache\playercache.h" />
     <ClInclude Include="cheat\core.h" />
-    <ClInclude Include="cheat\features\player.h" />
+    <ClInclude Include="cheat\features\playerfeatures.h" />
+    <ClInclude Include="cheat\drawtransition.h" />
+    <ClInclude Include="cheat\sdk\FMemory.h" />
     <ClInclude Include="cheat\sdk\FortniteGame.h" />
     <ClInclude Include="cheat\sdk\FProperty.h" />
+    <ClInclude Include="config\config.h" />
     <ClInclude Include="drawing\drawing.h" />
     <ClInclude Include="drawing\fontdata.h" />
     <ClInclude Include="gui\dx11\dx11.h" />
