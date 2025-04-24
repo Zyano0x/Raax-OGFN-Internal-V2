@@ -1,5 +1,4 @@
 #pragma once
-#include <Windows.h>
 #include <string>
 #include <cheat/sdk/Basic.h>
 
@@ -7,14 +6,28 @@ namespace Config
 {
     struct ConfigData {
         enum class BoxType : int {
+            MIN = 0,
             Full = 0,
             Cornered = 1,
             Full3D = 2,
+            MAX = 2
         };
         enum class TracerPos : int {
+            MIN = 0,
             Top = 0,
             Middle = 1,
-            Bottom = 2
+            Bottom = 2,
+            MAX = 2
+        };
+        enum class Tier : int {
+            MIN = 1,
+            Common = 1,
+            Uncommon = 2,
+            Rare = 3,
+            Epic = 4,
+            Legendary = 5,
+            Mythic = 6,
+            MAX = 6
         };
 
         struct Visuals {
@@ -36,6 +49,8 @@ namespace Config
 
             struct LootConfig {
                 bool LootText = false;
+                Tier MinLootTier = Tier::Epic;
+
                 bool ChestText = false;
                 bool AmmoBoxText = false;
             } Loot;
@@ -61,5 +76,6 @@ namespace Config
     inline ConfigData g_Config;
 }
 
-static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::BoxType>, int>, "BoxType needs to have underlying type of int for config loading and editing to be safe!");
-static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::TracerPos>, int>, "TracerPos needs to have underlying type of int for config loading and editing to be safe!");
+static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::BoxType>, int>);
+static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::TracerPos>, int>);
+static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::Tier>, int>);

@@ -52,6 +52,7 @@ void VisualsTab() {
 			break;
 		case WindowSubTab::Loot:
 			ImGui::Checkbox("Loot Text", &Config::g_Config.Visuals.Loot.LootText);
+			ImGui::Combo("Minimum Loot Tier", (int*)&Config::g_Config.Visuals.Loot.MinLootTier, "Common\000Uncommon\000Rare\000Epic\000Legendary\000Mythic");
 			ImGui::Checkbox("Chest Text", &Config::g_Config.Visuals.Loot.ChestText);
 			ImGui::Checkbox("Ammo Box Text", &Config::g_Config.Visuals.Loot.AmmoBoxText);
 			break;

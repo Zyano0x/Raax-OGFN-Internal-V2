@@ -98,9 +98,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cheat\cache\containercache.cpp" />
+    <ClCompile Include="cheat\cache\pickupcache.cpp" />
     <ClCompile Include="cheat\cache\playercache.cpp" />
     <ClCompile Include="cheat\core.cpp" />
-    <ClCompile Include="cheat\features\playerfeatures.cpp" />
+    <ClCompile Include="cheat\tick\containertick.cpp" />
+    <ClCompile Include="cheat\tick\pickuptick.cpp" />
+    <ClCompile Include="cheat\tick\playertick.cpp" />
     <ClCompile Include="cheat\drawtransition.cpp" />
     <ClCompile Include="cheat\sdk\FMemory.cpp" />
     <ClCompile Include="config\config.cpp" />
@@ -132,9 +136,13 @@
     <ClCompile Include="utils\memory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cheat\cache\containercache.h" />
+    <ClInclude Include="cheat\cache\pickupcache.h" />
     <ClInclude Include="cheat\cache\playercache.h" />
     <ClInclude Include="cheat\core.h" />
-    <ClInclude Include="cheat\features\playerfeatures.h" />
+    <ClInclude Include="cheat\tick\containertick.h" />
+    <ClInclude Include="cheat\tick\pickuptick.h" />
+    <ClInclude Include="cheat\tick\playertick.h" />
     <ClInclude Include="cheat\drawtransition.h" />
     <ClInclude Include="cheat\sdk\FMemory.h" />
     <ClInclude Include="cheat\sdk\FortniteGame.h" />

@@ -1,4 +1,4 @@
-#include "playerfeatures.h"
+#include "playertick.h"
 #include <cheat/cache/playercache.h>
 #include <cheat/sdk/sdk.h>
 #include <drawing/drawing.h>
@@ -38,12 +38,12 @@ constexpr std::array<std::pair<Cache::Player::BoneIdx, Cache::Player::BoneIdx>, 
 };
 
 
-void Features::Player::TickGameThread() {
+void Tick::Player::TickGameThread() {
     Cache::Player::UpdateCache();
 }
 
-void Features::Player::TickRenderThread() {
-    for (const auto& [Pawn, Info] : Cache::Player::GetCachedPlayers()) {
+void Tick::Player::TickRenderThread() {
+    for (const auto& [Id, Info] : Cache::Player::GetCachedPlayers()) {
         if (Info.Pawn == SDK::GetLocalPawn())
             continue;
 

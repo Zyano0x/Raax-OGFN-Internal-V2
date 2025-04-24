@@ -93,6 +93,11 @@ bool Setup_UProperty_Offset_Internal() {
     LOG(LOG_INFO, "Using hardcoded UProperty::Offset_Internal offset: 0x%X", SDK::UProperty::Offset_Internal_Offset);
     return true;
 }
+bool Setup_UBoolProperty_ByteMask() {
+    SDK::UBoolProperty::ByteMask_Offset = 0x72;
+    LOG(LOG_INFO, "Using hardcoded UBoolProperty::ByteMask offset: 0x%X", SDK::UBoolProperty::ByteMask_Offset);
+    return true;
+}
 bool Setup_UClass_ClassCastFlags() {
     std::vector<std::pair<void*, SDK::EClassCastFlags>> Pairs = {
         { SDK::UObject::FindObjectFast("Actor"), SDK::EClassCastFlags::Actor },
@@ -231,6 +236,7 @@ bool Setup_UFunction_FuncPtr() {
 
 bool SetupUnrealStructOffsets() {
     return Setup_UProperty_Offset_Internal() &&
+        Setup_UBoolProperty_ByteMask() &&
         Setup_UClass_ClassCastFlags() &&
         Setup_UClass_ClassDefaultObject() &&
         Setup_UStruct_SuperStruct() &&
@@ -274,7 +280,6 @@ bool SetupProcessEvent() {
 }
 bool SetupEngineVersion() {
     SDK::FString EngineVersion = SDK::UKismetSystemLibrary::GetEngineVersion();
-    LOG(LOG_INFO, "%s", EngineVersion.ToString());
 
     std::istringstream stream(EngineVersion.ToString());
     std::string line;
@@ -423,7 +428,8 @@ bool SetupUnrealFortniteOffsets() {
         SetupViewProjectionMatrix() &&
         SetupLevelActors() &&
         SetupComponentSpaceTransformsArray();
-    FindComponentToWorldOffset();
+    if (Result)
+        FindComponentToWorldOffset();
     return Result;
 }
 

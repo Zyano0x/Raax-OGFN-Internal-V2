@@ -55,6 +55,6 @@ namespace Cache::Player
 
     constexpr int NumBones = static_cast<int>(BoneIdx::NUM);
 
-    const std::unordered_map<SDK::AFortPawn*, PlayerInfo>& GetCachedPlayers();
+    const std::unordered_map<void*, PlayerInfo>& GetCachedPlayers();
     void UpdateCache();
 }

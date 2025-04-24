@@ -52,6 +52,13 @@ namespace SDK
 			return nullptr;
 		}
 
+		inline TArray<class ULevel*>* Levels() {
+			static PropertyInfo Prop = GetPropertyInfo("World", "Levels");
+			if (this && Prop.Found)
+				return (TArray<class ULevel*>*)((uintptr_t)this + Prop.Offset);
+			return nullptr;
+		}
+
 	public:
 		STATICCLASS_DEFAULTOBJECT("World", UWorld)
 	};
@@ -62,10 +69,10 @@ namespace SDK
 		static inline uint32_t Actors_Offset;
 
 	public:
-		inline TArray<class AActor*> Actors() {
+		inline TArray<class AActor*>* Actors() {
 			if (this)
-				return *(TArray<class AActor*>*)((uintptr_t)this + Actors_Offset);
-			return {};
+				return (TArray<class AActor*>*)((uintptr_t)this + Actors_Offset);
+			return nullptr;
 		}
 
 	public:
@@ -75,11 +82,11 @@ namespace SDK
 	class UGameInstance : public UObject
 	{
 	public:
-		inline TArray<class ULocalPlayer*> LocalPlayers() {
+		inline TArray<class ULocalPlayer*>* LocalPlayers() {
 			static PropertyInfo Prop = GetPropertyInfo("GameInstance", "LocalPlayers");
 			if (this && Prop.Found)
-				return *(TArray<class ULocalPlayer*>*)((uintptr_t)this + Prop.Offset);
-			return {};
+				return (TArray<class ULocalPlayer*>*)((uintptr_t)this + Prop.Offset);
+			return nullptr;
 		}
 
 	public:
@@ -203,17 +210,17 @@ namespace SDK
 		static inline uint32_t ComponentSpaceTransformsArray_Offset;
 
 	public:
-		TArray<FTransform> ComponentSpaceTransformsArray() {
+		TArray<FTransform>* ComponentSpaceTransformsArray() {
 			if (this) {
-				TArray<FTransform> FirstArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
-				if (FirstArray.IsValid())
+				TArray<FTransform>* FirstArray = (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
+				if (FirstArray && FirstArray->IsValid())
 					return FirstArray;
 
-				TArray<FTransform> SecondArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
-				if (SecondArray.IsValid())
+				TArray<FTransform>* SecondArray = (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
+				if (SecondArray && SecondArray->IsValid())
 					return SecondArray;
 			}
-			return {};
+			return nullptr;
 		}
 		int32_t GetBoneIndex(FName BoneName) {
 			static UFunction* Func = GetFunction("SkinnedMeshComponent", "GetBoneIndex");
@@ -236,9 +243,9 @@ namespace SDK
 	public:
 		FTransform GetBoneMatrix(int32_t BoneIndex) {
 			if (this) {
-				TArray<FTransform> Array = ComponentSpaceTransformsArray();
-				if (Array.IsValid())
-					return Array[BoneIndex];
+				TArray<FTransform>* Array = ComponentSpaceTransformsArray();
+				if (Array && Array->IsValid())
+					return Array->GetByIndex(BoneIndex);
 			}
 			return {};
 		}
@@ -342,32 +349,39 @@ namespace SDK
 	FVector Project3D(const FVector& Location);
 	FVector2D Project(const FVector& Location);
 
-	template<typename UEType = AActor>
-	inline std::vector<UEType*> GetAllActorsOfClass() {
+	template<typename UEType = AActor, bool ClearVector = true>
+	inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level = GetWorld()->PersistentLevel()) {
 		static_assert(std::is_base_of_v<AActor, UEType>, "Cannot call GetAllActorsOfClass with class that doesn't inherit from AActor!");
-		std::vector<UEType*> Result;
+		if constexpr (ClearVector)
+			OutVector.clear();
+		
+		if (!Level)
+			return;
 
-		UWorld* World = GetWorld();
-		if (!World)
-			return Result;
+		TArray<AActor*>* Actors = Level->Actors();
+		if (!Actors || !Actors->IsValid() || Actors->Num() <= 0)
+			return;
 
-		ULevel* PersistentLevel = World->PersistentLevel();
-		if (!PersistentLevel)
-			return Result;
-
-		TArray<AActor*> Actors = PersistentLevel->Actors();
-		if (!Actors.IsValid() || Actors.Num() <= 0)
-			return Result;
-
-		for (int i = 0; i < Actors.Num(); i++) {
-			AActor* Actor = Actors[i];
+		for (int i = 0; i < Actors->Num(); i++) {
+			AActor* Actor = Actors->GetByIndex(i);
 			if (!Actor)
 				continue;
 
 			if (Actor->IsA(UEType::StaticClass()))
-				Result.push_back(static_cast<UEType*>(Actor));
+				OutVector.push_back(static_cast<UEType*>(Actor));
 		}
+	}
+	template<typename UEType = AActor, bool ClearVector = true>
+	inline void GetAllActorsOfClassAllLevels(std::vector<UEType*>& OutVector) {
+		if constexpr (ClearVector)
+			OutVector.clear();
 
-		return Result;
+		TArray<ULevel*>* Levels = GetWorld()->Levels();
+		if (!Levels || !Levels->IsValid() || Levels->Num() <= 0)
+			return;
+
+		for (int i = 0; i < Levels->Num(); i++) {
+			GetAllActorsOfClass<UEType, false>(OutVector, Levels->GetByIndex(i));
+		}
 	}
 }

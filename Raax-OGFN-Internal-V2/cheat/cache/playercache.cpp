@@ -1,9 +1,10 @@
 #include "playercache.h"
+#include <config/config.h>
 #include <chrono>
 
-std::unordered_map<SDK::AFortPawn*, Cache::Player::PlayerInfo> g_CachedPlayers;
+std::unordered_map<void*, Cache::Player::PlayerInfo> g_CachedPlayers;
 
-const std::unordered_map<SDK::AFortPawn*, Cache::Player::PlayerInfo>& Cache::Player::GetCachedPlayers() {
+const std::unordered_map<void*, Cache::Player::PlayerInfo>& Cache::Player::GetCachedPlayers() {
     return g_CachedPlayers;
 }
 
@@ -84,14 +85,14 @@ void PopulateDrawingInfo(Cache::Player::PlayerInfo& Cache) {
     float VerticalMargin = BoxSizeVertical.Y * 0.2f;
     float DepthMargin = BoxSizeVertical.Z * 0.125f;
 
-    Cache.BoundCorners3D[0] = SDK::FVector(MostLeft.X - HorizontalMargin, MostTop.Y - VerticalMargin, MostTop.Z - DepthMargin);        // Top Left Front
-    Cache.BoundCorners3D[1] = SDK::FVector(MostRight.X + HorizontalMargin, MostTop.Y - VerticalMargin, MostTop.Z - DepthMargin);       // Top Right Front
-    Cache.BoundCorners3D[2] = SDK::FVector(MostLeft.X - HorizontalMargin, MostBottom.Y + VerticalMargin, MostTop.Z - DepthMargin);     // Top Left Back
-    Cache.BoundCorners3D[3] = SDK::FVector(MostRight.X + HorizontalMargin, MostBottom.Y + VerticalMargin, MostTop.Z - DepthMargin);    // Top Right Back
-    Cache.BoundCorners3D[4] = SDK::FVector(MostLeft.X - HorizontalMargin, MostTop.Y - VerticalMargin, MostBottom.Z + DepthMargin);     // Bottom Left Front
-    Cache.BoundCorners3D[5] = SDK::FVector(MostRight.X + HorizontalMargin, MostTop.Y - VerticalMargin, MostBottom.Z + DepthMargin);    // Bottom Right Front
-    Cache.BoundCorners3D[6] = SDK::FVector(MostLeft.X - HorizontalMargin, MostBottom.Y + VerticalMargin, MostBottom.Z + DepthMargin);  // Bottom Left Back
-    Cache.BoundCorners3D[7] = SDK::FVector(MostRight.X + HorizontalMargin, MostBottom.Y + VerticalMargin, MostBottom.Z + DepthMargin); // Bottom Right Back
+    Cache.BoundCorners3D[0] = SDK::FVector(MostLeft.X - HorizontalMargin,  MostTop.Y - VerticalMargin,    MostBottom.Z + DepthMargin);     // Bottom Left Front
+    Cache.BoundCorners3D[1] = SDK::FVector(MostRight.X + HorizontalMargin, MostTop.Y - VerticalMargin,    MostBottom.Z + DepthMargin);     // Bottom Right Front
+    Cache.BoundCorners3D[2] = SDK::FVector(MostLeft.X - HorizontalMargin,  MostBottom.Y + VerticalMargin, MostBottom.Z + DepthMargin);     // Bottom Left Back
+    Cache.BoundCorners3D[3] = SDK::FVector(MostRight.X + HorizontalMargin, MostBottom.Y + VerticalMargin, MostBottom.Z + DepthMargin);     // Bottom Right Back
+    Cache.BoundCorners3D[4] = SDK::FVector(MostLeft.X - HorizontalMargin,  MostTop.Y - VerticalMargin,    MostTop.Z - DepthMargin);       // Top Left Front
+    Cache.BoundCorners3D[5] = SDK::FVector(MostRight.X + HorizontalMargin, MostTop.Y - VerticalMargin,    MostTop.Z - DepthMargin);       // Top Right Front
+    Cache.BoundCorners3D[6] = SDK::FVector(MostLeft.X - HorizontalMargin,  MostBottom.Y + VerticalMargin, MostTop.Z - DepthMargin);       // Top Left Back
+    Cache.BoundCorners3D[7] = SDK::FVector(MostRight.X + HorizontalMargin, MostBottom.Y + VerticalMargin, MostTop.Z - DepthMargin);       // Top Right Back
 
     for (int i = 0; i < 8; i++)
         Cache.BoundCorners2D[i] = Project(Cache.BoundCorners3D[i]);
@@ -113,14 +114,34 @@ void PopulateDrawingInfo(Cache::Player::PlayerInfo& Cache) {
     float BoxSizeX =  Cache.BoundBottomRight.X -  Cache.BoundTopLeft.X;
     float BoxSizeY =  Cache.BoundBottomRight.Y -  Cache.BoundTopLeft.Y;
 
-    Cache.BoxTop = SDK::FVector2D(Cache.BoundTopLeft.X + (BoxSizeX / 2.f), Cache.BoundTopLeft.Y);
-    Cache.BoxMiddle = SDK::FVector2D(Cache.BoundTopLeft.X + (BoxSizeX / 2.f), Cache.BoundTopLeft.Y + (BoxSizeY / 2.f));
-    Cache.BoxBottom = SDK::FVector2D(Cache.BoundTopLeft.X + (BoxSizeX / 2.f), Cache.BoundBottomRight.Y);
+    if (Config::g_Config.Visuals.Player.BoxType == Config::ConfigData::BoxType::Full3D) {
+        Cache.BoxTop = SDK::Project((Cache.BoundCorners3D[0] + Cache.BoundCorners3D[1] + Cache.BoundCorners3D[2] + Cache.BoundCorners3D[3]) / 4.f);
+        Cache.BoxMiddle = SDK::Project((Cache.BoundCorners3D[0] + Cache.BoundCorners3D[1] + Cache.BoundCorners3D[2] + Cache.BoundCorners3D[3] +
+            Cache.BoundCorners3D[4] + Cache.BoundCorners3D[5] + Cache.BoundCorners3D[6] + Cache.BoundCorners3D[7]) / 8.f);
+        Cache.BoxBottom = SDK::Project((Cache.BoundCorners3D[4] + Cache.BoundCorners3D[5] + Cache.BoundCorners3D[6] + Cache.BoundCorners3D[7]) / 4.f);
+    }
+    else {
+        Cache.BoxTop = SDK::FVector2D(Cache.BoundTopLeft.X + (BoxSizeX / 2.f), Cache.BoundTopLeft.Y);
+        Cache.BoxMiddle = SDK::FVector2D(Cache.BoundTopLeft.X + (BoxSizeX / 2.f), Cache.BoundTopLeft.Y + (BoxSizeY / 2.f));
+        Cache.BoxBottom = SDK::FVector2D(Cache.BoundTopLeft.X + (BoxSizeX / 2.f), Cache.BoundBottomRight.Y);
+    }
     Cache.FontSize = 12.f;
 }
 
 
-void ResetSeenFlags() {
+void ForceRefreshIfNeeded() {
+    // Force refresh cache every 5 seconds for player name changes, skin changes, etc
+    // as these will invalidate some cached player info
+    static auto CacheTime = std::chrono::steady_clock::now();
+    auto CurrentTime = std::chrono::steady_clock::now();
+    auto Elapsed = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - CacheTime).count();
+    if (Elapsed >= 5) {
+        CacheTime = CurrentTime;
+        g_CachedPlayers.clear();
+    }
+}
+
+void ResetPlayerSeenFlags() {
     for (auto& [Pawn, Cache] : g_CachedPlayers) {
         Cache.WasSeenThisFrame = false;
     }
@@ -169,19 +190,12 @@ void RemoveUnseenPlayers() {
 
 
 void Cache::Player::UpdateCache() {
-    // Force refresh cache every 5 seconds for player name changes, skin changes, etc
-    // as these will invalidate some cached player info
-    static auto CacheTime = std::chrono::steady_clock::now();
-    auto CurrentTime = std::chrono::steady_clock::now();
-    auto Elapsed = std::chrono::duration_cast<std::chrono::seconds>(CurrentTime - CacheTime).count();
-    if (Elapsed >= 5) {
-        CacheTime = CurrentTime;
-        g_CachedPlayers.clear();
-    }
+    ForceRefreshIfNeeded();
 
-    ResetSeenFlags();
-    const std::vector<SDK::AFortPawn*> CurrentPawns = SDK::GetAllActorsOfClass<SDK::AFortPawn>();
-    for (const auto& Pawn : CurrentPawns) {
+    ResetPlayerSeenFlags();
+    static std::vector<SDK::AFortPawn*> Players;
+    SDK::GetAllActorsOfClass<SDK::AFortPawn>(Players);
+    for (const auto& Pawn : Players) {
         auto it = g_CachedPlayers.find(Pawn);
         if (it == g_CachedPlayers.end())
             g_CachedPlayers[Pawn] = CreateNewPlayerInfo(Pawn);

@@ -99,6 +99,10 @@ namespace SDK
             return Data;
         }
 
+        inline ElementType GetByIndex(int32_t Idx) {
+            return Data[Idx];
+        }
+
     public:
         inline void CopyFrom(const TArray& Other)
         {

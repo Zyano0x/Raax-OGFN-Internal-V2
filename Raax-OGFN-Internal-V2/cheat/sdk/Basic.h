@@ -39,6 +39,25 @@ namespace SDK
         void operator=(const char* Name);
     };
 
+	class FTextData
+	{
+	public:
+		uint8_t Pad[0x28];
+		wchar_t* Name;
+		int32_t Length;
+	};
+
+	class FText
+	{
+	private:
+		FTextData* Data;
+		uint8_t Pad[0x10];
+
+	public:
+		wchar_t* Get() const;
+		std::string ToString() const;
+	};
+
 	enum class EFunctionFlags : uint32_t
 	{
 		None = 0x00000000,

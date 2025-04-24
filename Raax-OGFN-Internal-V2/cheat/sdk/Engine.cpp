@@ -3,7 +3,7 @@
 namespace SDK
 {
 	class ULocalPlayer* GetLocalPlayer() {
-		return GetEngine()->GameViewport()->GameInstance()->LocalPlayers()[0];
+		return GetEngine()->GameViewport()->GameInstance()->LocalPlayers()->GetByIndex(0);
 	}
 	class APlayerController* GetLocalController() {
 		return GetLocalPlayer()->PlayerController();

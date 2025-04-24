@@ -29,6 +29,22 @@ namespace SDK
         return FStr.ToString();
     }
 
+    wchar_t* FText::Get() const {
+        if (this && Data)
+            return Data->Name;
+
+        return nullptr;
+    }
+    std::string FText::ToString() const {
+        wchar_t* Text = Get();
+        if (Text) {
+            std::wstring Temp(Text);
+            return std::string(Temp.begin(), Temp.end());
+        }
+
+        return "";
+    }
+
     bool FName::operator==(const FName& Other) const {
         return ComparisonIndex == Other.ComparisonIndex;
     }

@@ -25,8 +25,8 @@ namespace SDK
     struct PropertyInfo
     {
         bool Found = false;
-        int32_t Offset;
-        //uint8_t ByteMask;
+        int32_t Offset = 0;
+        uint8_t ByteMask = 0;
         union {
             class UProperty* Prop;
             class FProperty* FProp;
@@ -119,13 +119,13 @@ namespace SDK
         static inline uint32_t ChildProperties_Offset;
 
     public:
-        class UStruct* SuperStruct();
-        class UField* Children();
-        class FField* ChildProperties();
+        class UStruct* SuperStruct() const;
+        class UField* Children() const;
+        class FField* ChildProperties() const;
 
     public:
-        PropertyInfo FindProperty(const FName& Name);
-        class UFunction* FindFunction(const FName& Name);
+        PropertyInfo FindProperty(const FName& Name) const;
+        class UFunction* FindFunction(const FName& Name) const;
     };
 
     class UClass : public UStruct
@@ -135,8 +135,8 @@ namespace SDK
         static inline uint32_t ClassDefaultObject_Offset;
 
     public:
-        EClassCastFlags ClassCastFlags();
-        UObject* ClassDefaultObject();
+        EClassCastFlags ClassCastFlags() const;
+        UObject* ClassDefaultObject() const;
     };
 
     class UField : public UObject {
@@ -144,7 +144,7 @@ namespace SDK
         static inline uint32_t Next_Offset;
 
     public:
-        class UField* Next();
+        class UField* Next() const;
     };
 
     class UProperty : public UField
@@ -153,7 +153,17 @@ namespace SDK
         static inline uint32_t Offset_Internal_Offset;
 
     public:
-        int32_t Offset_Internal();
+        int32_t Offset_Internal() const;
+    };
+
+    class UBoolProperty : public UProperty
+    {
+    public:
+        static inline uint32_t ByteMask_Offset;
+
+    public:
+        uint8_t ByteMask() const;
+        bool IsNativeBool() const;
     };
 
     class UFunction : public UField
@@ -163,7 +173,7 @@ namespace SDK
         static inline uint32_t FuncPtr_Offset;
 
     public:
-        EFunctionFlags FunctionFlags();
-        void* FuncPtr();
+        EFunctionFlags FunctionFlags() const;
+        void* FuncPtr() const;
     };
 }

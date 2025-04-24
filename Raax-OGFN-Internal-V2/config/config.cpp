@@ -3,6 +3,8 @@
 #include <sstream>
 #include <charconv>
 
+// you spend the time to add pseudo reflection, i cant be fucked
+
 bool TryParseBool(const std::string& Str, bool& Out) {
     int Temp = 0;
     auto Result = std::from_chars(Str.data(), Str.data() + Str.size(), Temp);
@@ -18,30 +20,6 @@ bool TryParseInt(const std::string& Str, int& Out) {
 bool TryParseFloat(const std::string& Str, float& Out) {
     auto Result = std::from_chars(Str.data(), Str.data() + Str.size(), Out);
     return Result.ec == std::errc();
-}
-
-bool TryParseBoxType(const std::string& Str, Config::ConfigData::BoxType& OutBoxType) {
-    int IntValue;
-    if (TryParseInt(Str, IntValue)) {
-        if (IntValue >= static_cast<int>(Config::ConfigData::BoxType::Full) &&
-            IntValue <= static_cast<int>(Config::ConfigData::BoxType::Full3D)) {
-            OutBoxType = static_cast<Config::ConfigData::BoxType>(IntValue);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool TryParseTracerPos(const std::string& Str, Config::ConfigData::TracerPos& OutBoxType) {
-    int IntValue;
-    if (TryParseInt(Str, IntValue)) {
-        if (IntValue >= static_cast<int>(Config::ConfigData::TracerPos::Top) &&
-            IntValue <= static_cast<int>(Config::ConfigData::TracerPos::Bottom)) {
-            OutBoxType = static_cast<Config::ConfigData::TracerPos>(IntValue);
-            return true;
-        }
-    }
-    return false;
 }
 
 bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
@@ -63,7 +41,18 @@ bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
     return true;
 }
 
-
+template<typename T>
+bool TryParseEnum(const std::string& Str, T& Out) {
+    int IntValue;
+    if (TryParseInt(Str, IntValue)) {
+        if (IntValue >= static_cast<int>(T::MIN) &&
+            IntValue <= static_cast<int>(T::MAX)) {
+            Out = static_cast<T>(IntValue);
+            return true;
+        }
+    }
+    return false;
+}
 
 std::string Config::ConfigData::SerializeConfig() {
     std::ostringstream out;
@@ -98,6 +87,9 @@ std::string Config::ConfigData::SerializeConfig() {
     // Visuals - Loot
     if (DefaultConfig.Visuals.Loot.LootText != Visuals.Loot.LootText)
         out << "Visuals.Loot.LootText=" << Visuals.Loot.LootText << ",";
+    if (DefaultConfig.Visuals.Loot.MinLootTier != Visuals.Loot.MinLootTier)
+        out << "Visuals.Loot.MinLootTier=" << static_cast<int>(Visuals.Loot.MinLootTier) << ",";
+
     if (DefaultConfig.Visuals.Loot.ChestText != Visuals.Loot.ChestText)
         out << "Visuals.Loot.ChestText=" << Visuals.Loot.ChestText << ",";
     if (DefaultConfig.Visuals.Loot.AmmoBoxText != Visuals.Loot.AmmoBoxText)
@@ -119,7 +111,6 @@ std::string Config::ConfigData::SerializeConfig() {
     if (DefaultConfig.Color.SecondaryColorHidden != Color.SecondaryColorHidden)
         out << "Color.SecondaryColorHidden=" << Color.SecondaryColorHidden.ToStr().c_str() << ",";
 
-
     std::string Result = out.str();
     if (!Result.empty())
         Result.pop_back();
@@ -140,22 +131,23 @@ bool Config::ConfigData::DeserializeConfig(const std::string& Data, ConfigData& 
 
         std::string Key = Token.substr(0, EqPos);
         std::string Value = Token.substr(EqPos + 1);
- 
+
         int ConfigVarsAdded = 0;
         ConfigVarsAdded += (Key == "Visuals.Player.Box" && TryParseBool(Value, NewConfig.Visuals.Player.Box));
-        ConfigVarsAdded += (Key == "Visuals.Player.BoxType" && TryParseBoxType(Value, NewConfig.Visuals.Player.BoxType));
+        ConfigVarsAdded += (Key == "Visuals.Player.BoxType" && TryParseEnum<BoxType>(Value, NewConfig.Visuals.Player.BoxType));
         ConfigVarsAdded += (Key == "Visuals.Player.BoxThickness" && TryParseFloat(Value, NewConfig.Visuals.Player.BoxThickness));
         ConfigVarsAdded += (Key == "Visuals.Player.Skeleton" && TryParseBool(Value, NewConfig.Visuals.Player.Skeleton));
         ConfigVarsAdded += (Key == "Visuals.Player.SkeletonThickness" && TryParseFloat(Value, NewConfig.Visuals.Player.SkeletonThickness));
         
         ConfigVarsAdded += (Key == "Visuals.Player.Tracer" && TryParseBool(Value, NewConfig.Visuals.Player.Tracer));
         ConfigVarsAdded += (Key == "Visuals.Player.TracerThickness" && TryParseFloat(Value, NewConfig.Visuals.Player.TracerThickness));
-        ConfigVarsAdded += (Key == "Visuals.Player.TracerStart" && TryParseTracerPos(Value, NewConfig.Visuals.Player.TracerStart));
-        ConfigVarsAdded += (Key == "Visuals.Player.TracerEnd" && TryParseTracerPos(Value, NewConfig.Visuals.Player.TracerEnd));
+        ConfigVarsAdded += (Key == "Visuals.Player.TracerStart" && TryParseEnum<TracerPos>(Value, NewConfig.Visuals.Player.TracerStart));
+        ConfigVarsAdded += (Key == "Visuals.Player.TracerEnd" && TryParseEnum<TracerPos>(Value, NewConfig.Visuals.Player.TracerEnd));
 
         ConfigVarsAdded += (Key == "Visuals.Player.Name" && TryParseBool(Value, NewConfig.Visuals.Player.Name));
 
         ConfigVarsAdded += (Key == "Visuals.Loot.LootText" && TryParseBool(Value, NewConfig.Visuals.Loot.LootText));
+        ConfigVarsAdded += (Key == "Visuals.Loot.MinLootTier" && TryParseEnum<Tier>(Value, NewConfig.Visuals.Loot.MinLootTier));
         ConfigVarsAdded += (Key == "Visuals.Loot.ChestText" && TryParseBool(Value, NewConfig.Visuals.Loot.ChestText));
         ConfigVarsAdded += (Key == "Visuals.Loot.AmmoBoxText" && TryParseBool(Value, NewConfig.Visuals.Loot.AmmoBoxText));
 

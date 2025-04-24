@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Features::Player
+namespace Tick::Container
 {
     void TickGameThread();
     void TickRenderThread();

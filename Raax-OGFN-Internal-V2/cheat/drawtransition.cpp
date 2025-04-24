@@ -1,7 +1,7 @@
 #include "drawtransition.h"
 #include <cheat/sdk/sdk.h>
 #include <cheat/hooks.h>
-#include <cheat/features/playerfeatures.h>
+#include <cheat/tick/playertick.h>
 #include <cheat/core.h>
 
 inline void* g_DrawTransitionFunc = nullptr;
@@ -9,7 +9,7 @@ inline void* g_DrawTransitionFunc = nullptr;
 typedef void(__stdcall* t_DrawTransition) (SDK::UGameViewportClient* _this, SDK::UCanvas* Canvas);
 inline t_DrawTransition o_DrawTransition = nullptr;
 void h_DrawTransition(SDK::UGameViewportClient* _this, SDK::UCanvas* Canvas) {
-    std::lock_guard<std::mutex> lock2(Core::GameRenderThreadLock);
+    std::lock_guard<std::mutex> lock(Core::GameRenderThreadLock);
 
     Core::TickGameThread();
 

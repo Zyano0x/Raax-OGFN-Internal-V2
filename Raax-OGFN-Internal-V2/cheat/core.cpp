@@ -5,7 +5,9 @@
 #include <gui/gui.h>
 #include <cheat/hooks.h>
 #include <cheat/drawtransition.h>
-#include <cheat/features/playerfeatures.h>
+#include <cheat/tick/playertick.h>
+#include <cheat/tick/containertick.h>
+#include <cheat/tick/pickuptick.h>
 
 bool Core::Init() {
     LOG(LOG_TRACE, "Setting up core...");
@@ -32,9 +34,13 @@ void Core::Destroy() {
 void Core::TickGameThread() {
     ScreenSizeX = SDK::GetCanvas()->SizeX();
     ScreenSizeY = SDK::GetCanvas()->SizeY();
-    Features::Player::TickGameThread();
+    Tick::Container::TickGameThread();
+    Tick::Pickup::TickGameThread();
+    Tick::Player::TickGameThread();
 }
 
 void Core::TickRenderThread() {
-    Features::Player::TickRenderThread();
+    Tick::Container::TickRenderThread();
+    Tick::Pickup::TickRenderThread();
+    Tick::Player::TickRenderThread();
 }
