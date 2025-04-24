@@ -100,22 +100,21 @@ void ConfigTab() {
 
 void MiscTab() {
 	if (ImGui::BeginChild("ConfigRegion")) {
-		ImGui::Text("Thank you for using my cheat! I hope you find it fun and useful.");
-		ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
-
 		ImGui::ColorEdit3("Primary Color Visible", (float*)&Config::g_Config.Color.PrimaryColorVisible);
 		ImGui::ColorEdit3("Primary Color Hidden", (float*)&Config::g_Config.Color.PrimaryColorHidden);
 		ImGui::ColorEdit3("Secondary Color Visible", (float*)&Config::g_Config.Color.SecondaryColorVisible);
 		ImGui::ColorEdit3("Secondary Color Hidden", (float*)&Config::g_Config.Color.SecondaryColorHidden);
+
+		ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
+		ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
 	}
 	ImGui::EndChild();
 }
 
 
 void GUI::TickMainWindow() {
-	if (ImGui::IsKeyReleased(ImGuiKey_Insert)) {
+	if (ImGui::IsKeyReleased(ImGuiKey_Insert))
 		GUI::WindowOpen = !GUI::WindowOpen;
-	}
 
 	if (GUI::WindowOpen) {
 		ImGuiIO& io = ImGui::GetIO();
