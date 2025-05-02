@@ -1,15 +1,28 @@
 #pragma once
+
 #include <mutex>
+#include <cheat/sdk/Basic.h>
 
-namespace Core
-{
-    bool Init();
-    void Destroy();
+namespace Core {
 
-    void TickGameThread();
-    void TickRenderThread();
+// --- Initialization ------------------------------------------------
 
-    inline float ScreenSizeX = 0.f;
-    inline float ScreenSizeY = 0.f;
-    inline std::mutex GameRenderThreadLock; // Prevents game-thread stuff from running when render-thread stuff is running. Untesed, maybe dead lock???
-}
+bool Init();
+void Destroy();
+
+// --- Public Tick Functions -----------------------------------------
+
+void TickGameThread();
+void TickRenderThread();
+
+// --- Global Variables ----------------------------------------------
+
+extern float         g_PixelsPerDegree;
+extern int32_t       g_ScreenSizeX;
+extern int32_t       g_ScreenSizeY;
+extern float         g_FOV;
+extern SDK::FVector  g_CameraLocation;
+extern SDK::FRotator g_CameraRotation;
+extern std::mutex    g_GameRenderThreadLock;
+
+} // namespace Core

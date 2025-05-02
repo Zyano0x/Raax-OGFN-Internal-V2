@@ -1,7 +1,13 @@
 #pragma once
-#include <globals.h>
+
 #include <string>
+
 #include <extern/loguru/loguru.hpp>
+#include <globals.h>
+
+namespace Log {
+
+// --- Logging Functions & Data --------------------------------------
 
 #define LOG_ERROR loguru::Verbosity_ERROR
 #define LOG_WARN loguru::Verbosity_WARNING
@@ -16,7 +22,11 @@ void InitLogger();
 #define LOG void(0)
 #endif
 
+// --- Console Functions ---------------------------------------------
+
 #if CFG_SHOWCONSOLE
 void CreateConsole();
 void DestroyConsole();
 #endif
+
+} // namespace Log

@@ -1,7 +1,10 @@
 #pragma once
 
-namespace DrawTransition
-{
-    bool Init();
-    void Destroy();
-}
+namespace DrawTransition {
+
+// --- Initialization ------------------------------------------------
+
+bool Init();
+void Destroy();
+
+} // namespace DrawTransition

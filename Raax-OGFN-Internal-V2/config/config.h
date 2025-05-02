@@ -1,81 +1,166 @@
 #pragma once
 #include <string>
 #include <cheat/sdk/Basic.h>
+#include <extern/imgui/imgui.h>
 
-namespace Config
-{
-    struct ConfigData {
-        enum class BoxType : int {
-            MIN = 0,
-            Full = 0,
-            Cornered = 1,
-            Full3D = 2,
-            MAX = 2
-        };
-        enum class TracerPos : int {
-            MIN = 0,
-            Top = 0,
-            Middle = 1,
-            Bottom = 2,
-            MAX = 2
-        };
-        enum class Tier : int {
-            MIN = 1,
-            Common = 1,
-            Uncommon = 2,
-            Rare = 3,
-            Epic = 4,
-            Legendary = 5,
-            Mythic = 6,
-            MAX = 6
-        };
+namespace Config {
 
-        struct Visuals {
-            struct PlayerConfig {
-                bool Box = true;
-                BoxType BoxType = BoxType::Cornered;
-                float BoxThickness = 2.f;
+// --- Config Structs & Data -----------------------------------------
 
-                bool Skeleton = true;
-                float SkeletonThickness = 1.f;
+struct ConfigData {
+    enum class BoxType : int { MIN = 0, Full = 0, Cornered = 1, Full3D = 2, MAX = 2 };
+    enum class TracerPos : int { MIN = 0, Top = 0, Middle = 1, Bottom = 2, MAX = 2 };
+    enum class Tier : int { MIN = 0, Common = 0, Uncommon = 1, Rare = 2, Epic = 3, Legendary = 4, Mythic = 5, MAX = 5 };
+    enum class TargetSelection : int { MIN = 0, Distance = 0, Degrees = 1, Combined = 2, MAX = 2 };
+    enum class TargetBone : int { MIN = 0, Head = 0, Neck = 1, Chest = 2, Pelvis = 3, Random = 4, MAX = 4 };
 
-                bool Tracer = true;
-                float TracerThickness = 1.f;
-                TracerPos TracerStart = TracerPos::Bottom;
-                TracerPos TracerEnd = TracerPos::Bottom;
+    struct Visuals {
+        struct PlayerConfig {
+            bool    Box = true;
+            BoxType BoxType = BoxType::Cornered;
+            float   BoxThickness = 2.f;
 
-                bool Name = true;
-            } Player;
+            bool  Skeleton = true;
+            float SkeletonThickness = 1.f;
 
-            struct LootConfig {
-                bool LootText = false;
-                Tier MinLootTier = Tier::Epic;
+            bool      Tracer = true;
+            float     TracerThickness = 1.f;
+            TracerPos TracerStart = TracerPos::Bottom;
+            TracerPos TracerEnd = TracerPos::Bottom;
 
-                bool ChestText = false;
-                bool AmmoBoxText = false;
-            } Loot;
-        } Visuals;
+            bool Name = true;
+        } Player;
 
-        struct AimbotConfig {
-            bool Enabled = true;
-            float Smoothness = 5.f;
-            //int Keybind = VK_RBUTTON;
-        } Aimbot;
+        struct LootConfig {
+            bool  LootText = false;
+            float LootMaxDistance = 300.f;
+            Tier  MinLootTier = Tier::Epic;
 
-        struct ColorConfig {
-            SDK::FLinearColor PrimaryColorVisible = SDK::FLinearColor::White;
-            SDK::FLinearColor PrimaryColorHidden = SDK::FLinearColor::Gray;
-            SDK::FLinearColor SecondaryColorVisible = SDK::FLinearColor::White;
-            SDK::FLinearColor SecondaryColorHidden = SDK::FLinearColor::Gray;
-        } Color;
+            bool  ChestText = false;
+            float ChestMaxDistance = 300.f;
 
-        std::string SerializeConfig();
-        bool DeserializeConfig(const std::string& Data, ConfigData& MergeConfig);
+            bool  AmmoBoxText = false;
+            float AmmoBoxMaxDistance = 300.f;
+        } Loot;
+    } Visuals;
+
+    struct AimbotConfig {
+        bool  Enabled = true;
+        float Smoothness = 5.f;
+        float MaxDistance = 300.f;
+
+        bool VisibleCheck = true;
+        bool StickyTarget = true;
+
+        bool  ShowFOV = true;
+        float FOV = 10.f;
+
+        bool  UseDeadzone = true;
+        bool  ShowDeadzoneFOV = true;
+        float DeadzoneFOV = 2.f;
+
+        TargetSelection Selection = TargetSelection::Combined;
+        TargetBone      Bone = TargetBone::Head;
+
+        float RandomBoneRefreshRate = 1.f;
     };
+    AimbotConfig ShellsAimbot = {.Enabled = true,
+                                 .Smoothness = 1.5f,
+                                 .MaxDistance = 25.f,
 
-    inline ConfigData g_Config;
-}
+                                 .VisibleCheck = true,
+                                 .StickyTarget = true,
+
+                                 .ShowFOV = true,
+                                 .FOV = 7.5f,
+
+                                 .UseDeadzone = true,
+                                 .ShowDeadzoneFOV = true,
+                                 .DeadzoneFOV = 0.5f,
+
+                                 .Selection = TargetSelection::Combined,
+                                 .Bone = TargetBone::Head,
+
+                                 .RandomBoneRefreshRate = 1.f};
+    AimbotConfig LightAimbot = {.Enabled = true,
+                                .Smoothness = 3.f,
+                                .MaxDistance = 75.f,
+
+                                .VisibleCheck = true,
+                                .StickyTarget = true,
+
+                                .ShowFOV = true,
+                                .FOV = 8.5f,
+
+                                .UseDeadzone = true,
+                                .ShowDeadzoneFOV = true,
+                                .DeadzoneFOV = 0.6f,
+
+                                .Selection = TargetSelection::Combined,
+                                .Bone = TargetBone::Neck,
+
+                                .RandomBoneRefreshRate = 1.f};
+    AimbotConfig MediumAimbot = {.Enabled = true,
+                                 .Smoothness = 7.5f,
+                                 .MaxDistance = 300.f,
+
+                                 .VisibleCheck = true,
+                                 .StickyTarget = true,
+
+                                 .ShowFOV = true,
+                                 .FOV = 10.f,
+
+                                 .UseDeadzone = true,
+                                 .ShowDeadzoneFOV = true,
+                                 .DeadzoneFOV = 1.f,
+
+                                 .Selection = TargetSelection::Combined,
+                                 .Bone = TargetBone::Random,
+
+                                 .RandomBoneRefreshRate = 1.f};
+    AimbotConfig HeavyAimbot = {.Enabled = true,
+                                .Smoothness = 3.f,
+                                .MaxDistance = 300.f,
+
+                                .VisibleCheck = true,
+                                .StickyTarget = true,
+
+                                .ShowFOV = true,
+                                .FOV = 10.f,
+
+                                .UseDeadzone = false,
+                                .ShowDeadzoneFOV = true,
+                                .DeadzoneFOV = 2.f,
+
+                                .Selection = TargetSelection::Combined,
+                                .Bone = TargetBone::Head,
+
+                                .RandomBoneRefreshRate = 1.f};
+    AimbotConfig OtherAimbot = {};
+
+    AimbotConfig AllAimbot = {};
+
+    bool SplitAimbotByAmmo = true;
+    bool BulletPrediction = true;
+    int  AimbotKeybind = ImGuiKey_MouseRight;
+
+    struct ColorConfig {
+        SDK::FLinearColor PrimaryColorVisible = SDK::FLinearColor(1.f, 0.f, 0.f, 1.f);
+        SDK::FLinearColor PrimaryColorHidden = SDK::FLinearColor(0.43f, 0.f, 0.f, 1.f);
+        SDK::FLinearColor SecondaryColorVisible = SDK::FLinearColor(0.f, 0.47f, 1.f, 1.f);
+        SDK::FLinearColor SecondaryColorHidden = SDK::FLinearColor(0.f, 0.17f, 0.34f, 1.f);
+    } Color;
+
+    std::string SerializeConfig(bool FullConfig);
+    bool        DeserializeConfig(const std::string& Data, ConfigData& MergeConfig);
+};
+
+inline ConfigData g_Config;
+
+} // namespace Config
 
 static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::BoxType>, int>);
 static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::TracerPos>, int>);
 static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::Tier>, int>);
+static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::TargetSelection>, int>);
+static_assert(std::is_same_v<std::underlying_type_t<Config::ConfigData::TargetBone>, int>);

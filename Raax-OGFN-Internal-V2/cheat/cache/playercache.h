@@ -1,60 +1,58 @@
 #pragma once
-#include <cheat/sdk/sdk.h>
+
 #include <unordered_map>
+#include <cheat/sdk/sdk.h>
 
-namespace Cache::Player
-{
-    enum class BoneIdx : int
-    {
-        MIN = 0,
-        Head = 0,
-        Neck,
-        Pelvis,
+namespace Cache {
+namespace Player {
 
-        L_Shoulder,
-        L_Elbow,
-        L_Hand,
-        R_Shoulder,
-        R_Elbow,
-        R_Hand,
+// --- Cache Structures ----------------------------------------------
 
-        Chest,
+enum class BoneIdx : int {
+    MIN = 0,
+    Head = 0,
+    Neck,
+    Pelvis,
 
-        // L_Hip,
-        L_Thigh,
-        L_Knee,
-        L_Foot,
-        //R_Hip,
-        R_Thigh,
-        R_Knee,
-        R_Foot,
+    L_Shoulder,
+    L_Elbow,
+    L_Hand,
+    R_Shoulder,
+    R_Elbow,
+    R_Hand,
 
-        NUM
-    };
-    struct PlayerInfo
-    {
-        SDK::AFortPawn* Pawn = nullptr;
-        SDK::APlayerState* PlayerState = nullptr;
-        SDK::USkeletalMeshComponent* Mesh = nullptr;
+    Chest,
 
-        std::string PlayerName;
-        int32_t BoneIndicies[(int)BoneIdx::NUM];
+    L_Thigh,
+    L_Knee,
+    L_Foot,
+    R_Thigh,
+    R_Knee,
+    R_Foot,
 
-        SDK::FVector RootLocation;
-        SDK::FVector BoneWorldPos[(int)BoneIdx::NUM];
-        SDK::FVector2D BoneScreenPos[(int)BoneIdx::NUM];
+    NUM
+};
 
-        SDK::FVector2D BoundTopLeft, BoundBottomRight;
-        SDK::FVector BoundCorners3D[8];
-        SDK::FVector2D BoundCorners2D[8];
-        SDK::FVector2D BoxTop, BoxMiddle, BoxBottom;
-        float FontSize = 12.f;
+struct PlayerInfo {
+    SDK::AFortPawn*              Pawn = nullptr;
+    SDK::APlayerState*           PlayerState = nullptr;
+    SDK::USkeletalMeshComponent* Mesh = nullptr;
+    int32_t                      BoneIndicies[(int)BoneIdx::NUM];
+    SDK::FVector                 RootWorldLocation;
+    SDK::FVector                 BoneWorldPos[(int)BoneIdx::NUM];
+    SDK::FVector2D               BoneScreenPos[(int)BoneIdx::NUM];
+    SDK::FVector2D               BoundTopLeft, BoundBottomRight;
+    SDK::FVector                 BoundCorners3D[8];
+    SDK::FVector2D               BoundCorners2D[8];
+    SDK::FVector2D               BoxTop, BoxMiddle, BoxBottom;
+    std::string                  PlayerName;
+    bool                         SeenThisFrame = false;
+};
 
-        bool WasSeenThisFrame = 0;
-    };
+// --- Public Cache Functions ----------------------------------------
 
-    constexpr int NumBones = static_cast<int>(BoneIdx::NUM);
+const std::unordered_map<void*, PlayerInfo>& GetCachedPlayers();
+void                                         UpdateCache();
 
-    const std::unordered_map<void*, PlayerInfo>& GetCachedPlayers();
-    void UpdateCache();
-}
+} // namespace Player
+} // namespace Cache

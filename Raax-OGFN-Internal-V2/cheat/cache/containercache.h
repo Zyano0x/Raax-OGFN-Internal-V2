@@ -1,25 +1,27 @@
 #pragma once
-#include <cheat/sdk/sdk.h>
+
 #include <unordered_map>
+#include <cheat/sdk/sdk.h>
 
-namespace Cache::Container
-{
-    enum class ContainerType
-    {
-        Chest = 0,
-        AmmoBox
-    };
+namespace Cache {
+namespace Container {
 
-    struct ContainerInfo
-    {
-        SDK::ABuildingContainer* Container = nullptr;
-        ContainerType Type = ContainerType::Chest;
-        SDK::FVector RootLocation;
-        SDK::FVector2D RootScreenLocation;
+// --- Cache Structures ----------------------------------------------
 
-        bool WasSeenThisFrame = false;
-    };
+enum class ContainerType { Chest, AmmoBox };
 
-    const std::unordered_map<void*, ContainerInfo>& GetCachedContainers();
-    void UpdateCache();
-}
+struct ContainerInfo {
+    SDK::ABuildingContainer* Container = nullptr;
+    SDK::FVector             RootWorldLocation;
+    SDK::FVector2D           RootScreenLocation;
+    ContainerType            Type = ContainerType::Chest;
+    bool                     SeenThisFrame = false;
+};
+
+// --- Public Cache Functions ----------------------------------------
+
+const std::unordered_map<void*, ContainerInfo>& GetCachedContainers();
+void                                            UpdateCache();
+
+} // namespace Container
+} // namespace Cache

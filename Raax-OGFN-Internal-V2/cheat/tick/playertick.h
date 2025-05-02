@@ -1,7 +1,12 @@
 #pragma once
 
-namespace Tick::Player
-{
-    void TickGameThread();
-    void TickRenderThread();
-}
+namespace Tick {
+namespace Player {
+
+// --- Public Tick Functions -----------------------------------------
+
+void TickGameThread();
+void TickRenderThread();
+
+} // namespace Player
+} // namespace Tick

@@ -102,6 +102,7 @@
     <ClCompile Include="cheat\cache\pickupcache.cpp" />
     <ClCompile Include="cheat\cache\playercache.cpp" />
     <ClCompile Include="cheat\core.cpp" />
+    <ClCompile Include="cheat\features\aimbot.cpp" />
     <ClCompile Include="cheat\tick\containertick.cpp" />
     <ClCompile Include="cheat\tick\pickuptick.cpp" />
     <ClCompile Include="cheat\tick\playertick.cpp" />
@@ -133,6 +134,7 @@
     <ClCompile Include="gui\mainwindow.cpp" />
     <ClCompile Include="utils\error.cpp" />
     <ClCompile Include="utils\log.cpp" />
+    <ClCompile Include="utils\math.cpp" />
     <ClCompile Include="utils\memory.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +142,7 @@
     <ClInclude Include="cheat\cache\pickupcache.h" />
     <ClInclude Include="cheat\cache\playercache.h" />
     <ClInclude Include="cheat\core.h" />
+    <ClInclude Include="cheat\features\aimbot.h" />
     <ClInclude Include="cheat\tick\containertick.h" />
     <ClInclude Include="cheat\tick\pickuptick.h" />
     <ClInclude Include="cheat\tick\playertick.h" />
@@ -177,9 +180,14 @@
     <ClInclude Include="extern\minhook\src\hde\table64.h" />
     <ClInclude Include="extern\minhook\src\trampoline.h" />
     <ClInclude Include="globals.h" />
+    <ClInclude Include="gui\mainwindow.h" />
     <ClInclude Include="utils\error.h" />
     <ClInclude Include="utils\log.h" />
+    <ClInclude Include="utils\math.h" />
     <ClInclude Include="utils\memory.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="utils\memory.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

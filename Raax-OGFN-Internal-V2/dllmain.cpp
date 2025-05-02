@@ -1,4 +1,5 @@
 #include <Windows.h>
+
 #include <globals.h>
 #include <cheat/core.h>
 #include <cheat/sdk/sdk.h>
@@ -21,18 +22,12 @@ DWORD Unload(LPVOID hModule) {
         Sleep(100);
     }
 
-    Sleep(100);
+    Sleep(1000);
     FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), 0);
 }
 
-
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
-{
-    switch (ul_reason_for_call)
-    {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+    switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
 #if CFG_MAINTHREAD
         DisableThreadLibraryCalls(hModule);

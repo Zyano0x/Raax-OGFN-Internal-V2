@@ -1,12 +1,12 @@
 #pragma once
 
-namespace Tick {
-namespace Container {
+namespace Features {
+namespace Aimbot {
 
 // --- Public Tick Functions -----------------------------------------
 
 void TickGameThread();
 void TickRenderThread();
 
-} // namespace Container
-} // namespace Tick
+} // namespace Aimbot
+} // namespace Features

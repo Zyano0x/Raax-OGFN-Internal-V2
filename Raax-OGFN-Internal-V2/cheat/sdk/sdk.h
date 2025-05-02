@@ -1,14 +1,20 @@
 #pragma once
+
 #include "FMemory.h"
 #include "CoreUObject.h"
 #include "Engine.h"
 #include "FortniteGame.h"
 
-namespace SDK
-{
-    bool Init();
+namespace SDK {
 
-    inline float EngineVersion = 0.f;
-    inline float GameVersion = 0.f;
-    inline int CL = 0;
-}
+// --- Initialization ------------------------------------------------
+
+bool Init();
+
+// --- Global Variables ----------------------------------------------
+
+extern float g_EngineVersion;
+extern float g_GameVersion;
+extern int   g_CL;
+
+} // namespace SDK

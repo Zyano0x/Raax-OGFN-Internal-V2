@@ -1,26 +1,26 @@
 #include "log.h"
 #include <Windows.h>
-#include <string>
 #include <sstream>
 #include <ctime>
 
+namespace Log {
+
+// --- Logging Functions & Data --------------------------------------
+
 std::string GenerateTimeDateStamp() {
-    std::time_t t = std::time(nullptr);
-    std::tm tm_info;
-    localtime_s(&tm_info, &t);
+    std::time_t T = std::time(nullptr);
+    std::tm     TMInfo;
+    localtime_s(&TMInfo, &T);
 
     // Format DD-MM-YYYY_HH:MN:SS
     std::stringstream ss;
-    ss << (tm_info.tm_mday < 10 ? "0" : "") << tm_info.tm_mday << "-" <<
-        (tm_info.tm_mon + 1 < 10 ? "0" : "") << (tm_info.tm_mon + 1) << "-" <<
-        (tm_info.tm_year + 1900) << "_"
-        << (tm_info.tm_hour < 10 ? "0" : "") << tm_info.tm_hour << "-" <<
-        (tm_info.tm_min < 10 ? "0" : "") << tm_info.tm_min << "-" <<
-        (tm_info.tm_sec < 10 ? "0" : "") << tm_info.tm_sec;
+    ss << (TMInfo.tm_mday < 10 ? "0" : "") << TMInfo.tm_mday << "-" << (TMInfo.tm_mon + 1 < 10 ? "0" : "")
+        << (TMInfo.tm_mon + 1) << "-" << (TMInfo.tm_year + 1900) << "_" << (TMInfo.tm_hour < 10 ? "0" : "")
+        << TMInfo.tm_hour << "-" << (TMInfo.tm_min < 10 ? "0" : "") << TMInfo.tm_min << "-"
+        << (TMInfo.tm_sec < 10 ? "0" : "") << TMInfo.tm_sec;
 
     return ss.str();
 }
-
 
 void SetThreadLogName(const std::string& Name) {
     loguru::set_thread_name(Name.c_str());
@@ -32,6 +32,7 @@ void InitLogger() {
     SetThreadLogName("InitThread");
 }
 
+// --- Console Functions ---------------------------------------------
 
 void CreateConsole() {
     AllocConsole();
@@ -47,3 +48,5 @@ void DestroyConsole() {
     fclose(stderr);
     FreeConsole();
 }
+
+} // namespace Log

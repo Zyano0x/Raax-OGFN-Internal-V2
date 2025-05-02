@@ -3,30 +3,84 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <dxgi.h>
+
 #include <cheat/hooks.h>
 #include <extern/imgui/imgui.h>
 #include <extern/imgui/imgui_impl_win32.h>
 #include <extern/imgui/imgui_impl_dx11.h>
 #include <utils/log.h>
+#include <gui/mainwindow.h>
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-LRESULT __stdcall GUI::h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	std::lock_guard<std::recursive_mutex> lock(WndProcMutex);
-	if (GUI::SetupImGui) {
-		ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
-        if (GUI::WindowOpen) {
+namespace GUI {
+
+// --- Initialization ------------------------------------------------
+
+bool Init() {
+    LOG(LOG_TRACE, "Setting up GUI...");
+    return DX11::Init();
+}
+
+void Destroy() {
+    LOG(LOG_TRACE, "Destroying GUI...");
+    return DX11::Destroy();
+}
+
+// --- ImGui Utility Functions ---------------------------------------
+
+ImGuiKey GetLastReleasedKey() {
+    for (int i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; i++) {
+        if (ImGui::IsKeyReleased((ImGuiKey)i))
+            return (ImGuiKey)i;
+    }
+
+    return ImGuiKey_None;
+}
+
+void Keybind(const char* Str, bool& WaitingForKeybind, ImGuiKey& OutKeybind) {
+    std::string KeybindStr = Str;
+    KeybindStr += ": ";
+    KeybindStr += ImGui::GetKeyName(OutKeybind);
+
+    ImGui::BeginDisabled(WaitingForKeybind);
+    bool Result = ImGui::Button(KeybindStr.c_str());
+    ImGui::EndDisabled();
+
+    if (WaitingForKeybind) {
+        ImGuiKey ReleasedKey = GUI::GetLastReleasedKey();
+        if (ReleasedKey != ImGuiKey_None) {
+            WaitingForKeybind = false;
+            OutKeybind = ReleasedKey;
+        }
+    }
+    WaitingForKeybind |= Result;
+}
+
+// --- Hook Functions ------------------------------------------------
+
+LRESULT __stdcall h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    if (g_SetupImGui) {
+        // Still prevents any clashing issues with ImGui render thread and game thread collisions whilst also fixing
+        // dead lock issues on some older seasons (tested on 7.40)
+        {
+            std::lock_guard<std::recursive_mutex> lock(g_WndProcMutex);
+            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+        }
+
+        if (MainWindow::g_WindowOpen) {
             // Just copied straight from ImGui. Replace later, cba now.
             switch (uMsg) {
             case WM_MOUSEMOVE:
             case WM_NCMOUSEMOVE:
-                //case WM_MOUSELEAVE:
-                //case WM_NCMOUSELEAVE:
-                //case WM_DESTROY:
-            case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
-            case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
-            case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
-            case WM_XBUTTONDOWN: case WM_XBUTTONDBLCLK:
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONDBLCLK:
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONDBLCLK:
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONDBLCLK:
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONDBLCLK:
             case WM_LBUTTONUP:
             case WM_RBUTTONUP:
             case WM_MBUTTONUP:
@@ -37,13 +91,7 @@ LRESULT __stdcall GUI::h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
             case WM_KEYUP:
             case WM_SYSKEYDOWN:
             case WM_SYSKEYUP:
-                //case WM_SETFOCUS:
-                //case WM_KILLFOCUS:
-                //case WM_INPUTLANGCHANGE:
             case WM_CHAR:
-                //case WM_SETCURSOR:
-                //case WM_DEVICECHANGE:
-
             case WM_SETCURSOR:
             case WM_INPUT:
                 return 0;
@@ -53,18 +101,13 @@ LRESULT __stdcall GUI::h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         }
 
         return o_WndProc(hWnd, uMsg, wParam, lParam);
-	}
-
-	return 0;
+    }
+    return 0;
 }
 
+// --- Global Variables ----------------------------------------------
 
-bool GUI::Init() {
-	LOG(LOG_TRACE, "Setting up GUI...");
-	return GUI::DX11::Init();
-}
+std::recursive_mutex g_WndProcMutex;
+bool                 g_SetupImGui = false;
 
-void GUI::Destroy() {
-	LOG(LOG_TRACE, "Destroying GUI...");
-	return GUI::DX11::Destroy();
-}
+} // namespace GUI

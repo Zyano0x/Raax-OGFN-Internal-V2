@@ -1,72 +1,104 @@
 #include "containercache.h"
 #include <chrono>
 
-std::unordered_map<void*, Cache::Container::ContainerInfo> g_CachedContainers;
+namespace Cache {
+namespace Container {
 
-const std::unordered_map<void*, Cache::Container::ContainerInfo>& Cache::Container::GetCachedContainers() {
-    return g_CachedContainers;
-}
+// --- Cache Data ----------------------------------------------------
 
+std::unordered_map<void*, ContainerInfo> CachedContainers;
 
-void ResetContainerSeenFlags() {
-    for (auto& [Pawn, Cache] : g_CachedContainers) {
-        Cache.WasSeenThisFrame = false;
-    }
-}
+// --- Cache Utility Functions ---------------------------------------
 
-Cache::Container::ContainerInfo CreateNewContainerInfo(SDK::ABuildingContainer* Container, Cache::Container::ContainerType Type) {
-    Cache::Container::ContainerInfo Info;
+ContainerInfo CreateNewContainerInfo(SDK::ABuildingContainer*        Container,
+                                                       ContainerType Type) {
+    ContainerInfo Info;
     Info.Container = Container;
+    Info.RootWorldLocation = Container->RootComponent()->RelativeLocation();
+    Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
     Info.Type = Type;
-    Info.RootLocation = Container->RootComponent()->RelativeLocation();
-    Info.RootScreenLocation = SDK::Project(Info.RootLocation);
-    Info.WasSeenThisFrame = true;
+    Info.SeenThisFrame = true;
     return Info;
 }
 
-void UpdateExistingContainerInfo(Cache::Container::ContainerInfo& Info, SDK::ABuildingContainer* Container) {
-    Info.RootLocation = Container->RootComponent()->RelativeLocation();
-    Info.RootScreenLocation = SDK::Project(Info.RootLocation);
-    Info.WasSeenThisFrame = true;
+void UpdateExistingContainerInfo(ContainerInfo& Info, SDK::ABuildingContainer* Container) {
+    Info.RootWorldLocation = Container->RootComponent()->RelativeLocation();
+    Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
+    Info.SeenThisFrame = true;
+}
+
+void ResetContainerSeenFlags() {
+    for (auto& [_, Cache] : CachedContainers) {
+        Cache.SeenThisFrame = false;
+    }
 }
 
 void RemoveUnseenContainers() {
-    for (auto it = g_CachedContainers.begin(); it != g_CachedContainers.end(); ) {
-        if (!it->second.WasSeenThisFrame)
-            it = g_CachedContainers.erase(it);
-        else
-            ++it;
+    std::erase_if(CachedContainers, [](const auto& Cache) {
+        return !Cache.second.SeenThisFrame;
+        });
+}
+
+template<typename T>
+void CacheContainersOfType(std::vector<T*>& ContainerList, ContainerType Type) {
+    SDK::GetAllActorsOfClassAllLevels<T>(ContainerList);
+    for (const auto& Container : ContainerList) {
+        auto It = CachedContainers.find(Container);
+        if (It == CachedContainers.end()) {
+            CachedContainers[Container] = CreateNewContainerInfo(Container, Type);
+        } else {
+            UpdateExistingContainerInfo(It->second, Container);
+        }
     }
 }
 
+template<typename T>
+bool CheckIfStaticClassIsLoaded(float CheckDelayS) {
+    static bool Found = false;
+    if (Found)
+        return true;
 
-void Cache::Container::UpdateCache() {
-    // For some reason the ammo box class is loaded once you get in game (14.40)
-    // so i just put them both in a check for safety and performance
+    static std::chrono::time_point<std::chrono::high_resolution_clock> LastCheckTime;
+    auto        Now = std::chrono::steady_clock::now();
+    auto        Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
+    if (Elapsed < CheckDelayS)
+        return false;
 
+    LastCheckTime = Now;
+
+    if (T::StaticClass() &&
+        T::StaticClass()) {
+        Found = true;
+        return true;
+    }
+
+    return false;
+}
+
+// --- Public Cache Functions ----------------------------------------
+
+const std::unordered_map<void*, ContainerInfo>& GetCachedContainers() {
+    return CachedContainers;
+}
+
+void UpdateCache() {
     ResetContainerSeenFlags();
-    if (SDK::ATiered_Chest_Athena_C::StaticClass()) {
-        static std::vector<SDK::ATiered_Chest_Athena_C*> Chests;
-        SDK::GetAllActorsOfClassAllLevels<SDK::ATiered_Chest_Athena_C>(Chests);
-        for (const auto& Container : Chests) {
-            auto it = g_CachedContainers.find(Container);
-            if (it == g_CachedContainers.end())
-                g_CachedContainers[Container] = CreateNewContainerInfo(Container, ContainerType::Chest);
-            else
-                UpdateExistingContainerInfo(it->second, Container);
-        }
+
+    // For some reason, the ammo box class is loaded once you get in game (tested on 14.40)
+    // To fix performance issues we only check if the class is loaded every 5 seconds
+    if (!CheckIfStaticClassIsLoaded<SDK::ATiered_Chest_Athena_C>(5.f) ||
+        !CheckIfStaticClassIsLoaded<SDK::ATiered_Ammo_Athena_C>(5.f)) {
+        return;
     }
 
-    if (SDK::ATiered_Ammo_Athena_C::StaticClass()) {
-        static std::vector<SDK::ATiered_Ammo_Athena_C*> AmmoBoxes;
-        SDK::GetAllActorsOfClassAllLevels<SDK::ATiered_Ammo_Athena_C>(AmmoBoxes);
-        for (const auto& Container : AmmoBoxes) {
-            auto it = g_CachedContainers.find(Container);
-            if (it == g_CachedContainers.end())
-                g_CachedContainers[Container] = CreateNewContainerInfo(Container, ContainerType::AmmoBox);
-            else
-                UpdateExistingContainerInfo(it->second, Container);
-        }
-    }
+    static std::vector<SDK::ATiered_Chest_Athena_C*> ChestList;
+    CacheContainersOfType<SDK::ATiered_Chest_Athena_C>(ChestList, ContainerType::Chest);
+
+    static std::vector<SDK::ATiered_Ammo_Athena_C*> AmmoBoxList;
+    CacheContainersOfType<SDK::ATiered_Ammo_Athena_C>(AmmoBoxList, ContainerType::AmmoBox);
+
     RemoveUnseenContainers();
 }
+
+} // namespace Container
+} // namespace Cache

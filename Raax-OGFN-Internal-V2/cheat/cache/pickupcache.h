@@ -1,21 +1,26 @@
 #pragma once
-#include <cheat/sdk/sdk.h>
+
 #include <unordered_map>
+#include <cheat/sdk/sdk.h>
 
-namespace Cache::Pickup
-{
-    struct PickupInfo
-    {
-        SDK::AFortPickup* Pickup = nullptr;
+namespace Cache {
+namespace Pickup {
 
-        SDK::FVector RootLocation;
-        SDK::FVector2D RootScreenLocation;
-        SDK::EFortItemTier Tier;
-        std::string WeaponName;
+// --- Cache Structures ----------------------------------------------
 
-        bool WasSeenThisFrame = false;
-    };
+struct PickupInfo {
+    SDK::AFortPickup*  Pickup = nullptr;
+    SDK::FVector       RootWorldLocation;
+    SDK::FVector2D     RootScreenLocation;
+    std::string        WeaponName;
+    SDK::EFortItemTier Tier;
+    bool               SeenThisFrame = false;
+};
 
-    const std::unordered_map<void*, PickupInfo>& GetCachedPickups();
-    void UpdateCache();
-}
+// --- Public Cache Functions ----------------------------------------
+
+const std::unordered_map<void*, PickupInfo>& GetCachedPickups();
+void                                         UpdateCache();
+
+} // namespace Pickup
+} // namespace Cache

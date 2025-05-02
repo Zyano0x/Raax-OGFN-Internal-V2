@@ -1,22 +1,25 @@
 #include "sdk.h"
 #include <sstream>
+
 #include <utils/error.h>
 #include <utils/memory.h>
 #include <utils/log.h>
+#include <utils/math.h>
 
-// Unreal-Engine general offsets...
+namespace SDK {
+
+// --- Unreal-Engine general offsets ---------------------------------
 
 bool SetupGObjects() {
     static const std::vector<std::pair<const std::string, const std::string>> Patterns = {
-        { "Chunked", "48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1" },
-        { "Fixed", "48 8B 05 ? ? ? ? 48 8D 14 C8 EB 02" }
-    };
+        {"Chunked", "48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1"}, {"Fixed", "48 8B 05 ? ? ? ? 48 8D 14 C8 EB 02"}};
 
     for (const auto& [Type, Pattern] : Patterns) {
         uintptr_t Address = Memory::PatternScan<uint32_t>(Pattern.c_str(), 3, true);
         if (Memory::IsAddressInsideImage(Address)) {
-            LOG(LOG_INFO, "Found GObjects (%s) offset: 0x%p", Type.c_str(), Address - Memory::GetImageBase());
-            SDK::UObject::Objects.Initialize(reinterpret_cast<void*>(Address), Type == "Chunked");
+            LOG(LOG_INFO, "Found GObjects (%s) offset: 0x%p", Type.c_str(),
+                reinterpret_cast<void*>(Address - Memory::GetImageBase()));
+            UObject::Objects.Initialize(reinterpret_cast<void*>(Address), Type == "Chunked");
             return true;
         }
     }
@@ -39,10 +42,12 @@ bool SetupFMemoryRealloc() {
     48 8B FA		mov     rdi, rdx
     48 85 C9		test    rcx, rcx
     */
-    uintptr_t FMemoryRealloc = Memory::PatternScan("48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B F1 41 8B D8 48 8B 0D ? ? ? ? 48 8B FA 48 85 C9");
+    uintptr_t FMemoryRealloc = Memory::PatternScan(
+        "48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B F1 41 8B D8 48 8B 0D ? ? ? ? 48 8B FA 48 85 C9");
     if (FMemoryRealloc) {
-        SDK::FMemory::FMemoryRealloc = reinterpret_cast<decltype(SDK::FMemory::FMemoryRealloc)>(FMemoryRealloc);
-        LOG(LOG_INFO, "Found FMemoryRealloc offset: 0x%p", reinterpret_cast<uintptr_t>(SDK::FMemory::FMemoryRealloc) - Memory::GetImageBase());
+        FMemory::FMemoryRealloc = reinterpret_cast<decltype(FMemory::FMemoryRealloc)>(FMemoryRealloc);
+        LOG(LOG_INFO, "Found FMemoryRealloc offset: 0x%p",
+            reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FMemory::FMemoryRealloc) - Memory::GetImageBase()));
         return true;
     }
 
@@ -54,12 +59,13 @@ bool SetupFNameToString() {
     if (StringRef) {
         uintptr_t FNameToString = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8 ? ? ? ? 48", true, 1, true);
         if (FNameToString) {
-            SDK::FName::FNameToString = reinterpret_cast<decltype(SDK::FName::FNameToString)>(FNameToString);
-            LOG(LOG_INFO, "Found FNameToString offset: 0x%p", reinterpret_cast<uintptr_t>(SDK::FName::FNameToString) - Memory::GetImageBase());
+            FName::FNameToString = reinterpret_cast<decltype(FName::FNameToString)>(FNameToString);
+            LOG(LOG_INFO, "Found FNameToString offset: 0x%p",
+                reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameToString) - Memory::GetImageBase()));
             return true;
         }
     }
-    
+
     Error::ThrowError("Failed to find FNameToString!");
     return false;
 }
@@ -68,8 +74,10 @@ bool SetupFNameConstructorW() {
     if (StringRef) {
         uintptr_t FNameConstructorW = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8", false, 1, true);
         if (FNameConstructorW) {
-            SDK::FName::FNameConstructorW = reinterpret_cast<decltype(SDK::FName::FNameConstructorW)>(FNameConstructorW);
-            LOG(LOG_INFO, "Found FNameConstructorW offset: 0x%p", reinterpret_cast<uintptr_t>(SDK::FName::FNameConstructorW) - Memory::GetImageBase());
+            FName::FNameConstructorW = reinterpret_cast<decltype(FName::FNameConstructorW)>(FNameConstructorW);
+            LOG(LOG_INFO, "Found FNameConstructorW offset: 0x%p",
+                reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameConstructorW) -
+                                        Memory::GetImageBase()));
             return true;
         }
     }
@@ -79,34 +87,29 @@ bool SetupFNameConstructorW() {
 }
 
 bool SetupUnrealGeneralOffsets() {
-    return SetupGObjects() &&
-        SetupFMemoryRealloc() &&
-        SetupFNameToString() &&
-        SetupFNameConstructorW();
+    return SetupGObjects() && SetupFMemoryRealloc() && SetupFNameToString() && SetupFNameConstructorW();
 }
 
-
-// Unreal-Engine struct/class offsets...
+// --- Unreal-Engine struct/class offsets ----------------------------
 
 bool Setup_UProperty_Offset_Internal() {
-    SDK::UProperty::Offset_Internal_Offset = 0x44;
-    LOG(LOG_INFO, "Using hardcoded UProperty::Offset_Internal offset: 0x%X", SDK::UProperty::Offset_Internal_Offset);
+    UProperty::Offset_Internal_Offset = 0x44;
+    LOG(LOG_INFO, "Using hardcoded UProperty::Offset_Internal offset: 0x%X", UProperty::Offset_Internal_Offset);
     return true;
 }
 bool Setup_UBoolProperty_ByteMask() {
-    SDK::UBoolProperty::ByteMask_Offset = 0x72;
-    LOG(LOG_INFO, "Using hardcoded UBoolProperty::ByteMask offset: 0x%X", SDK::UBoolProperty::ByteMask_Offset);
+    UBoolProperty::ByteMask_Offset = 0x72;
+    LOG(LOG_INFO, "Using hardcoded UBoolProperty::ByteMask offset: 0x%X", UBoolProperty::ByteMask_Offset);
     return true;
 }
 bool Setup_UClass_ClassCastFlags() {
-    std::vector<std::pair<void*, SDK::EClassCastFlags>> Pairs = {
-        { SDK::UObject::FindObjectFast("Actor"), SDK::EClassCastFlags::Actor },
-        { SDK::UObject::FindObjectFast("Class"), SDK::EClassCastFlags::Field | SDK::EClassCastFlags::Struct | SDK::EClassCastFlags::Class }
-    };
+    std::vector<std::pair<void*, EClassCastFlags>> Pairs = {
+        {UObject::FindObjectFast("Actor"), EClassCastFlags::Actor},
+        {UObject::FindObjectFast("Class"), EClassCastFlags::Field | EClassCastFlags::Struct | EClassCastFlags::Class}};
 
-    SDK::UClass::ClassCastFlags_Offset = Memory::FindMatchingValueOffset(Pairs);
-    if (SDK::UClass::ClassCastFlags_Offset) {
-        LOG(LOG_INFO, "Found UClass::ClassCastFlags offset: 0x%X", SDK::UClass::ClassCastFlags_Offset);
+    UClass::ClassCastFlags_Offset = Memory::FindMatchingValueOffset(Pairs);
+    if (UClass::ClassCastFlags_Offset) {
+        LOG(LOG_INFO, "Found UClass::ClassCastFlags offset: 0x%X", UClass::ClassCastFlags_Offset);
         return true;
     }
 
@@ -115,13 +118,12 @@ bool Setup_UClass_ClassCastFlags() {
 }
 bool Setup_UClass_ClassDefaultObject() {
     std::vector<std::pair<void*, void*>> Pairs = {
-        { SDK::UObject::FindObjectFast("Object"), SDK::UObject::FindObjectFast("Default__Object") },
-        { SDK::UObject::FindObjectFast("Field"), SDK::UObject::FindObjectFast("Default__Field") }
-    };
+        {UObject::FindObjectFast("Object"), UObject::FindObjectFast("Default__Object")},
+        {UObject::FindObjectFast("Field"), UObject::FindObjectFast("Default__Field")}};
 
-    SDK::UClass::ClassDefaultObject_Offset = Memory::FindMatchingValueOffset(Pairs);
-    if (SDK::UClass::ClassDefaultObject_Offset) {
-        LOG(LOG_INFO, "Found UClass::ClassDefaultObject offset: 0x%X", SDK::UClass::ClassDefaultObject_Offset);
+    UClass::ClassDefaultObject_Offset = Memory::FindMatchingValueOffset(Pairs);
+    if (UClass::ClassDefaultObject_Offset) {
+        LOG(LOG_INFO, "Found UClass::ClassDefaultObject offset: 0x%X", UClass::ClassDefaultObject_Offset);
         return true;
     }
 
@@ -130,16 +132,15 @@ bool Setup_UClass_ClassDefaultObject() {
 }
 bool Setup_UStruct_SuperStruct() {
     std::vector<std::pair<void*, void*>> Pairs = {
-        { SDK::UObject::FindObjectFast("Struct"), SDK::UObject::FindObjectFast("Field") },
-        { SDK::UObject::FindObjectFast("Class"), SDK::UObject::FindObjectFast("Struct") }
-    };
+        {UObject::FindObjectFast("Struct"), UObject::FindObjectFast("Field")},
+        {UObject::FindObjectFast("Class"), UObject::FindObjectFast("Struct")}};
 
     if (!Pairs[0].first)
-        Pairs[0].first = Pairs[1].second = SDK::UObject::FindObjectFast("struct");
+        Pairs[0].first = Pairs[1].second = UObject::FindObjectFast("struct");
 
-    SDK::UStruct::SuperStruct_Offset = Memory::FindMatchingValueOffset(Pairs);
-    if (SDK::UStruct::SuperStruct_Offset) {
-        LOG(LOG_INFO, "Found UStruct::SuperStruct offset: 0x%X", SDK::UStruct::SuperStruct_Offset);
+    UStruct::SuperStruct_Offset = Memory::FindMatchingValueOffset(Pairs);
+    if (UStruct::SuperStruct_Offset) {
+        LOG(LOG_INFO, "Found UStruct::SuperStruct offset: 0x%X", UStruct::SuperStruct_Offset);
         return true;
     }
 
@@ -148,26 +149,24 @@ bool Setup_UStruct_SuperStruct() {
 }
 bool Setup_UStruct_Children() {
     std::vector<std::pair<void*, void*>> Pairs = {
-        { SDK::UObject::FindObjectFast("PlayerController"), SDK::UObject::FindObjectFastWithOuter("WasInputKeyJustReleased", "PlayerController") },
-        { SDK::UObject::FindObjectFast("Controller"), SDK::UObject::FindObjectFastWithOuter("UnPossess", "Controller") }
-    };
+        {UObject::FindObjectFast("PlayerController"),
+         UObject::FindObjectFastWithOuter("WasInputKeyJustReleased", "PlayerController")},
+        {UObject::FindObjectFast("Controller"), UObject::FindObjectFastWithOuter("UnPossess", "Controller")}};
 
-    SDK::UStruct::Children_Offset = Memory::FindMatchingValueOffset(Pairs);
-    if (!SDK::UStruct::Children_Offset) {
+    UStruct::Children_Offset = Memory::FindMatchingValueOffset(Pairs);
+    if (!UStruct::Children_Offset) {
         LOG(LOG_INFO, "Failed to find UStruct::Children with object pairs 1. Attempting again with object pairs 2.");
 
-        Pairs = {
-            { SDK::UObject::FindObjectFast("Vector"), SDK::UObject::FindObjectFastWithOuter("X", "Vector") },
-            { SDK::UObject::FindObjectFast("Vector4"), SDK::UObject::FindObjectFastWithOuter("X", "Vector4") },
-            { SDK::UObject::FindObjectFast("Vector2D"), SDK::UObject::FindObjectFastWithOuter("X", "Vector2D") },
-            { SDK::UObject::FindObjectFast("Guid"), SDK::UObject::FindObjectFastWithOuter("A", "Guid") }
-        };
+        Pairs = {{UObject::FindObjectFast("Vector"), UObject::FindObjectFastWithOuter("X", "Vector")},
+                 {UObject::FindObjectFast("Vector4"), UObject::FindObjectFastWithOuter("X", "Vector4")},
+                 {UObject::FindObjectFast("Vector2D"), UObject::FindObjectFastWithOuter("X", "Vector2D")},
+                 {UObject::FindObjectFast("Guid"), UObject::FindObjectFastWithOuter("A", "Guid")}};
 
-        SDK::UStruct::Children_Offset = Memory::FindMatchingValueOffset(Pairs);
+        UStruct::Children_Offset = Memory::FindMatchingValueOffset(Pairs);
     }
 
-    if (SDK::UStruct::Children_Offset) {
-        LOG(LOG_INFO, "Found UStruct::Children offset: 0x%X", SDK::UStruct::Children_Offset);
+    if (UStruct::Children_Offset) {
+        LOG(LOG_INFO, "Found UStruct::Children offset: 0x%X", UStruct::Children_Offset);
         return true;
     }
 
@@ -175,17 +174,17 @@ bool Setup_UStruct_Children() {
     return false;
 }
 bool Setup_UStruct_ChildProperties() {
-    SDK::UStruct::ChildProperties_Offset = 0x50; // temp
+    UStruct::ChildProperties_Offset = 0x50; // temp
     return true;
 }
 bool Setup_UField_Next() {
     std::vector<std::pair<void*, void*>> Pairs = {
-        { SDK::UObject::FindObjectFast<SDK::UClass>("KismetArrayLibrary", SDK::EClassCastFlags::Class)->Children(), SDK::UObject::FindObjectFast<SDK::UClass>("FilterArray", SDK::EClassCastFlags::Function) }
-    };
+        {UObject::FindObjectFast<UClass>("KismetArrayLibrary", EClassCastFlags::Class)->Children(),
+         UObject::FindObjectFast<UClass>("FilterArray", EClassCastFlags::Function)}};
 
-    SDK::UField::Next_Offset = Memory::FindMatchingValueOffset(Pairs, 0x10, 0x40);
-    if (SDK::UField::Next_Offset) {
-        LOG(LOG_INFO, "Found UField::Next offset: 0x%X", SDK::UField::Next_Offset);
+    UField::Next_Offset = Memory::FindMatchingValueOffset(Pairs, 0x10, 0x40);
+    if (UField::Next_Offset) {
+        LOG(LOG_INFO, "Found UField::Next offset: 0x%X", UField::Next_Offset);
         return true;
     }
 
@@ -193,21 +192,24 @@ bool Setup_UField_Next() {
     return false;
 }
 bool Setup_UFunction_FunctionFlags() {
-    std::vector<std::pair<void*, SDK::EFunctionFlags>> Pairs = {
-        { SDK::UObject::FindObjectFast("WasInputKeyJustPressed"), SDK::EFunctionFlags::Final | SDK::EFunctionFlags::Native | SDK::EFunctionFlags::Public | SDK::EFunctionFlags::BlueprintCallable | SDK::EFunctionFlags::BlueprintPure | SDK::EFunctionFlags::Const },
-        { SDK::UObject::FindObjectFast("ToggleSpeaking"), SDK::EFunctionFlags::Exec | SDK::EFunctionFlags::Native | SDK::EFunctionFlags::Public },
-        { SDK::UObject::FindObjectFast("SwitchLevel"), SDK::EFunctionFlags::Exec | SDK::EFunctionFlags::Native | SDK::EFunctionFlags::Public }
-    };
+    std::vector<std::pair<void*, EFunctionFlags>> Pairs = {
+        {UObject::FindObjectFast("WasInputKeyJustPressed"),
+         EFunctionFlags::Final | EFunctionFlags::Native | EFunctionFlags::Public | EFunctionFlags::BlueprintCallable |
+             EFunctionFlags::BlueprintPure | EFunctionFlags::Const},
+        {UObject::FindObjectFast("ToggleSpeaking"),
+         EFunctionFlags::Exec | EFunctionFlags::Native | EFunctionFlags::Public},
+        {UObject::FindObjectFast("SwitchLevel"),
+         EFunctionFlags::Exec | EFunctionFlags::Native | EFunctionFlags::Public}};
 
-    SDK::UFunction::FunctionFlags_Offset = Memory::FindMatchingValueOffset(Pairs);
-    if (!SDK::UFunction::FunctionFlags_Offset) {
+    UFunction::FunctionFlags_Offset = Memory::FindMatchingValueOffset(Pairs);
+    if (!UFunction::FunctionFlags_Offset) {
         for (auto& [_, Flags] : Pairs)
-            Flags = Flags | SDK::EFunctionFlags::RequiredAPI;
-        SDK::UFunction::FunctionFlags_Offset = Memory::FindMatchingValueOffset(Pairs);
+            Flags = Flags | EFunctionFlags::RequiredAPI;
+        UFunction::FunctionFlags_Offset = Memory::FindMatchingValueOffset(Pairs);
     }
 
-    if (SDK::UFunction::FunctionFlags_Offset) {
-        LOG(LOG_INFO, "Found UFunction::FunctionFlags offset: 0x%X", SDK::UFunction::FunctionFlags_Offset);
+    if (UFunction::FunctionFlags_Offset) {
+        LOG(LOG_INFO, "Found UFunction::FunctionFlags offset: 0x%X", UFunction::FunctionFlags_Offset);
         return true;
     }
 
@@ -216,16 +218,16 @@ bool Setup_UFunction_FunctionFlags() {
 }
 bool Setup_UFunction_FuncPtr() {
     PIMAGE_SECTION_HEADER TextSection = Memory::GetImageTextSection();
-    uintptr_t TextStart = TextSection->VirtualAddress + Memory::GetImageBase();
-    uintptr_t TextEnd = TextStart + TextSection->Misc.VirtualSize;
+    uintptr_t             TextStart = TextSection->VirtualAddress + Memory::GetImageBase();
+    uintptr_t             TextEnd = TextStart + TextSection->Misc.VirtualSize;
 
-    SDK::UFunction* Func = SDK::UObject::FindObjectFast<SDK::UFunction>("WasInputKeyJustPressed");
+    UFunction* Func = UObject::FindObjectFast<UFunction>("WasInputKeyJustPressed");
 
-    for (int i = SDK::UFunction::FunctionFlags_Offset; i < SDK::UFunction::FunctionFlags_Offset + 0x30; i++) {
+    for (uint32_t i = UFunction::FunctionFlags_Offset; i < UFunction::FunctionFlags_Offset + 0x30; i++) {
         uintptr_t As64BitInt = *(uintptr_t*)((uintptr_t)Func + i);
         if (As64BitInt > TextStart && As64BitInt < TextEnd) {
-            SDK::UFunction::FuncPtr_Offset = i;
-            LOG(LOG_INFO, "Found UFunction::FuncPtr offset: 0x%X", SDK::UFunction::FuncPtr_Offset);
+            UFunction::FuncPtr_Offset = i;
+            LOG(LOG_INFO, "Found UFunction::FuncPtr offset: 0x%X", UFunction::FuncPtr_Offset);
             return true;
         }
     }
@@ -235,42 +237,41 @@ bool Setup_UFunction_FuncPtr() {
 }
 
 bool SetupUnrealStructOffsets() {
-    return Setup_UProperty_Offset_Internal() &&
-        Setup_UBoolProperty_ByteMask() &&
-        Setup_UClass_ClassCastFlags() &&
-        Setup_UClass_ClassDefaultObject() &&
-        Setup_UStruct_SuperStruct() &&
-        Setup_UStruct_Children() &&
-        Setup_UStruct_ChildProperties() &&
-        Setup_UField_Next() &&
-        Setup_UFunction_FunctionFlags() &&
-        Setup_UFunction_FuncPtr();
+    return Setup_UProperty_Offset_Internal() && Setup_UBoolProperty_ByteMask() && Setup_UClass_ClassCastFlags() &&
+           Setup_UClass_ClassDefaultObject() && Setup_UStruct_SuperStruct() && Setup_UStruct_Children() &&
+           Setup_UStruct_ChildProperties() && Setup_UField_Next() && Setup_UFunction_FunctionFlags() &&
+           Setup_UFunction_FuncPtr();
 }
 
-
-// Unreal-Engine & Fortnite general offsets...
+// --- Unreal-Engine & Fortnite general offsets ----------------------
 
 bool SetupProcessEvent() {
     auto Resolve32BitRelativeJump = [](void* FunctionPtr) -> uintptr_t {
-            uint8_t* Address = reinterpret_cast<uint8_t*>(FunctionPtr);
-            if (*Address == 0xE9) {
-                uintptr_t Ret = (uintptr_t)((Address + 5) + *reinterpret_cast<int32_t*>(Address + 1));
-                if (Memory::IsAddressInsideImage(Ret))
-                    return Ret;
-            }
+        uint8_t* Address = reinterpret_cast<uint8_t*>(FunctionPtr);
+        if (*Address == 0xE9) {
+            uintptr_t Ret = (uintptr_t)((Address + 5) + *reinterpret_cast<int32_t*>(Address + 1));
+            if (Memory::IsAddressInsideImage(Ret))
+                return Ret;
+        }
 
-            return reinterpret_cast<uintptr_t>(FunctionPtr);
-        };
+        return reinterpret_cast<uintptr_t>(FunctionPtr);
+    };
 
-    void** VTable = SDK::UObject::Objects.GetByIndex(0)->VTable;
+    void** VTable = UObject::Objects.GetByIndex(0)->VTable;
     for (int i = 0; i < 0x150; i++) {
         if (!VTable[i] || !Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VTable[i])))
             break;
 
-        if (Memory::PatternScanRangeBytes<int32_t>(Resolve32BitRelativeJump(VTable[i]), 0x400, { 0xF7, -0x1, (int32_t)SDK::UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x04, 0x0, 0x0 }, false, -1, false, false)
-            && Memory::PatternScanRangeBytes<int32_t>(Resolve32BitRelativeJump(VTable[i]), 0x400, { 0xF7, -0x1, (int32_t)SDK::UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40, 0x0 }, false, -1, false, false)) {
-            SDK::UObject::ProcessEvent_Idx = i;
-            LOG(LOG_INFO, "Found UObject::ProcessEvent VFT index: 0x%X", SDK::UObject::ProcessEvent_Idx);
+        if (Memory::PatternScanRangeBytes<int32_t>(
+                Resolve32BitRelativeJump(VTable[i]), 0x400,
+                {0xF7, -0x1, (int32_t)UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x04, 0x0, 0x0}, false, -1,
+                false, false) &&
+            Memory::PatternScanRangeBytes<int32_t>(
+                Resolve32BitRelativeJump(VTable[i]), 0x400,
+                {0xF7, -0x1, (int32_t)UFunction::FunctionFlags_Offset, 0x0, 0x0, 0x0, 0x0, 0x0, 0x40, 0x0}, false, -1,
+                false, false)) {
+            UObject::ProcessEvent_Idx = i;
+            LOG(LOG_INFO, "Found UObject::ProcessEvent VFT index: 0x%X", UObject::ProcessEvent_Idx);
             return true;
         }
     }
@@ -279,41 +280,45 @@ bool SetupProcessEvent() {
     return false;
 }
 bool SetupEngineVersion() {
-    SDK::FString EngineVersion = SDK::UKismetSystemLibrary::GetEngineVersion();
+    FString EngineVersionStr = UKismetSystemLibrary::GetEngineVersion();
 
-    std::istringstream stream(EngineVersion.ToString());
-    std::string line;
+    std::istringstream stream(EngineVersionStr.ToString());
+    std::string        line;
     while (std::getline(stream, line)) {
-        size_t DashPos = line.find('-');
+        size_t      DashPos = line.find('-');
         std::string EngineStr = line.substr(0, DashPos);
 
-        size_t ReleasePos = line.find("Release-");
+        size_t      ReleasePos = line.find("Release-");
         std::string GameStr = line.substr(ReleasePos + 8);
 
-        size_t PlusPos = line.find("+++");
+        size_t      PlusPos = line.find("+++");
         std::string CLStr = line.substr(DashPos + 1, PlusPos - DashPos - 1);
 
-        SDK::EngineVersion = std::stof(EngineStr.substr(0, EngineStr.find_last_of('.')));
-        SDK::GameVersion = std::stof(GameStr);
-        SDK::CL = std::stoi(CLStr);
+        g_EngineVersion = std::stof(EngineStr.substr(0, EngineStr.find_last_of('.')));
+        g_GameVersion = std::stof(GameStr);
+        g_CL = std::stoi(CLStr);
     }
 
-    LOG(LOG_INFO, "EngineVersion: %f, GameVersions: %f, CL: %d (%s)", SDK::EngineVersion, SDK::GameVersion, SDK::CL, EngineVersion.ToString().c_str());
+    LOG(LOG_INFO, "EngineVersion: %f, GameVersions: %f, CL: %d (%s)", g_EngineVersion, g_GameVersion, g_CL,
+        EngineVersionStr.ToString().c_str());
     return true;
 }
 bool SetupDrawTransition() { // actually drawtransition but fake lier liar
-    void** VTable = SDK::UObject::FindObjectFast("Default__GameViewportClient")->VTable;
-    SDK::PropertyInfo GameInstanceProp = SDK::UObject::GetPropertyInfo("GameViewportClient", "GameInstance");
-    int bSuppressTransitionMessage = GameInstanceProp.Offset + sizeof(void*);
+    void**       VTable = UObject::FindObjectFast("Default__GameViewportClient")->VTable;
+    PropertyInfo GameInstanceProp = UObject::GetPropertyInfo("GameViewportClient", "GameInstance");
+    int          bSuppressTransitionMessage = GameInstanceProp.Offset + sizeof(void*);
 
     for (int i = 0x30; i < 0x80 - 1; i++) {
         if (!VTable[i] || !Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VTable[i])))
             break;
 
-        uintptr_t Address = Memory::PatternScanRangeBytes<int32_t>((uintptr_t)VTable[i], 0x35, { 0x80, 0xB9, bSuppressTransitionMessage, 0x00, 0x00, 0x00, 0x00 }, false, -1, false, false);
+        uintptr_t Address = Memory::PatternScanRangeBytes<int32_t>(
+            (uintptr_t)VTable[i], 0x35, {0x80, 0xB9, bSuppressTransitionMessage, 0x00, 0x00, 0x00, 0x00}, false, -1,
+            false, false);
         if (Address) {
-            SDK::UGameViewportClient::DrawTransition_Idx = i;
-            LOG(LOG_INFO, "Found UGameViewportClient::DrawTransition VFT index: 0x%X", SDK::UGameViewportClient::DrawTransition_Idx);
+            UGameViewportClient::DrawTransition_Idx = i;
+            LOG(LOG_INFO, "Found UGameViewportClient::DrawTransition VFT index: 0x%X",
+                UGameViewportClient::DrawTransition_Idx);
             return true;
         }
     }
@@ -328,8 +333,7 @@ bool SetupViewProjectionMatrix() {
         uintptr_t Jmp = Memory::PatternScanRange<int32_t>(SearchStart, 0x30, "E9", false, 1, true);
         if (Jmp)
             SearchStart = Jmp;
-    }
-    else {
+    } else {
         SearchStart = Memory::PatternScan("89 ? 38 48 8B 05 ? ? ? ? 48 89 ? 60 48 8B 05");
     }
 
@@ -342,14 +346,17 @@ bool SetupViewProjectionMatrix() {
         0F 11 8B 80 02 00 00      movups  xmmword ptr [rbx+280h], xmm1
         */
 
-        // The second movups instruction is writing to the ViewProjectionMatrix, so we will get the offset of that instruction.
-        uintptr_t Sig = Memory::PatternScanRange<int32_t>(SearchStart, 0x150, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 48");
+        // The second movups instruction is writing to the ViewProjectionMatrix, so we will get the offset of that
+        // instruction.
+        uintptr_t Sig = Memory::PatternScanRange<int32_t>(
+            SearchStart, 0x150, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 48");
         if (!Sig)
-            Sig = Memory::PatternScanRange<int32_t>(SearchStart, 0x150, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 4C");
+            Sig = Memory::PatternScanRange<int32_t>(
+                SearchStart, 0x150, "0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 0F 28 ? ? ? ? ? 0F 11 ? ? ? ? ? 4C");
 
         if (Sig) {
-            SDK::UCanvas::ViewProjectionMatrix_Offset = *(uint32_t*)(Sig - 18);
-            LOG(LOG_INFO, "Found UCanvas::ViewProjectionMatrix offset: 0x%X", SDK::UCanvas::ViewProjectionMatrix_Offset);
+            UCanvas::ViewProjectionMatrix_Offset = *(uint32_t*)(Sig - 18);
+            LOG(LOG_INFO, "Found UCanvas::ViewProjectionMatrix offset: 0x%X", UCanvas::ViewProjectionMatrix_Offset);
             return true;
         }
     }
@@ -357,11 +364,18 @@ bool SetupViewProjectionMatrix() {
     Error::ThrowError("Failed to find UCanvas::ViewProjectionMatrix offset!");
     return false;
 }
+bool SetupSceneView() {
+    UCanvas::SceneView_Offset = UCanvas::ViewProjectionMatrix_Offset - sizeof(void*);
+    LOG(LOG_INFO, "Using hardcoded (ViewProjectionMatrix - 8) UCanvas::SceneView offset: 0x%X",
+        UCanvas::SceneView_Offset);
+    return true;
+}
 bool SetupLevelActors() {
-    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("Level", "OwningWorld");
-    SDK::ULevel* Level = SDK::GetWorld()->PersistentLevel();
+    PropertyInfo Info = UObject::GetPropertyInfo("Level", "OwningWorld");
+    ULevel*      Level = GetWorld()->PersistentLevel();
     if (!Level) {
-        Error::ThrowError("Failed to get PersistentLevel to find ULevel::Actors offset! Injected DLL before game loaded?");
+        Error::ThrowError(
+            "Failed to get PersistentLevel to find ULevel::Actors offset! Injected DLL before game loaded?");
         return false;
     }
 
@@ -370,7 +384,7 @@ bool SetupLevelActors() {
             // We will check if the address is a valid TArray<AActor*>
             // by checking if the Max() is greater than Num()
             // and if the pointer to the data is valid.
-            SDK::TArray<SDK::AActor*>* Actors = reinterpret_cast<SDK::TArray<SDK::AActor*>*>((uintptr_t)Level + i);
+            TArray<AActor*>* Actors = reinterpret_cast<TArray<AActor*>*>((uintptr_t)Level + i);
             if (!Actors->IsValid())
                 continue;
             if (Actors->Max() <= 0 || Actors->Num() <= 0)
@@ -378,8 +392,8 @@ bool SetupLevelActors() {
             if (Actors->Max() < Actors->Num())
                 continue;
 
-            SDK::ULevel::Actors_Offset = i;
-            LOG(LOG_INFO, "Found ULevel::Actors offset: 0x%X", SDK::ULevel::Actors_Offset);
+            ULevel::Actors_Offset = i;
+            LOG(LOG_INFO, "Found ULevel::Actors offset: 0x%X", ULevel::Actors_Offset);
             return true;
         }
     }
@@ -388,16 +402,17 @@ bool SetupLevelActors() {
     return false;
 }
 bool SetupComponentSpaceTransformsArray() {
-    SDK::PropertyInfo Info = SDK::UObject::GetPropertyInfo("SkinnedMeshComponent", "VertexOffsetUsage");
-    int32_t Offset = Info.Offset + 0x10;
+    PropertyInfo Info = UObject::GetPropertyInfo("SkinnedMeshComponent", "VertexOffsetUsage");
+    int32_t      Offset = Info.Offset + 0x10;
     if (!Info.Found) {
-        Info = SDK::UObject::GetPropertyInfo("SkinnedMeshComponent", "MasterPoseComponent");
+        Info = UObject::GetPropertyInfo("SkinnedMeshComponent", "MasterPoseComponent");
         Offset = Info.Offset + 0x8;
     }
 
     if (Info.Found) {
-        SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset = Offset;
-        LOG(LOG_INFO, "Found USkinnedMeshComponent::ComponentSpaceTransformsArray offset: 0x%X", SDK::USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset);
+        USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset = Offset;
+        LOG(LOG_INFO, "Found USkinnedMeshComponent::ComponentSpaceTransformsArray offset: 0x%X",
+            USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset);
         return true;
     }
 
@@ -405,16 +420,20 @@ bool SetupComponentSpaceTransformsArray() {
     return false;
 }
 void FindComponentToWorldOffset() {
-    void* execK2_GetComponentToWorld = SDK::UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr();
+    void* execK2_GetComponentToWorld = UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr();
     if (execK2_GetComponentToWorld) {
-        uintptr_t K2_GetComponentToWorld = Memory::PatternScanRange<int32_t>((uintptr_t)execK2_GetComponentToWorld, 0x50, "E8", false, 1, true);
-        if (K2_GetComponentToWorld) {
-            uint8_t* Data = reinterpret_cast<uint8_t*>(K2_GetComponentToWorld);
-            if (Data[0] == 0x0F /*&& Data[1] == 0x10 && Data[2] == 0x89*/) {
-                SDK::USceneComponent::ComponentToWorld_Offset = *(uint32_t*)(Data + 3);
-                LOG(LOG_INFO, "Found USceneComponent::ComponentToWorld offset: 0x%X", SDK::USceneComponent::ComponentToWorld_Offset);
-                return;
-            }
+        uintptr_t K2_GetComponentToWorld =
+            Memory::PatternScanRange<int32_t>((uintptr_t)execK2_GetComponentToWorld, 0x50, "E8", false, 1, true);
+        if (!K2_GetComponentToWorld)
+            K2_GetComponentToWorld = reinterpret_cast<uintptr_t>(execK2_GetComponentToWorld);
+
+        uint8_t* Data = (uint8_t*)Memory::PatternScanRange<int32_t>(K2_GetComponentToWorld, 0x30, "0F 10");
+        if (Data && Data[0] == 0x0F && Data[1] == 0x10 && Data[7] == 0x0F && Data[8] == 0x10 && Data[14] == 0x0F &&
+            Data[15] == 0x10) {
+            USceneComponent::ComponentToWorld_Offset = *(uint32_t*)(Data + 3);
+            LOG(LOG_INFO, "Found USceneComponent::ComponentToWorld offset: 0x%X",
+                USceneComponent::ComponentToWorld_Offset);
+            return;
         }
     }
 
@@ -422,19 +441,24 @@ void FindComponentToWorldOffset() {
 }
 
 bool SetupUnrealFortniteOffsets() {
-    bool Result = SetupProcessEvent() &&
-        SetupEngineVersion() &&
-        SetupDrawTransition() &&
-        SetupViewProjectionMatrix() &&
-        SetupLevelActors() &&
-        SetupComponentSpaceTransformsArray();
+    bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
+                  SetupSceneView() && SetupLevelActors() && SetupComponentSpaceTransformsArray();
     if (Result)
         FindComponentToWorldOffset();
     return Result;
 }
 
+// --- Initialization ------------------------------------------------
 
-bool SDK::Init() {
+bool Init() {
     LOG(LOG_TRACE, "Setting up SDK...");
     return SetupUnrealGeneralOffsets() && SetupUnrealStructOffsets() && SetupUnrealFortniteOffsets();
 }
+
+// --- Global Variables ----------------------------------------------
+
+float g_EngineVersion = 0.f;
+float g_GameVersion = 0.f;
+int   g_CL = 0;
+
+} // namespace SDK

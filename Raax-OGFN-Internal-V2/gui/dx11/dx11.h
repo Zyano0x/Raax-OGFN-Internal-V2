@@ -1,7 +1,12 @@
 #pragma once
 
-namespace GUI::DX11
-{
-    bool Init();
-    void Destroy();
-}
+namespace GUI {
+namespace DX11 {
+
+// --- Initialization ------------------------------------------------
+
+bool Init();
+void Destroy();
+
+} // namespace DX11
+} // namespace GUI

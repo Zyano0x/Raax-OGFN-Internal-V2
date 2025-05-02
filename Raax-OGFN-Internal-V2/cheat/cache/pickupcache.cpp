@@ -1,66 +1,76 @@
 #include "pickupcache.h"
 #include <chrono>
 
-std::unordered_map<void*, Cache::Pickup::PickupInfo> g_CachedPickups;
+namespace Cache {
+namespace Pickup {
 
-const std::unordered_map<void*, Cache::Pickup::PickupInfo>& Cache::Pickup::GetCachedPickups() {
-    return g_CachedPickups;
-}
+// --- Cache Data ----------------------------------------------------
 
+std::unordered_map<void*, PickupInfo> CachedPickups;
 
-void ResetPickupSeenFlags() {
-    for (auto& [Pawn, Cache] : g_CachedPickups) {
-        Cache.WasSeenThisFrame = false;
-    }
-}
+// --- Cache Utility Functions ---------------------------------------
 
-Cache::Pickup::PickupInfo CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
-    Cache::Pickup::PickupInfo Info;
+PickupInfo CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
+    PickupInfo Info;
     Info.Pickup = Pickup;
-    Info.RootLocation = Pickup->RootComponent()->RelativeLocation();
-    Info.RootScreenLocation = SDK::Project(Info.RootLocation);
+    Info.RootWorldLocation = Pickup->RootComponent()->RelativeLocation();
+    Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
 
-    SDK::FFortItemEntry* FortItemEntry = Pickup->PrimaryPickupItemEntry();
-    if (!FortItemEntry)
+    auto* ItemEntry = Pickup->PrimaryPickupItemEntry();
+    if (!ItemEntry)
         return {};
 
-    SDK::UFortItemDefinition* FortItemDefinition = FortItemEntry->ItemDefinition();
-    if (!FortItemDefinition)
+    auto* ItemDefinition = ItemEntry->ItemDefinition();
+    if (!ItemDefinition)
         return {};
 
-    Info.WeaponName = FortItemDefinition->DisplayName()->ToString();
-    Info.Tier = FortItemDefinition->Tier();
-
-    Info.WasSeenThisFrame = true;
+    Info.WeaponName = ItemDefinition->DisplayName()->ToString();
+    Info.Tier = ItemDefinition->Tier();
+    Info.SeenThisFrame = true;
     return Info;
 }
 
-void UpdateExistingPickupInfo(Cache::Pickup::PickupInfo& Info, SDK::AFortPickup* Pickup) {
-    Info.RootLocation = Pickup->RootComponent()->RelativeLocation();
-    Info.RootScreenLocation = SDK::Project(Info.RootLocation);
-    Info.WasSeenThisFrame = true;
+void UpdateExistingPickupInfo(PickupInfo& Info, SDK::AFortPickup* Pickup) {
+    Info.RootWorldLocation = Pickup->RootComponent()->RelativeLocation();
+    Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
+    Info.SeenThisFrame = true;
+}
+
+void ResetPickupSeenFlags() {
+    for (auto& [_, Cache] : CachedPickups) {
+        Cache.SeenThisFrame = false;
+    }
 }
 
 void RemoveUnseenPickups() {
-    for (auto it = g_CachedPickups.begin(); it != g_CachedPickups.end(); ) {
-        if (!it->second.WasSeenThisFrame)
-            it = g_CachedPickups.erase(it);
-        else
-            ++it;
-    }
+    std::erase_if(CachedPickups, [](const auto& Cache) {
+        return !Cache.second.SeenThisFrame;
+        });
 }
 
+// --- Public Cache Functions ----------------------------------------
 
-void Cache::Pickup::UpdateCache() {
+const std::unordered_map<void*, PickupInfo>& GetCachedPickups() {
+    return CachedPickups;
+}
+
+void UpdateCache() {
     ResetPickupSeenFlags();
-    static std::vector<SDK::AFortPickup*> Pickups;
-    SDK::GetAllActorsOfClassAllLevels<SDK::AFortPickup>(Pickups);
-    for (const auto& Pickup : Pickups) {
-        auto it = g_CachedPickups.find(Pickup);
-        if (it == g_CachedPickups.end())
-            g_CachedPickups[Pickup] = CreateNewPickupInfo(Pickup);
-        else
+
+    static std::vector<SDK::AFortPickup*> PickupList;
+    SDK::GetAllActorsOfClassAllLevels<SDK::AFortPickup>(PickupList);
+    for (const auto& Pickup : PickupList) {
+        auto it = CachedPickups.find(Pickup);
+        if (it == CachedPickups.end()) {
+            CachedPickups[Pickup] = CreateNewPickupInfo(Pickup);
+        }
+        else {
             UpdateExistingPickupInfo(it->second, Pickup);
+        }
     }
+
     RemoveUnseenPickups();
 }
+
+} // namespace Pickup
+} // namespace Cache
