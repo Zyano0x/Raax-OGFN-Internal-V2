@@ -85,9 +85,35 @@ bool SetupFNameConstructorW() {
     Error::ThrowError("Failed to find FNameConstructorW!");
     return false;
 }
+bool SetupUKismetSystemLibraryLineTraceSingle() {
+    static const std::vector<std::pair<size_t, const std::string>> Patterns = {
+        {151, "48 8B 43 20 48 8D 4D E0 0F 10 45 C0 44 0F B6 8D ? ? ? ? 48 85 C0 0F 10 4D D0 4C 8D 45 A0 40 0F 95 C7 66 "
+              "0F 7F 45 ? 48 8D 55 B0 F2 0F 10 45 ? 48 03 F8 8B 45 88 F2 0F 11 45 ? F2 0F 10 45 ? 89 45 A8 8B 45 98 F2 "
+              "0F 11 45 ? F3 0F 10 44 24 ? F3 0F 11 44 24 ? 48 89 4C 24 ? 48 8D 4D F0 48 89 4C 24 ? 48 8B 4C 24 ? 44 "
+              "88 7C 24 ? 48 89 74 24 ? 89 45 B8 0F B6 85 ? ? ? ? 89 44 24 30 4C 89 74 24 ? 44 88 64 24 ? 48 89 7B 20 "
+              "66 0F 7F 4D ? E8"},
+        {88, "4C 39 6B 20 4C 8D 45 A0 F2 0F 10 45 ? 48 8D 55 B0 44 0F B6 8D ? ? ? ? 49 8B C5 48 8B 4C 24 ? 0F 95 C0 48 "
+             "01 43 20 8B 45 88 44 88 74 24 ? F2 0F 11 45 ? F2 0F 10 45 ? 89 45 A8 8B 45 98 48 89 7C 24 ? 48 89 74 24 "
+             "? 89 45 B8 F2 0F 11 45 ? 44 88 7C 24 ? E8"}};
+
+    for (const auto& [Offset, Pattern] : Patterns) {
+        uintptr_t Address = Memory::PatternScan<int32_t>(Pattern.c_str(), Offset, true);
+        if (Memory::IsAddressInsideImage(Address)) {
+            UKismetSystemLibrary::KismetSystemLibraryLineTraceSingle =
+                reinterpret_cast<decltype(UKismetSystemLibrary::KismetSystemLibraryLineTraceSingle)>(Address);
+            LOG(LOG_INFO, "Found UKismetSystemLibrary::LineTraceSingle offset: 0x%p",
+                reinterpret_cast<void*>(Address - Memory::GetImageBase()));
+            return true;
+        }
+    }
+
+    Error::ThrowError("Failed to find UKismetSystemLibrary::LineTraceSingle!");
+    return false;
+}
 
 bool SetupUnrealGeneralOffsets() {
-    return SetupGObjects() && SetupFMemoryRealloc() && SetupFNameToString() && SetupFNameConstructorW();
+    return SetupGObjects() && SetupFMemoryRealloc() && SetupFNameToString() && SetupFNameConstructorW() &&
+           SetupUKismetSystemLibraryLineTraceSingle();
 }
 
 // --- Unreal-Engine struct/class offsets ----------------------------

@@ -35,8 +35,9 @@ enum class BoneIdx : int {
 
 struct PlayerInfo {
     SDK::AFortPawn*              Pawn = nullptr;
-    SDK::APlayerState*           PlayerState = nullptr;
+    SDK::AFortPlayerState*       PlayerState = nullptr;
     SDK::USkeletalMeshComponent* Mesh = nullptr;
+    SDK::AFortWeapon*            CurrentWeapon = nullptr;
     int32_t                      BoneIndicies[(int)BoneIdx::NUM];
     SDK::FVector                 RootWorldLocation;
     SDK::FVector                 BoneWorldPos[(int)BoneIdx::NUM];
@@ -46,6 +47,13 @@ struct PlayerInfo {
     SDK::FVector2D               BoundCorners2D[8];
     SDK::FVector2D               BoxTop, BoxMiddle, BoxBottom;
     std::string                  PlayerName;
+    std::string                  Platform;
+    std::string                  WeaponName;
+    SDK::EFortItemTier           WeaponTier = SDK::EFortItemTier::No_Tier;
+    int32_t                      AmmoCount = 0;
+    int32_t                      BulletsPerClip = 0;
+    float                        DistanceM = 0.f;
+    bool                         HeadVisible = false;
     bool                         SeenThisFrame = false;
 };
 

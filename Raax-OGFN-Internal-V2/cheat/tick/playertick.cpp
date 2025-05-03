@@ -2,6 +2,7 @@
 #include <array>
 
 #include <cheat/cache/playercache.h>
+#include <cheat/tick/pickuptick.h>
 #include <cheat/sdk/sdk.h>
 #include <drawing/drawing.h>
 #include <config/config.h>
@@ -48,16 +49,22 @@ void TickRenderThread() {
     const auto& PlayerConfig = Config::g_Config.Visuals.Player;
     const auto& ColorConfig = Config::g_Config.Color;
 
-    SDK::FLinearColor PrimaryColor = ColorConfig.PrimaryColorVisible;
-    SDK::FLinearColor SecondaryColor = ColorConfig.SecondaryColorVisible;
-
-    float FontSize = 12.f;
+    float FontSize = 16.f;
 
     for (const auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
         if (Info.Pawn == SDK::GetLocalPawn())
             continue;
 
+        SDK::FLinearColor PrimaryColor = Info.HeadVisible ? ColorConfig.PrimaryColorVisible : ColorConfig.PrimaryColorHidden;
+        SDK::FLinearColor SecondaryColor = Info.HeadVisible ? ColorConfig.SecondaryColorVisible : ColorConfig.SecondaryColorHidden;
+
         if (PlayerConfig.Box) {
+            if (PlayerConfig.FilledBox && (PlayerConfig.BoxType == Config::ConfigData::BoxType::Full ||
+                                           PlayerConfig.BoxType == Config::ConfigData::BoxType::Cornered)) {
+                Drawing::RectFilled(Info.BoundTopLeft, (Info.BoundBottomRight - Info.BoundTopLeft),
+                                    PlayerConfig.FilledBoxColor);
+            }
+
             switch (PlayerConfig.BoxType) {
             case Config::ConfigData::BoxType::Full:
                 Drawing::Rect(Info.BoundTopLeft, (Info.BoundBottomRight - Info.BoundTopLeft), PrimaryColor,
@@ -113,9 +120,35 @@ void TickRenderThread() {
             Drawing::Line(TracerStart, TracerEnd, PrimaryColor, PlayerConfig.TracerThickness);
         }
 
-        if (PlayerConfig.Name) {
-            Drawing::Text(Info.PlayerName.c_str(), SDK::FVector2D(Info.BoxTop.X, (Info.BoxTop.Y - FontSize) - 2.f),
-                          PrimaryColor, FontSize, true, false);
+        SDK::FVector2D TopTextPos = {Info.BoxTop.X, Info.BoxTop.Y - FontSize - 2.f};
+        if (PlayerConfig.Name && !Info.PlayerName.empty()) {
+            Drawing::Text(Info.PlayerName.c_str(), TopTextPos, PrimaryColor, FontSize, true, false);
+            TopTextPos.Y -= 2.f + FontSize;
+        }
+        if (PlayerConfig.Platform && !Info.Platform.empty()) {
+            Drawing::Text(Info.Platform.c_str(), TopTextPos, PrimaryColor, FontSize, true, false);
+            TopTextPos.Y -= 2.f + FontSize;
+        }
+
+        SDK::FVector2D BottomTextPos = {Info.BoxBottom.X, Info.BoxBottom.Y + 2.f};
+        if (PlayerConfig.CurrentWeapon && !Info.WeaponName.empty()) {
+            char Buffer[64];
+            if (Info.BulletsPerClip) {
+                snprintf(Buffer, sizeof(Buffer), "%s [%d/%d]", Info.WeaponName.c_str(), Info.AmmoCount,
+                         Info.BulletsPerClip);
+            } else {
+                snprintf(Buffer, sizeof(Buffer), "%s", Info.WeaponName.c_str());
+            }
+
+            Drawing::Text(Buffer, BottomTextPos, Tick::Pickup::GetTierColor(Info.WeaponTier), FontSize, true, false);
+            BottomTextPos.Y += 2.f + FontSize;
+        }
+        if (PlayerConfig.Distance) {
+            char Buffer[64];
+            snprintf(Buffer, sizeof(Buffer), "%d m", static_cast<int>(Info.DistanceM));
+
+            Drawing::Text(Buffer, BottomTextPos, PrimaryColor, FontSize, true, false);
+            BottomTextPos.Y += 2.f + FontSize;
         }
     }
 }

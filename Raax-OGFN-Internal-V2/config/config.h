@@ -14,11 +14,14 @@ struct ConfigData {
     enum class TargetSelection : int { MIN = 0, Distance = 0, Degrees = 1, Combined = 2, MAX = 2 };
     enum class TargetBone : int { MIN = 0, Head = 0, Neck = 1, Chest = 2, Pelvis = 3, Random = 4, MAX = 4 };
 
-    struct Visuals {
+    struct VisualsConfig {
         struct PlayerConfig {
             bool    Box = true;
             BoxType BoxType = BoxType::Cornered;
             float   BoxThickness = 2.f;
+
+            bool FilledBox = true;
+            SDK::FLinearColor FilledBoxColor = SDK::FLinearColor(0.f, 0.f, 0.f, 0.25f);
 
             bool  Skeleton = true;
             float SkeletonThickness = 1.f;
@@ -28,7 +31,10 @@ struct ConfigData {
             TracerPos TracerStart = TracerPos::Bottom;
             TracerPos TracerEnd = TracerPos::Bottom;
 
+            bool Platform = true;
             bool Name = true;
+            bool CurrentWeapon = true;
+            bool Distance = true;
         } Player;
 
         struct LootConfig {
@@ -45,104 +51,107 @@ struct ConfigData {
     } Visuals;
 
     struct AimbotConfig {
-        bool  Enabled = true;
-        float Smoothness = 5.f;
-        float MaxDistance = 300.f;
+        struct AimbotAmmoConfig {
+            bool  Enabled = true;
+            float Smoothness = 5.f;
+            float MaxDistance = 300.f;
 
-        bool VisibleCheck = true;
-        bool StickyTarget = true;
+            bool VisibleCheck = true;
+            bool StickyTarget = true;
 
-        bool  ShowFOV = true;
-        float FOV = 10.f;
+            bool  ShowFOV = true;
+            float FOV = 10.f;
 
-        bool  UseDeadzone = true;
-        bool  ShowDeadzoneFOV = true;
-        float DeadzoneFOV = 2.f;
+            bool  UseDeadzone = true;
+            bool  ShowDeadzoneFOV = true;
+            float DeadzoneFOV = 2.f;
 
-        TargetSelection Selection = TargetSelection::Combined;
-        TargetBone      Bone = TargetBone::Head;
+            TargetSelection Selection = TargetSelection::Combined;
+            TargetBone      Bone = TargetBone::Head;
 
-        float RandomBoneRefreshRate = 1.f;
-    };
-    AimbotConfig ShellsAimbot = {.Enabled = true,
-                                 .Smoothness = 1.5f,
-                                 .MaxDistance = 25.f,
+            float RandomBoneRefreshRate = 1.f;
+        };
 
-                                 .VisibleCheck = true,
-                                 .StickyTarget = true,
+        AimbotAmmoConfig ShellsAimbot = {.Enabled = true,
+                                         .Smoothness = 1.5f,
+                                         .MaxDistance = 25.f,
 
-                                 .ShowFOV = true,
-                                 .FOV = 7.5f,
+                                         .VisibleCheck = true,
+                                         .StickyTarget = true,
 
-                                 .UseDeadzone = true,
-                                 .ShowDeadzoneFOV = true,
-                                 .DeadzoneFOV = 0.5f,
+                                         .ShowFOV = true,
+                                         .FOV = 7.5f,
 
-                                 .Selection = TargetSelection::Combined,
-                                 .Bone = TargetBone::Head,
+                                         .UseDeadzone = true,
+                                         .ShowDeadzoneFOV = true,
+                                         .DeadzoneFOV = 0.5f,
 
-                                 .RandomBoneRefreshRate = 1.f};
-    AimbotConfig LightAimbot = {.Enabled = true,
-                                .Smoothness = 3.f,
-                                .MaxDistance = 75.f,
+                                         .Selection = TargetSelection::Combined,
+                                         .Bone = TargetBone::Head,
 
-                                .VisibleCheck = true,
-                                .StickyTarget = true,
+                                         .RandomBoneRefreshRate = 1.f};
+        AimbotAmmoConfig LightAimbot = {.Enabled = true,
+                                        .Smoothness = 3.f,
+                                        .MaxDistance = 75.f,
 
-                                .ShowFOV = true,
-                                .FOV = 8.5f,
+                                        .VisibleCheck = true,
+                                        .StickyTarget = true,
 
-                                .UseDeadzone = true,
-                                .ShowDeadzoneFOV = true,
-                                .DeadzoneFOV = 0.6f,
+                                        .ShowFOV = true,
+                                        .FOV = 8.5f,
 
-                                .Selection = TargetSelection::Combined,
-                                .Bone = TargetBone::Neck,
+                                        .UseDeadzone = true,
+                                        .ShowDeadzoneFOV = true,
+                                        .DeadzoneFOV = 0.6f,
 
-                                .RandomBoneRefreshRate = 1.f};
-    AimbotConfig MediumAimbot = {.Enabled = true,
-                                 .Smoothness = 7.5f,
-                                 .MaxDistance = 300.f,
+                                        .Selection = TargetSelection::Combined,
+                                        .Bone = TargetBone::Neck,
 
-                                 .VisibleCheck = true,
-                                 .StickyTarget = true,
+                                        .RandomBoneRefreshRate = 1.f};
+        AimbotAmmoConfig MediumAimbot = {.Enabled = true,
+                                         .Smoothness = 7.5f,
+                                         .MaxDistance = 300.f,
 
-                                 .ShowFOV = true,
-                                 .FOV = 10.f,
+                                         .VisibleCheck = true,
+                                         .StickyTarget = true,
 
-                                 .UseDeadzone = true,
-                                 .ShowDeadzoneFOV = true,
-                                 .DeadzoneFOV = 1.f,
+                                         .ShowFOV = true,
+                                         .FOV = 10.f,
 
-                                 .Selection = TargetSelection::Combined,
-                                 .Bone = TargetBone::Random,
+                                         .UseDeadzone = true,
+                                         .ShowDeadzoneFOV = true,
+                                         .DeadzoneFOV = 1.f,
 
-                                 .RandomBoneRefreshRate = 1.f};
-    AimbotConfig HeavyAimbot = {.Enabled = true,
-                                .Smoothness = 3.f,
-                                .MaxDistance = 300.f,
+                                         .Selection = TargetSelection::Combined,
+                                         .Bone = TargetBone::Random,
 
-                                .VisibleCheck = true,
-                                .StickyTarget = true,
+                                         .RandomBoneRefreshRate = 1.f};
+        AimbotAmmoConfig HeavyAimbot = {.Enabled = true,
+                                        .Smoothness = 3.f,
+                                        .MaxDistance = 300.f,
 
-                                .ShowFOV = true,
-                                .FOV = 10.f,
+                                        .VisibleCheck = true,
+                                        .StickyTarget = true,
 
-                                .UseDeadzone = false,
-                                .ShowDeadzoneFOV = true,
-                                .DeadzoneFOV = 2.f,
+                                        .ShowFOV = true,
+                                        .FOV = 10.f,
 
-                                .Selection = TargetSelection::Combined,
-                                .Bone = TargetBone::Head,
+                                        .UseDeadzone = false,
+                                        .ShowDeadzoneFOV = true,
+                                        .DeadzoneFOV = 2.f,
 
-                                .RandomBoneRefreshRate = 1.f};
-    AimbotConfig OtherAimbot = {};
+                                        .Selection = TargetSelection::Combined,
+                                        .Bone = TargetBone::Head,
 
-    AimbotConfig AllAimbot = {};
+                                        .RandomBoneRefreshRate = 1.f};
+        AimbotAmmoConfig OtherAimbot = {};
 
-    bool SplitAimbotByAmmo = true;
-    bool BulletPrediction = true;
-    int  AimbotKeybind = ImGuiKey_MouseRight;
+        AimbotAmmoConfig AllAimbot = {};
+
+        bool SplitAimbotByAmmo = true;
+        bool BulletPrediction = true;
+        int  AimbotKeybind = ImGuiKey_MouseRight;
+    } Aimbot;
 
     struct ColorConfig {
         SDK::FLinearColor PrimaryColorVisible = SDK::FLinearColor(1.f, 0.f, 0.f, 1.f);
@@ -152,7 +161,7 @@ struct ConfigData {
     } Color;
 
     std::string SerializeConfig(bool FullConfig);
-    bool        DeserializeConfig(const std::string& Data, ConfigData& MergeConfig);
+    bool        DeserializeConfig(const std::string& Data);
 };
 
 inline ConfigData g_Config;

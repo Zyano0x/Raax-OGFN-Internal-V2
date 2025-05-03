@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#include <cheat/core.h>
+
 namespace SDK {
 
 class ULocalPlayer* GetLocalPlayer() {
@@ -55,6 +57,24 @@ SDK::FVector GetCameraLocation() {
 }
 SDK::FRotator GetCameraRotation() {
     return SDK::GetLocalController()->PlayerCameraManager()->GetCameraRotation();
+}
+
+bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* IgnoredActor2) {
+    static TArray<AActor*> IgnoredActors(2);
+    IgnoredActors.Clear();
+    if (IgnoredActor) {
+        IgnoredActors.Add(IgnoredActor);
+    }
+    if (IgnoredActor2) {
+        IgnoredActors.Add(IgnoredActor2);
+    }
+
+    FHitResult Hit = {};
+    bool       bHitSomething = SDK::UKismetSystemLibrary::LineTraceSingle(
+        SDK::GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery6, true, IgnoredActors,
+        EDrawDebugTrace::None, Hit, true, FLinearColor(0.f, 0.f, 0.f, 0.f), FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
+
+    return !bHitSomething;
 }
 
 FVector Project3D(const FVector& Location) {

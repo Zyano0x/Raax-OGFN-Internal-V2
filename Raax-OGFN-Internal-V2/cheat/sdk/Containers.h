@@ -60,6 +60,8 @@ template <typename ElementType> class TArray {
   public:
     inline bool IsValid() const { return Data != nullptr; }
 
+    inline bool IsValidIndex(int32_t Index) const { return Data && Index >= 0 && Index < NumElements; }
+
     inline int32_t Num() const { return NumElements; }
 
     inline int32_t Max() const { return MaxElements; }
@@ -69,6 +71,38 @@ template <typename ElementType> class TArray {
     inline ElementType* GetData() { return Data; }
 
     inline ElementType GetByIndex(int32_t Idx) { return Data[Idx]; }
+
+  public:
+    inline bool Add(const ElementType& Element) {
+        if (GetSlack() <= 0)
+            return false;
+
+        Data[NumElements] = Element;
+        NumElements++;
+
+        return true;
+    }
+
+    inline bool Remove(int32_t Index) {
+        if (!IsValidIndex(Index))
+            return false;
+
+        NumElements--;
+
+        for (int i = Index; i < NumElements; i++) {
+            /* NumElements was decremented, acessing i + 1 is safe */
+            Data[i] = Data[i + 1];
+        }
+
+        return true;
+    }
+
+    inline void Clear() {
+        NumElements = 0;
+
+        if (Data)
+            memset(Data, 0, NumElements * ElementSize);
+    }
 
   public:
     inline void CopyFrom(const TArray& Other) {

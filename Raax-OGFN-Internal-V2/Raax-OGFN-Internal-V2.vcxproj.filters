@@ -39,6 +39,7 @@
     <ClCompile Include="cheat\cache\pickupcache.cpp" />
     <ClCompile Include="cheat\features\aimbot.cpp" />
     <ClCompile Include="utils\math.cpp" />
+    <ClCompile Include="config\keybind.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="extern\imgui\imconfig.h" />
@@ -88,6 +89,8 @@
     <ClInclude Include="cheat\features\aimbot.h" />
     <ClInclude Include="utils\math.h" />
     <ClInclude Include="gui\mainwindow.h" />
+    <ClInclude Include="config\config_reflection.h" />
+    <ClInclude Include="config\keybind.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

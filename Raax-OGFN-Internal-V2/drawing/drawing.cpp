@@ -62,8 +62,8 @@ void EndBatchedLines() {
 // --- Drawing Functions ---------------------------------------------
 
 void Line(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPositionB,
-                   const SDK::FLinearColor& RenderColor, const float Thickness, const bool Outlined,
-                   const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
+          const SDK::FLinearColor& RenderColor, const float Thickness, const bool Outlined,
+          const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (ScreenPositionA.X != -1.f && ScreenPositionA.Y != -1.f && ScreenPositionB.X != -1.f &&
         ScreenPositionB.Y != -1.f) {
         if (g_BatchedLines)
@@ -84,8 +84,8 @@ void Line(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPos
 }
 
 void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SDK::FLinearColor& RenderColor,
-                   const float FontSize, const bool CenteredX, const bool CenteredY, const bool Outlined,
-                   const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
+          const float FontSize, const bool CenteredX, const bool CenteredY, const bool Outlined,
+          const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
         ImVec2 TextPosition = ImVec2(ScreenPosition.X, ScreenPosition.Y);
         if (CenteredX || CenteredY) {
@@ -117,18 +117,26 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SD
                             ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), RenderText);
     }
 }
-void Text(const wchar_t* RenderText, const SDK::FVector2D& ScreenPosition,
-                   const SDK::FLinearColor& RenderColor, const float FontSize, const bool CenteredX,
-                   const bool CenteredY, const bool Outlined, const float OutlineThickness,
-                   const SDK::FLinearColor& OutlineColor) {
+void Text(const wchar_t* RenderText, const SDK::FVector2D& ScreenPosition, const SDK::FLinearColor& RenderColor,
+          const float FontSize, const bool CenteredX, const bool CenteredY, const bool Outlined,
+          const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     std::wstring wstr = RenderText;
     Text(std::string(wstr.begin(), wstr.end()).c_str(), ScreenPosition, RenderColor, FontSize, CenteredX, CenteredY,
          Outlined, OutlineThickness, OutlineColor);
 }
 
-void Rect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize,
-                   const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined, float OutlineThickness,
-                   const SDK::FLinearColor& OutlineColor) {
+void RectFilled(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize,
+                const SDK::FLinearColor& RenderColor) {
+    if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
+        ImGui::GetBackgroundDrawList()->AddRectFilled(
+            ImVec2(ScreenPosition.X, ScreenPosition.Y),
+            ImVec2(ScreenPosition.X + ScreenSize.X, ScreenPosition.Y + ScreenSize.Y),
+            ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), 0, 0);
+    }
+}
+
+void Rect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize, const SDK::FLinearColor& RenderColor,
+          float Thickness, bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
         if (Outlined) {
             ImU32 OutlineColor = ImColor(0.f, 0.f, 0.f, RenderColor.A);
@@ -145,8 +153,8 @@ void Rect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize
 }
 
 void CorneredRect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize,
-                           const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined, float OutlineThickness,
-                           const SDK::FLinearColor& OutlineColor) {
+                  const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined, float OutlineThickness,
+                  const SDK::FLinearColor& OutlineColor) {
     if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
         ImVec2 a(ScreenPosition.X, ScreenPosition.Y);                               // Top-left
         ImVec2 b(ScreenPosition.X + ScreenSize.X, ScreenPosition.Y);                // Top-right
@@ -178,8 +186,8 @@ void CorneredRect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& Sc
         DrawCorneredBox(ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Thickness);
     }
 }
-void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& RenderColor, float Thickness,
-                     bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
+void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined,
+            float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (BoxCorners[0].X == -1.f && BoxCorners[0].Y == -1.f)
         return;
 
@@ -206,9 +214,8 @@ void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& Rend
     EndBatchedLines();
 }
 
-void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments,
-                     const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined, float OutlineThickness,
-                     const SDK::FLinearColor& OutlineColor) {
+void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments, const SDK::FLinearColor& RenderColor,
+            float Thickness, bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (Outlined)
         g_DrawList->AddCircle(ImVec2(ScreenPosition.X, ScreenPosition.Y), Radius,
                               ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A), Segments,

@@ -58,14 +58,14 @@ void UpdateCache() {
     ResetPickupSeenFlags();
 
     static std::vector<SDK::AFortPickup*> PickupList;
-    SDK::GetAllActorsOfClassAllLevels<SDK::AFortPickup>(PickupList);
+    SDK::GetAllActorsOfClass<SDK::AFortPickup>(PickupList);
     for (const auto& Pickup : PickupList) {
-        auto it = CachedPickups.find(Pickup);
-        if (it == CachedPickups.end()) {
+        auto It = CachedPickups.find(Pickup);
+        if (It == CachedPickups.end()) {
             CachedPickups[Pickup] = CreateNewPickupInfo(Pickup);
         }
         else {
-            UpdateExistingPickupInfo(it->second, Pickup);
+            UpdateExistingPickupInfo(It->second, Pickup);
         }
     }
 

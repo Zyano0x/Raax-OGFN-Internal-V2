@@ -38,6 +38,19 @@ class AFortPawn : public ACharacter {
     STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn)
 };
 
+class AFortPlayerState : public APlayerState {
+  public:
+    FString Platform() {
+        static PropertyInfo Prop = GetPropertyInfo("FortPlayerState", "Platform");
+        if (this && Prop.Found)
+            return *(FString*)((uintptr_t)this + Prop.Offset);
+        return {};
+    }
+
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortPlayerState", AFortPlayerState)
+};
+
 class ABuildingContainer : public AActor {
   public:
     bool bAlreadySearched() {
@@ -94,8 +107,27 @@ class AFortWeapon : public AActor {
         return nullptr;
     }
 
+    int32_t AmmoCount() {
+        static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "AmmoCount");
+        if (this && Prop.Found)
+            return *(int32_t*)((uintptr_t)this + Prop.Offset);
+        return 0;
+    }
+
+    int32_t GetBulletsPerClip() {
+        static UFunction* Func = GetFunction("FortWeapon", "GetBulletsPerClip");
+        struct {
+            int32_t ReturnValue;
+        } params_GetBulletsPerClip{};
+
+        if (this && Func)
+            ProcessEvent(Func, &params_GetBulletsPerClip);
+
+        return params_GetBulletsPerClip.ReturnValue;
+    }
+
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon);
+    STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon)
 };
 
 class AFortProjectileBase : public AActor {
@@ -142,7 +174,7 @@ class AFortProjectileBase : public AActor {
     }
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase);
+    STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase)
 };
 
 class FFortItemEntry : public UObject {
@@ -155,7 +187,7 @@ class FFortItemEntry : public UObject {
     }
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry);
+    STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry)
 };
 
 class UFortItemDefinition : public UObject {
@@ -175,7 +207,7 @@ class UFortItemDefinition : public UObject {
     }
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition);
+    STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition)
 };
 
 class UFortWeaponItemDefinition : public UFortItemDefinition {
@@ -190,7 +222,7 @@ class UFortWeaponItemDefinition : public UFortItemDefinition {
     }
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition);
+    STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition)
 };
 
 class UFortWeaponRangedItemDefinition : public UFortWeaponItemDefinition {
@@ -205,7 +237,7 @@ class UFortWeaponRangedItemDefinition : public UFortWeaponItemDefinition {
     }
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition);
+    STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition)
 };
 
 } // namespace SDK

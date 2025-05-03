@@ -21,15 +21,15 @@ namespace Aimbot {
 enum class AmmoType { Shells, Light, Medium, Heavy, Other, Unknown };
 
 struct State {
-    AmmoType                                                    CurrentAmmo = AmmoType::Shells;
-    bool                                                        UseProjectile = false;
-    SDK::AFortProjectileBase*                                   ProjectileTemp = nullptr;
-    std::unordered_map<SDK::UClass*, float>                     GravityScales;
-    float                                                       EffectiveSmooth = 1.f;
-    bool                                                        IsTargeting = false;
-    Config::ConfigData::AimbotConfig                            Config;
-    std::mt19937                                                RNG{std::random_device{}()};
-    Cache::Player::BoneIdx                                      RandomBone = Cache::Player::BoneIdx::Head;
+    AmmoType                                           CurrentAmmo = AmmoType::Shells;
+    bool                                               UseProjectile = false;
+    SDK::AFortProjectileBase*                          ProjectileTemp = nullptr;
+    std::unordered_map<SDK::UClass*, float>            GravityScales;
+    float                                              EffectiveSmooth = 1.f;
+    bool                                               IsTargeting = false;
+    Config::ConfigData::AimbotConfig::AimbotAmmoConfig Config;
+    std::mt19937                                       RNG{std::random_device{}()};
+    Cache::Player::BoneIdx                             RandomBone = Cache::Player::BoneIdx::Head;
 } s;
 
 struct TargetInfo {
@@ -59,7 +59,7 @@ inline SDK::FVector PredictProjectile(const SDK::FVector& Origin, const SDK::FVe
 
 Cache::Player::BoneIdx PickRandomBone() {
     static std::chrono::time_point<std::chrono::high_resolution_clock> LastBoneRefresh;
-    auto  Now = std::chrono::high_resolution_clock::now();
+    auto                                                               Now = std::chrono::high_resolution_clock::now();
     float Elapsed = std::chrono::duration<float>(Now - LastBoneRefresh).count();
     if (Elapsed >= s.Config.RandomBoneRefreshRate) {
         LastBoneRefresh = Now;
@@ -87,7 +87,7 @@ Cache::Player::BoneIdx PickRandomBone() {
 void UpdateGravityScales() {
     static std::vector<SDK::AFortProjectileBase*> Projectiles;
     SDK::GetAllActorsOfClass<SDK::AFortProjectileBase>(Projectiles);
-    for (auto* Proj : Projectiles) {
+    for (auto& Proj : Projectiles) {
         if (Proj->IsA(SDK::AFortProjectileBase::StaticClass())) {
             s.GravityScales[Proj->Class] = Proj->GravityScale();
         }
@@ -148,26 +148,27 @@ void DetectAmmoType() {
 }
 
 void UpdateConfig() {
-    s.Config = s.CurrentAmmo != AmmoType::Unknown && Config::g_Config.SplitAimbotByAmmo ? [&] {
-        switch (s.CurrentAmmo) {
-        case AmmoType::Shells:
-            return Config::g_Config.ShellsAimbot;
-        case AmmoType::Light:
-            return Config::g_Config.LightAimbot;
-        case AmmoType::Medium:
-            return Config::g_Config.MediumAimbot;
-        case AmmoType::Heavy:
-            return Config::g_Config.HeavyAimbot;
-        default:
-            return Config::g_Config.OtherAimbot;
-        }
-        }()
-            : Config::g_Config.AllAimbot;
+    s.Config = s.CurrentAmmo != AmmoType::Unknown && Config::g_Config.Aimbot.SplitAimbotByAmmo
+                   ? [&] {
+                         switch (s.CurrentAmmo) {
+                         case AmmoType::Shells:
+                             return Config::g_Config.Aimbot.ShellsAimbot;
+                         case AmmoType::Light:
+                             return Config::g_Config.Aimbot.LightAimbot;
+                         case AmmoType::Medium:
+                             return Config::g_Config.Aimbot.MediumAimbot;
+                         case AmmoType::Heavy:
+                             return Config::g_Config.Aimbot.HeavyAimbot;
+                         default:
+                             return Config::g_Config.Aimbot.OtherAimbot;
+                         }
+                     }()
+                   : Config::g_Config.Aimbot.AllAimbot;
 }
 
 void UpdateSmoothness() {
     static std::chrono::time_point<std::chrono::high_resolution_clock> LastFrameTime;
-    auto  Now = std::chrono::high_resolution_clock::now();
+    auto                                                               Now = std::chrono::high_resolution_clock::now();
     float Elapsed = std::chrono::duration<float>(Now - LastFrameTime).count();
     LastFrameTime = Now;
 
@@ -179,20 +180,24 @@ void UpdateSmoothness() {
 
 // --- Target Acquisition --------------------------------------------
 
-bool EvaluateTarget(const Cache::Player::PlayerInfo& info) {
+bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
+    if (s.Config.VisibleCheck && !Info.HeadVisible) {
+        return false;
+    }
+
     int BoneIdx = static_cast<int>(s.Config.Bone == Config::ConfigData::TargetBone::Random
                                        ? PickRandomBone()
                                        : static_cast<Cache::Player::BoneIdx>(s.Config.Bone));
 
-    auto  TargetWorldPos = info.BoneWorldPos[BoneIdx];
-    auto  TargetScreenPos = info.BoneScreenPos[BoneIdx];
+    auto  TargetWorldPos = Info.BoneWorldPos[BoneIdx];
+    auto  TargetScreenPos = Info.BoneScreenPos[BoneIdx];
     float DistMeters = Core::g_CameraLocation.Dist(TargetWorldPos) / 100.f;
 
-    if (s.UseProjectile && s.ProjectileTemp && Config::g_Config.BulletPrediction) {
+    if (s.UseProjectile && s.ProjectileTemp && Config::g_Config.Aimbot.BulletPrediction) {
         float GravityZ = SDK::GetWorld()->PersistentLevel()->WorldSettings()->WorldGravityZ() *
                          s.GravityScales[s.ProjectileTemp->Class];
         TargetWorldPos =
-            PredictProjectile(Core::g_CameraLocation, TargetWorldPos, info.Pawn->RootComponent()->ComponentVelocity(),
+            PredictProjectile(Core::g_CameraLocation, TargetWorldPos, Info.Pawn->RootComponent()->ComponentVelocity(),
                               s.ProjectileTemp->GetDefaultSpeed(1.f), GravityZ);
     }
 
@@ -215,7 +220,7 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& info) {
         InDeadZone = DistDeg <= s.Config.DeadzoneFOV;
     }
 
-    if (target.Pawn && info.Pawn != target.Pawn) {
+    if (target.Pawn && Info.Pawn != target.Pawn) {
         if ((s.Config.Selection == Config::ConfigData::TargetSelection::Distance && DistMeters > target.DistMeters) ||
             (s.Config.Selection == Config::ConfigData::TargetSelection::Degrees && DistDeg > target.DistDeg) ||
             (s.Config.Selection == Config::ConfigData::TargetSelection::Combined && DistCombined > target.DistCombined))
@@ -223,7 +228,7 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& info) {
     }
 
     // accept this target
-    target.Pawn = info.Pawn;
+    target.Pawn = Info.Pawn;
     target.DistDeg = DistDeg;
     target.DistMeters = DistMeters;
     target.DistCombined = DistCombined;
@@ -282,7 +287,7 @@ void TickGameThread() {
 void TickRenderThread() {
     if (!s.Config.Enabled || s.CurrentAmmo == AmmoType::Unknown)
         return;
-    s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.AimbotKeybind);
+    s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
     auto Center = SDK::FVector2D(Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY / 2.f);
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64);

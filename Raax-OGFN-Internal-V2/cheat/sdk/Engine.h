@@ -11,7 +11,63 @@ namespace SDK {
 
 extern float g_EngineVersion;
 
+enum class ETraceTypeQuery : uint8_t {
+    TraceTypeQuery1 = 0,
+    TraceTypeQuery2 = 1,
+    TraceTypeQuery3 = 2,
+    TraceTypeQuery4 = 3,
+    TraceTypeQuery5 = 4,
+    TraceTypeQuery6 = 5,
+    TraceTypeQuery7 = 6,
+    TraceTypeQuery8 = 7,
+    TraceTypeQuery9 = 8,
+    TraceTypeQuery10 = 9,
+    TraceTypeQuery11 = 10,
+    TraceTypeQuery12 = 11,
+    TraceTypeQuery13 = 12,
+    TraceTypeQuery14 = 13,
+    TraceTypeQuery15 = 14,
+    TraceTypeQuery16 = 15,
+    TraceTypeQuery17 = 16,
+    TraceTypeQuery18 = 17,
+    TraceTypeQuery19 = 18,
+    TraceTypeQuery20 = 19,
+    TraceTypeQuery21 = 20,
+    TraceTypeQuery22 = 21,
+    TraceTypeQuery23 = 22,
+    TraceTypeQuery24 = 23,
+    TraceTypeQuery25 = 24,
+    TraceTypeQuery26 = 25,
+    TraceTypeQuery27 = 26,
+    TraceTypeQuery28 = 27,
+    TraceTypeQuery29 = 28,
+    TraceTypeQuery30 = 29,
+    TraceTypeQuery31 = 30,
+    TraceTypeQuery32 = 31,
+    TraceTypeQuery_MAX = 32,
+    ETraceTypeQuery_MAX = 33,
+};
+
+enum class EDrawDebugTrace : uint8_t {
+    None = 0,
+    ForOneFrame = 1,
+    ForDuration = 2,
+    Persistent = 3,
+    EDrawDebugTrace_MAX = 4,
+};
+
+struct FHitResult {
+  public:
+    char UnknownData[0x100]; // Dummy data
+};
+
 class UKismetSystemLibrary : public UObject {
+  public:
+    static inline bool (*KismetSystemLibraryLineTraceSingle)(UObject*, const FVector&, const FVector&, ETraceTypeQuery,
+                                                             bool, TArray<class AActor*>&, EDrawDebugTrace, FHitResult&,
+                                                             bool, const FLinearColor&, const FLinearColor&,
+                                                             float) = nullptr;
+
   public:
     static FString GetEngineVersion() {
         static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
@@ -23,6 +79,15 @@ class UKismetSystemLibrary : public UObject {
             StaticClass()->ProcessEvent(Func, &params);
 
         return params.ReturnValue;
+    }
+
+    static bool LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
+                                ETraceTypeQuery TraceChannel, bool bTraceComplex, TArray<AActor*>& ActorsToIgnore,
+                                EDrawDebugTrace DrawDebugType, FHitResult& OutHit, bool bIgnoreSelf,
+                                const FLinearColor& TraceColor, const FLinearColor& TraceHitColor, float DrawTime) {
+        return KismetSystemLibraryLineTraceSingle(WorldContextObject, Start, End, TraceChannel, bTraceComplex,
+                                                  ActorsToIgnore, EDrawDebugTrace::None, OutHit, bIgnoreSelf,
+                                                  SDK::FLinearColor::White, SDK::FLinearColor::White, 0.f);
     }
 
   public:
@@ -451,8 +516,10 @@ class UEngine* GetEngine();
 class UWorld*  GetWorld();
 class UCanvas* GetCanvas();
 
-SDK::FVector  GetCameraLocation();
-SDK::FRotator GetCameraRotation();
+FVector  GetCameraLocation();
+FRotator GetCameraRotation();
+
+bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor = nullptr, AActor* IgnoredActor2 = nullptr);
 
 FVector   Project3D(const FVector& Location);
 FVector2D Project(const FVector& Location);

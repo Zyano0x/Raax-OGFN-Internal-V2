@@ -8,6 +8,7 @@
 #include <cheat/tick/containertick.h>
 #include <cheat/tick/pickuptick.h>
 #include <cheat/features/aimbot.h>
+#include <config/keybind.h>
 #include <globals.h>
 #include <gui/gui.h>
 #include <utils/log.h>
@@ -68,6 +69,8 @@ void TickRenderThread() {
     Tick::Player::TickRenderThread();
 
     Features::Aimbot::TickRenderThread();
+
+    Keybind::TickRenderThread();
 }
 
 // --- Global Variables ----------------------------------------------

@@ -1,6 +1,8 @@
 #include "playercache.h"
-#include <config/config.h>
 #include <chrono>
+
+#include <cheat/core.h>
+#include <config/config.h>
 
 namespace Cache {
 namespace Player {
@@ -146,8 +148,8 @@ void ForceRefreshIfNeeded() {
     // Force refresh cache every 5 seconds for player name changes, skin changes, etc
     // as these will invalidate some cached player info
     static std::chrono::time_point<std::chrono::high_resolution_clock> LastCheckTime;
-    auto        Now = std::chrono::steady_clock::now();
-    auto        Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
+    auto                                                               Now = std::chrono::steady_clock::now();
+    auto Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
     if (Elapsed >= 5) {
         LastCheckTime = Now;
         CachedPlayers.clear();
@@ -157,9 +159,17 @@ void ForceRefreshIfNeeded() {
 PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     PlayerInfo Info;
     Info.Pawn = Pawn;
-    Info.PlayerState = Pawn->PlayerState();
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Pawn->PlayerState());
     Info.Mesh = Pawn->Mesh();
+    Info.CurrentWeapon = Pawn->CurrentWeapon();
+    if (Info.CurrentWeapon) {
+        Info.WeaponName = Info.CurrentWeapon->WeaponData()->DisplayName()->ToString();
+        Info.WeaponTier = Info.CurrentWeapon->WeaponData()->Tier();
+        Info.AmmoCount = Info.CurrentWeapon->AmmoCount();
+        Info.BulletsPerClip = Info.CurrentWeapon->GetBulletsPerClip();
+    }
     Info.PlayerName = Info.PlayerState->GetPlayerName().ToString();
+    Info.Platform = Info.PlayerState->Platform().ToString();
     for (int i = 0; i < static_cast<int>(BoneIdx::NUM); i++) {
         if (i == static_cast<int>(BoneIdx::Chest))
             continue;
@@ -168,22 +178,45 @@ PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
         Info.BoneIndicies[i] = Bone;
     }
     Info.RootWorldLocation = Pawn->RootComponent()->RelativeLocation();
+    Info.DistanceM = Core::g_CameraLocation.Dist(Info.RootWorldLocation) / 100.f;
     Info.SeenThisFrame = true;
 
     PopulateBones(Info);
     PopulateDrawingInfo(Info);
+
+    Info.HeadVisible = SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
+
     return Info;
 }
 
 void UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
     Info.Pawn = Pawn;
-    Info.PlayerState = Pawn->PlayerState();
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Pawn->PlayerState());
     Info.Mesh = Pawn->Mesh();
+
+    SDK::AFortWeapon* NewWeapon = Info.Pawn->CurrentWeapon();
+    if (NewWeapon) {
+        if (NewWeapon != Info.CurrentWeapon) {
+            Info.WeaponName = NewWeapon->WeaponData()->DisplayName()->ToString();
+            Info.WeaponTier = NewWeapon->WeaponData()->Tier();
+            Info.BulletsPerClip = NewWeapon->GetBulletsPerClip();
+        }
+        Info.AmmoCount = NewWeapon->AmmoCount();
+    } else {
+        Info.WeaponName = "";
+        Info.AmmoCount = 0;
+        Info.BulletsPerClip = 0;
+    }
+    Info.CurrentWeapon = NewWeapon;
+
     Info.RootWorldLocation = Pawn->RootComponent()->RelativeLocation();
+    Info.DistanceM = Core::g_CameraLocation.Dist(Info.RootWorldLocation) / 100.f;
     Info.SeenThisFrame = true;
 
     PopulateBones(Info);
     PopulateDrawingInfo(Info);
+
+    Info.HeadVisible = SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)]);
 }
 
 void ResetPlayerSeenFlags() {
@@ -193,9 +226,7 @@ void ResetPlayerSeenFlags() {
 }
 
 void RemoveUnseenPlayers() {
-    std::erase_if(CachedPlayers, [](const auto& Cache) {
-        return !Cache.second.SeenThisFrame;
-        });
+    std::erase_if(CachedPlayers, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
 }
 
 // --- Public Cache Functions ----------------------------------------
@@ -214,8 +245,7 @@ void UpdateCache() {
         auto It = CachedPlayers.find(Player);
         if (It == CachedPlayers.end()) {
             CachedPlayers[Player] = CreateNewPlayerInfo(Player);
-        }
-        else {
+        } else {
             UpdateExistingPlayerInfo(It->second, Player);
         }
     }

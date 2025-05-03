@@ -60,7 +60,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -83,7 +83,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -109,6 +109,7 @@
     <ClCompile Include="cheat\drawtransition.cpp" />
     <ClCompile Include="cheat\sdk\FMemory.cpp" />
     <ClCompile Include="config\config.cpp" />
+    <ClCompile Include="config\keybind.cpp" />
     <ClCompile Include="drawing\drawing.cpp" />
     <ClCompile Include="gui\dx11\dx11.cpp" />
     <ClCompile Include="gui\gui.cpp" />
@@ -151,6 +152,8 @@
     <ClInclude Include="cheat\sdk\FortniteGame.h" />
     <ClInclude Include="cheat\sdk\FProperty.h" />
     <ClInclude Include="config\config.h" />
+    <ClInclude Include="config\config_reflection.h" />
+    <ClInclude Include="config\keybind.h" />
     <ClInclude Include="drawing\drawing.h" />
     <ClInclude Include="drawing\fontdata.h" />
     <ClInclude Include="gui\dx11\dx11.h" />
