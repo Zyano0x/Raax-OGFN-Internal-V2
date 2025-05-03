@@ -1,5 +1,8 @@
 #pragma once
+
+#include "keybind.h"
 #include <string>
+
 #include <cheat/sdk/Basic.h>
 #include <extern/imgui/imgui.h>
 
@@ -16,11 +19,13 @@ struct ConfigData {
 
     struct VisualsConfig {
         struct PlayerConfig {
+            float MaxDistance = 300.f;
+
             bool    Box = true;
             BoxType BoxType = BoxType::Cornered;
             float   BoxThickness = 2.f;
 
-            bool FilledBox = true;
+            bool              FilledBox = true;
             SDK::FLinearColor FilledBoxColor = SDK::FLinearColor(0.f, 0.f, 0.f, 0.25f);
 
             bool  Skeleton = true;
@@ -152,6 +157,11 @@ struct ConfigData {
         bool BulletPrediction = true;
         int  AimbotKeybind = ImGuiKey_MouseRight;
     } Aimbot;
+
+    struct KeybindConfig {
+        std::vector<Keybind::KeybindData> Keybinds;
+        std::string                       KeybindData;
+    } Keybinds;
 
     struct ColorConfig {
         SDK::FLinearColor PrimaryColorVisible = SDK::FLinearColor(1.f, 0.f, 0.f, 1.f);

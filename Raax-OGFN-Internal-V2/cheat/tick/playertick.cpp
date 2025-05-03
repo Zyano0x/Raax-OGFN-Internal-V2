@@ -52,11 +52,13 @@ void TickRenderThread() {
     float FontSize = 16.f;
 
     for (const auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
-        if (Info.Pawn == SDK::GetLocalPawn())
+        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance)
             continue;
 
-        SDK::FLinearColor PrimaryColor = Info.HeadVisible ? ColorConfig.PrimaryColorVisible : ColorConfig.PrimaryColorHidden;
-        SDK::FLinearColor SecondaryColor = Info.HeadVisible ? ColorConfig.SecondaryColorVisible : ColorConfig.SecondaryColorHidden;
+        SDK::FLinearColor PrimaryColor =
+            Info.HeadVisible ? ColorConfig.PrimaryColorVisible : ColorConfig.PrimaryColorHidden;
+        SDK::FLinearColor SecondaryColor =
+            Info.HeadVisible ? ColorConfig.SecondaryColorVisible : ColorConfig.SecondaryColorHidden;
 
         if (PlayerConfig.Box) {
             if (PlayerConfig.FilledBox && (PlayerConfig.BoxType == Config::ConfigData::BoxType::Full ||

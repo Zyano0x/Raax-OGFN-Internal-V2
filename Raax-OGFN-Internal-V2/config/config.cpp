@@ -5,6 +5,7 @@
 
 #include <utils/error.h>
 #include <utils/log.h>
+#include "keybind.h"
 
 namespace Config {
 
@@ -61,6 +62,11 @@ template <typename T> bool TryParseEnum(const std::string& Str, T& Out) {
 }
 
 // --- Config Serialization Functions --------------------------------
+
+void SerializeKeybinds(ConfigData& Config) {
+    Config.Keybinds.KeybindData =
+        Config.Keybinds.Keybinds.empty() ? "" : Keybind::SerializeKeybinds(Config.Keybinds.Keybinds);
+}
 
 template <typename T> bool ShouldSerializeValue(const T& Value, const T& MergeValue) {
     if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
@@ -151,8 +157,28 @@ template <typename T> std::string SerializeValue(const T& Value, const T& MergeV
 }
 
 std::string ConfigData::SerializeConfig(bool FullConfig) {
+    SerializeKeybinds(*this);
+
     ConfigData DefaultConfig = {};
     return SerializeValue(*this, DefaultConfig, FullConfig);
+}
+
+bool DeserializeKeybinds(ConfigData& Config) {
+    if (Config.Keybinds.KeybindData.empty()) {
+        return true;
+    }
+
+    if (!Keybind::DeserializeKeybinds(Config.Keybinds.KeybindData, Config.Keybinds.Keybinds)) {
+        return false;
+    }
+
+    for (auto& Keybind : Config.Keybinds.Keybinds) {
+        if (!ConfigReflection::FindFieldByPath(Keybind.ReflectedBool.FullPath, Keybind.ReflectedBool)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 template <typename T> bool DeserializeValue(T& Output, const std::string& Data) {
@@ -173,24 +199,31 @@ template <typename T> bool DeserializeValue(T& Output, const std::string& Data) 
                 auto ProcessMember = [&](const auto& m) {
                     std::string SearchStr = "\"" + std::string(m.Name) + "\":";
                     size_t      Pos = Content.find(SearchStr);
-                    if (Pos == std::string::npos) {
+                    if (Pos == std::string::npos)
                         return;
-                    }
 
                     size_t ValueStart = Pos + SearchStr.length();
                     size_t ValueEnd = ValueStart;
-                    int    BraceCount = 0;
-                    bool   InString = false;
+
+                    int  BraceCount = 0;
+                    int  BracketCount = 0;
+                    bool InString = false;
+
                     while (ValueEnd < Content.length()) {
-                        char c = Content[ValueEnd];
-                        if (c == '"' && (ValueEnd == 0 || Content[ValueEnd - 1] != '\\')) {
+                        char C = Content[ValueEnd];
+
+                        if (C == '"' && (ValueEnd == 0 || Content[ValueEnd - 1] != '\\')) {
                             InString = !InString;
                         } else if (!InString) {
-                            if (c == '{')
+                            if (C == '{')
                                 BraceCount++;
-                            else if (c == '}')
+                            else if (C == '}')
                                 BraceCount--;
-                            else if (c == ',' && BraceCount == 0)
+                            else if (C == '[')
+                                BracketCount++;
+                            else if (C == ']')
+                                BracketCount--;
+                            else if (C == ',' && BraceCount == 0 && BracketCount == 0)
                                 break;
                         }
 
@@ -220,13 +253,20 @@ template <typename T> bool DeserializeValue(T& Output, const std::string& Data) 
         return TryParseFloat(Data, Output);
     } else if constexpr (std::is_same_v<T, SDK::FLinearColor>) {
         return TryParseColor(Data, Output);
+    } else if constexpr (std::is_same_v<T, std::string>) {
+        Output = Data;
+        return true;
     } else {
         static_assert(false, "Unsupported type for deserialization!");
     }
 }
 
 bool ConfigData::DeserializeConfig(const std::string& Data) {
-    return DeserializeValue<ConfigData>(*this, Data);
+    bool Result = DeserializeValue<ConfigData>(*this, Data);
+    if (Result) {
+        Result = DeserializeKeybinds(*this);
+    }
+    return Result;
 }
 
 } // namespace Config

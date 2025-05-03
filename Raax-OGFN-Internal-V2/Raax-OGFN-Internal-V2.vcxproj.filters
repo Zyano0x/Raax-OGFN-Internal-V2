@@ -91,6 +91,7 @@
     <ClInclude Include="gui\mainwindow.h" />
     <ClInclude Include="config\config_reflection.h" />
     <ClInclude Include="config\keybind.h" />
+    <ClInclude Include="config\config_field_view.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

@@ -2,8 +2,8 @@
 
 #include <extern/imgui/imgui.h>
 #include <config/config.h>
-#include <config/config_reflection.h>
 #include <config/keybind.h>
+#include <config/config_reflection.h>
 #include <gui/gui.h>
 
 namespace GUI {
@@ -11,18 +11,21 @@ namespace MainWindow {
 
 // --- Keybind UI Functions ------------------------------------------
 
-template <typename T> void DisplayMembersInTree(T* Instance, ConfigReflection::ConfigFieldView& OutField) {
+template <typename T>
+void DisplayMembersInTree(T* Instance, std::string Prefix, ConfigReflection::ConfigFieldView& OutField) {
     auto Members = ConfigReflection::DescribeMembers<T>();
     std::apply(
         [&](auto&&... Member) {
             (
-                [&Member, Instance, &OutField] {
+                [&Member, Instance, &Prefix, &OutField] {
                     using MemberType = std::remove_cvref_t<decltype(Instance->*(Member.Ptr))>;
-                    auto& FieldValue = Instance->*(Member.Ptr);
+                    auto&       FieldValue = Instance->*(Member.Ptr);
+                    std::string CurrentPath =
+                        Prefix.empty() ? std::string(Member.Name) : Prefix + "." + Member.Name.data();
 
                     if constexpr (requires { ConfigReflection::DescribeMembers<MemberType>(); }) {
                         if (ImGui::TreeNode(Member.Name.data())) {
-                            DisplayMembersInTree<MemberType>(&FieldValue, OutField);
+                            DisplayMembersInTree<MemberType>(&FieldValue, CurrentPath, OutField);
                             ImGui::TreePop();
                         }
                     } else if constexpr (std::is_same_v<MemberType, bool>) {
@@ -30,7 +33,8 @@ template <typename T> void DisplayMembersInTree(T* Instance, ConfigReflection::C
                             OutField = ConfigReflection::ConfigFieldView{
                                 .Ptr = &FieldValue,
                                 .Name = Member.Name,
-                                .Type = ConfigReflection::TypeDescriptor<MemberType>::Name};
+                                .Type = ConfigReflection::TypeDescriptor<MemberType>::Name,
+                                .FullPath = CurrentPath};
                         }
                     }
                 }(),
@@ -51,8 +55,9 @@ void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char* Popup
         ImGui::Separator();
 
         ImGui::Text("Select a target");
-        if (ImGui::BeginChild("TargetSelection", ImVec2(0, 200), ImGuiChildFlags_Borders, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-            DisplayMembersInTree<Config::ConfigData>(&Config::g_Config, CurrentKeybind.ReflectedBool);
+        if (ImGui::BeginChild("TargetSelection", ImVec2(0, 200), ImGuiChildFlags_Borders,
+                              ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+            DisplayMembersInTree<Config::ConfigData>(&Config::g_Config, "", CurrentKeybind.ReflectedBool);
         }
         ImGui::EndChild();
 
@@ -68,7 +73,7 @@ void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char* Popup
         ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - 5);
         ImGui::BeginDisabled(!ReadyToConfirm);
         if (ImGui::Button("Confirm", ImVec2(90, 0))) {
-            Keybind::g_Keybinds.push_back(CurrentKeybind);
+            Config::g_Config.Keybinds.Keybinds.push_back(CurrentKeybind);
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndDisabled();
@@ -99,18 +104,19 @@ void ListKeybinds() {
     static Keybind::KeybindData CurrentKeybind = {};
 
     if (ImGui::Button("Delete All Keybinds")) {
-        Keybind::g_Keybinds.clear();
+        Config::g_Config.Keybinds.Keybinds.clear();
     }
 
-    if (ImGui::BeginChild("KeybindList", ImVec2(0, 200), ImGuiChildFlags_Borders, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    if (ImGui::BeginChild("KeybindList", ImVec2(0, 200), ImGuiChildFlags_Borders,
+                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
         size_t PendingDeleteIdx = -1;
         size_t PendingEditIdx = -1;
-        
-        if (Keybind::g_Keybinds.empty()) {
+
+        if (Config::g_Config.Keybinds.Keybinds.empty()) {
             ImGui::Text("No keybinds!");
         } else {
-            for (size_t i = 0; i < Keybind::g_Keybinds.size(); i++) {
-                const auto& Keybind = Keybind::g_Keybinds[i];
+            for (size_t i = 0; i < Config::g_Config.Keybinds.Keybinds.size(); i++) {
+                const auto& Keybind = Config::g_Config.Keybinds.Keybinds[i];
 
                 std::string KeybindInfoStr =
                     std::format("{} - {}", ImGui::GetKeyName(Keybind.Keybind), Keybind.ReflectedBool.Name.data());
@@ -129,11 +135,11 @@ void ListKeybinds() {
         }
 
         if (PendingDeleteIdx != -1) {
-            Keybind::g_Keybinds.erase(Keybind::g_Keybinds.begin() + PendingDeleteIdx);
+            Config::g_Config.Keybinds.Keybinds.erase(Config::g_Config.Keybinds.Keybinds.begin() + PendingDeleteIdx);
         }
         if (PendingEditIdx != -1) {
-            CurrentKeybind = Keybind::g_Keybinds[PendingEditIdx];
-            Keybind::g_Keybinds.erase(Keybind::g_Keybinds.begin() + PendingEditIdx);
+            CurrentKeybind = Config::g_Config.Keybinds.Keybinds[PendingEditIdx];
+            Config::g_Config.Keybinds.Keybinds.erase(Config::g_Config.Keybinds.Keybinds.begin() + PendingEditIdx);
             ImGui::OpenPopup("Keybind (Edit)");
         }
     }
@@ -268,6 +274,8 @@ void VisualsTab() {
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         switch (SubTab) {
         case WindowSubTab::Player:
+            ImGui::SliderFloat("Max Distance", &Config::g_Config.Visuals.Player.MaxDistance, 0.f, 500.f);
+
             ImGui::Checkbox("Box", &Config::g_Config.Visuals.Player.Box);
             ImGui::Combo("Box Type", (int*)&Config::g_Config.Visuals.Player.BoxType, "Full\000Cornered\000Full 3D");
             ImGui::SliderFloat("Box Thickness", &Config::g_Config.Visuals.Player.BoxThickness, 1.f, 20.f);
@@ -336,7 +344,7 @@ void ConfigTab() {
         if (ImGui::Button("Copy Full Config")) {
             ImGui::SetClipboardText(Config::g_Config.SerializeConfig(true).c_str());
         }
-        
+
         ImGui::BeginDisabled(!InputConfigIsValid);
         if (ImGui::Button("Load Config")) {
             Config::g_Config.DeserializeConfig(InputConfigData);
@@ -345,8 +353,9 @@ void ConfigTab() {
         }
         ImGui::EndDisabled();
         ImGui::SameLine();
-        if (ImGui::Button("Load Default Config"))
+        if (ImGui::Button("Load Default Config")) {
             Config::g_Config = Config::ConfigData();
+        }
     }
     ImGui::EndChild();
 }

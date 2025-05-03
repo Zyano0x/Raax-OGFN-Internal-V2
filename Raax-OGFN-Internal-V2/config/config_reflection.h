@@ -1,65 +1,12 @@
 #pragma once
 
 #include "config.h"
+#include "config_field_view.h"
 #include <tuple>
 #include <string>
+#include <vector>
 
 namespace ConfigReflection {
-
-// --- Reflection Structs --------------------------------------------
-
-template <typename T> struct TypeDescriptor {
-    static constexpr std::string_view Name = "unknown";
-};
-
-template <> struct TypeDescriptor<bool> {
-    static constexpr std::string_view Name = "bool";
-};
-
-template <> struct TypeDescriptor<float> {
-    static constexpr std::string_view Name = "float";
-};
-
-template <> struct TypeDescriptor<int> {
-    static constexpr std::string_view Name = "int";
-};
-
-template <> struct TypeDescriptor<SDK::FLinearColor> {
-    static constexpr std::string_view Name = "FLinearColor";
-};
-
-template <typename Class, typename T> struct MemberDescriptor {
-    std::string_view Name;
-    T Class::*        Ptr;
-    TypeDescriptor<T> Type;
-};
-
-struct ConfigFieldView {
-    void*            Ptr;
-    std::string_view Name;
-    std::string_view Type;
-    std::string      FullPath;
-
-    template <typename T> T&   As() const { return *reinterpret_cast<T*>(Ptr); }
-    template <typename T> bool Is() const { return Type == TypeDescriptor<T>::Name; }
-
-    template <typename tParent, typename T>
-    static void BuildPath(const tParent* Parent, const MemberDescriptor<tParent, T>& Member, std::string& CurrentPath) {
-        if constexpr (requires { ConfigReflection::DescribeMembers<tParent>(); }) {
-            CurrentPath += std::string(Member.Name) + ".";
-            if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
-                auto Nembers = ConfigReflection::DescribeMembers<T>();
-                std::apply(
-                    [&](auto&&... m) {
-                    (BuildPath(static_cast<const T*>(&(Parent->*(Member.Ptr)), m, CurrentPath), ...);
-                    },
-                    Nembers);
-            }
-        } else {
-            CurrentPath += std::string(Member.Name);
-        }
-    }
-};
 
 // --- Member Describers ---------------------------------------------
 
@@ -76,21 +23,21 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::ColorConfig>() {
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::PlayerConfig>() {
     using T = Config::ConfigData::VisualsConfig::PlayerConfig;
-    return std::make_tuple(MemberDescriptor<T, bool>{"Box", &T::Box, {}},
-                           MemberDescriptor<T, Config::ConfigData::BoxType>{"BoxType", &T::BoxType, {}},
-                           MemberDescriptor<T, float>{"BoxThickness", &T::BoxThickness, {}},
-                           MemberDescriptor<T, bool>{"FilledBox", &T::FilledBox, {}},
-                           MemberDescriptor<T, SDK::FLinearColor>{"FilledBoxColor", &T::FilledBoxColor, {}},
-                           MemberDescriptor<T, bool>{"Skeleton", &T::Skeleton, {}},
-                           MemberDescriptor<T, float>{"SkeletonThickness", &T::SkeletonThickness, {}},
-                           MemberDescriptor<T, bool>{"Tracer", &T::Tracer, {}},
-                           MemberDescriptor<T, float>{"TracerThickness", &T::TracerThickness, {}},
-                           MemberDescriptor<T, Config::ConfigData::TracerPos>{"TracerStart", &T::TracerStart, {}},
-                           MemberDescriptor<T, Config::ConfigData::TracerPos>{"TracerEnd", &T::TracerEnd, {}},
-                           MemberDescriptor<T, bool>{"Platform", &T::Platform, {}},
-                           MemberDescriptor<T, bool>{"Name", &T::Name, {}},
-                           MemberDescriptor<T, bool>{"CurrentWeapon", &T::CurrentWeapon, {}},
-                           MemberDescriptor<T, bool>{"Distance", &T::Distance, {}});
+    return std::make_tuple(
+        MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}}, MemberDescriptor<T, bool>{"Box", &T::Box, {}},
+        MemberDescriptor<T, Config::ConfigData::BoxType>{"BoxType", &T::BoxType, {}},
+        MemberDescriptor<T, float>{"BoxThickness", &T::BoxThickness, {}},
+        MemberDescriptor<T, bool>{"FilledBox", &T::FilledBox, {}},
+        MemberDescriptor<T, SDK::FLinearColor>{"FilledBoxColor", &T::FilledBoxColor, {}},
+        MemberDescriptor<T, bool>{"Skeleton", &T::Skeleton, {}},
+        MemberDescriptor<T, float>{"SkeletonThickness", &T::SkeletonThickness, {}},
+        MemberDescriptor<T, bool>{"Tracer", &T::Tracer, {}},
+        MemberDescriptor<T, float>{"TracerThickness", &T::TracerThickness, {}},
+        MemberDescriptor<T, Config::ConfigData::TracerPos>{"TracerStart", &T::TracerStart, {}},
+        MemberDescriptor<T, Config::ConfigData::TracerPos>{"TracerEnd", &T::TracerEnd, {}},
+        MemberDescriptor<T, bool>{"Platform", &T::Platform, {}}, MemberDescriptor<T, bool>{"Name", &T::Name, {}},
+        MemberDescriptor<T, bool>{"CurrentWeapon", &T::CurrentWeapon, {}},
+        MemberDescriptor<T, bool>{"Distance", &T::Distance, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::LootConfig>() {
@@ -141,11 +88,81 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::AimbotConfig>() {
                            MemberDescriptor<T, int>{"AimbotKeybind", &T::AimbotKeybind, {}});
 }
 
+template <> constexpr auto DescribeMembers<Config::ConfigData::KeybindConfig>() {
+    using T = Config::ConfigData::KeybindConfig;
+    return std::make_tuple(MemberDescriptor<T, std::string>{"KeybindData", &T::KeybindData, {}});
+}
+
 template <> constexpr auto DescribeMembers<Config::ConfigData>() {
     using T = Config::ConfigData;
     return std::make_tuple(MemberDescriptor<T, Config::ConfigData::VisualsConfig>{"Visuals", &T::Visuals, {}},
                            MemberDescriptor<T, Config::ConfigData::AimbotConfig>{"Aimbot", &T::Aimbot, {}},
+                           MemberDescriptor<T, Config::ConfigData::KeybindConfig>{"Keybinds", &T::Keybinds, {}},
                            MemberDescriptor<T, Config::ConfigData::ColorConfig>{"Color", &T::Color, {}});
+}
+
+// --- Field Util Functions & Structs --------------------------------
+
+namespace detail {
+template <typename T>
+inline bool FindFieldRecursive(void* ParentPtr, const std::vector<std::string>& Parts, size_t Index,
+                               ConfigFieldView& OutView) {
+    const auto         Members = DescribeMembers<T>();
+    const std::string& TargetPart = Parts[Index];
+    bool               Found = false;
+
+    std::apply(
+        [&](auto&&... m) {
+            auto CheckMember = [&](const auto& Member) {
+                if (Found || Member.Name != TargetPart)
+                    return;
+
+                using MemberType = std::decay_t<decltype(((T*)ParentPtr)->*(Member.Ptr))>;
+                void* MemberPtr = &(static_cast<T*>(ParentPtr)->*(Member.Ptr));
+
+                if (Index == Parts.size() - 1) {
+                    OutView.Ptr = MemberPtr;
+                    OutView.Name = Member.Name;
+                    OutView.Type = TypeDescriptor<MemberType>::Name;
+                    OutView.FullPath = "";
+                    for (size_t i = 0; i <= Index; i++) {
+                        OutView.FullPath += Parts[i];
+                        if (i != Index)
+                            OutView.FullPath += ".";
+                    }
+                    Found = true;
+                } else {
+                    if constexpr (requires { DescribeMembers<MemberType>(); }) {
+                        Found = detail::FindFieldRecursive<MemberType>(MemberPtr, Parts, Index + 1, OutView);
+                    }
+                }
+            };
+            (CheckMember(m), ...);
+        },
+        Members);
+
+    return Found;
+}
+} // namespace detail
+
+inline bool FindFieldByPath(const std::string& Path, ConfigFieldView& OutView) {
+    // Split path into parts
+    std::vector<std::string> parts;
+    size_t                   start = 0;
+    size_t                   end = Path.find('.');
+
+    while (end != std::string::npos) {
+        parts.push_back(Path.substr(start, end - start));
+        start = end + 1;
+        end = Path.find('.', start);
+    }
+    parts.push_back(Path.substr(start));
+
+    if (parts.empty())
+        return false;
+
+    // Start recursion with root ConfigData type
+    return detail::FindFieldRecursive<Config::ConfigData>(&Config::g_Config, parts, 0, OutView);
 }
 
 } // namespace ConfigReflection

@@ -152,6 +152,7 @@
     <ClInclude Include="cheat\sdk\FortniteGame.h" />
     <ClInclude Include="cheat\sdk\FProperty.h" />
     <ClInclude Include="config\config.h" />
+    <ClInclude Include="config\config_field_view.h" />
     <ClInclude Include="config\config_reflection.h" />
     <ClInclude Include="config\keybind.h" />
     <ClInclude Include="drawing\drawing.h" />

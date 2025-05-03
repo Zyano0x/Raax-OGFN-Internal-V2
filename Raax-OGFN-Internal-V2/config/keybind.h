@@ -1,7 +1,10 @@
 #pragma once
 
-#include "config_reflection.h"
+#include "config_field_view.h"
+#include <string>
 #include <vector>
+
+#include <extern/imgui/imgui.h>
 
 namespace Keybind {
 
@@ -9,15 +12,17 @@ namespace Keybind {
 
 struct KeybindData {
     ConfigReflection::ConfigFieldView ReflectedBool = {};
-    ImGuiKey Keybind = ImGuiKey_None;
+    ImGuiKey                          Keybind = ImGuiKey_None;
+
+    std::string Serialize() const;
+    bool        Deserialize(const std::string& Data);
 };
 
-// --- Public Tick Functions -----------------------------------------
+// --- Public Functions ----------------------------------------------
 
-void TickRenderThread();
+std::string SerializeKeybinds(std::vector<KeybindData>& Input);
+bool        DeserializeKeybinds(const std::string& Data, std::vector<KeybindData>& Output);
 
-// --- Global Variables ----------------------------------------------
-
-extern std::vector<KeybindData> g_Keybinds;
+void Tick();
 
 } // namespace Keybind

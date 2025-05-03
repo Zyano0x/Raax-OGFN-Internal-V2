@@ -70,7 +70,7 @@ void TickRenderThread() {
 
     Features::Aimbot::TickRenderThread();
 
-    Keybind::TickRenderThread();
+    Keybind::Tick();
 }
 
 // --- Global Variables ----------------------------------------------
