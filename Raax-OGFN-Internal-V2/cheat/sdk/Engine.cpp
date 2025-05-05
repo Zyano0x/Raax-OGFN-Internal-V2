@@ -71,7 +71,7 @@ bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* Ig
 
     FHitResult Hit = {};
     bool       bHitSomething = SDK::UKismetSystemLibrary::LineTraceSingle(
-        SDK::GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery6, true, IgnoredActors,
+        SDK::GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery1, true, IgnoredActors,
         EDrawDebugTrace::None, Hit, true, FLinearColor(0.f, 0.f, 0.f, 0.f), FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
 
     return !bHitSomething;

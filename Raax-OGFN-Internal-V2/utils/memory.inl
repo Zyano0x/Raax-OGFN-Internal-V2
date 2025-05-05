@@ -93,29 +93,26 @@ template <typename OperandSize> static uintptr_t PatternScan(const char* Pattern
     return PatternScanRange<OperandSize>(GetImageBase(), GetImageSize(), Pattern, false, Offset, RelativeAddress);
 }
 
-template <typename StringType> static uintptr_t FindStringRef(StringType RefString) {
+template <typename StringType>
+static uintptr_t FindStringRefRange(StringType RefString, uint8_t* StartAddress, size_t ScanSize) {
     constexpr bool IsChar = std::is_same_v<StringType, const char*>;
     constexpr bool IsWChar = std::is_same_v<StringType, const wchar_t*>;
-    static_assert(IsChar || IsWChar, "FindString only supports `const char*` and `const wchar_t*`!");
-
-    const PIMAGE_SECTION_HEADER TextSection = GetImageTextSection();
-    if (!TextSection)
-        return 0;
+    static_assert(IsChar || IsWChar, "FindStringRefRange only supports `const char*` and `const wchar_t*`!");
 
     // Give head room of 7 to ensure no out of bounds issues ever occur.
-    uint8_t* TextSectionData = reinterpret_cast<uint8_t*>(GetImageBase() + TextSection->VirtualAddress);
-    for (size_t i = 0; i < TextSection->Misc.VirtualSize - 7; i++) {
+    uint8_t* Data = StartAddress;
+    for (size_t i = 0; i < ScanSize - 7; i++) {
         // Check if the instruction is a LEA REG REL32_IMM.
-        if ((TextSectionData[i] == 0x4C || TextSectionData[i] == 0x48) && TextSectionData[i + 1] == 0x8D) {
+        if ((Data[i] == 0x4C || Data[i] == 0x48) && Data[i + 1] == 0x8D) {
             // Convert REL32_IMM to absolute address.
-            const void* FoundStr = *(int32_t*)(TextSectionData + i + 3) + 7 + TextSectionData + i;
+            const void* FoundStr = *(int32_t*)(Data + i + 3) + 7 + Data + i;
             if (IsAddressInsideImage(reinterpret_cast<uintptr_t>(FoundStr))) {
                 if constexpr (IsChar) {
                     if (strcmp(RefString, static_cast<const char*>(FoundStr)) == 0)
-                        return reinterpret_cast<uintptr_t>(TextSectionData + i);
+                        return reinterpret_cast<uintptr_t>(Data + i);
                 } else if constexpr (IsWChar) {
                     if (wcscmp(RefString, static_cast<const wchar_t*>(FoundStr)) == 0)
-                        return reinterpret_cast<uintptr_t>(TextSectionData + i);
+                        return reinterpret_cast<uintptr_t>(Data + i);
                 }
             }
 
@@ -129,6 +126,15 @@ template <typename StringType> static uintptr_t FindStringRef(StringType RefStri
         LOG(LOG_WARN, "Failed to find string! (%S)", RefString);
 
     return 0;
+}
+
+template <typename StringType> static uintptr_t FindStringRef(StringType RefString) {
+    const PIMAGE_SECTION_HEADER TextSection = GetImageTextSection();
+    if (!TextSection)
+        return 0;
+
+    uint8_t* TextSectionData = reinterpret_cast<uint8_t*>(GetImageBase() + TextSection->VirtualAddress);
+    return FindStringRefRange<StringType>(RefString, TextSectionData, TextSection->Misc.VirtualSize);
 }
 
 template <typename T, int Increment>

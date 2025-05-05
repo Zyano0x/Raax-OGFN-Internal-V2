@@ -13,6 +13,7 @@ enum class BoneIdx : int {
     Head = 0,
     Neck,
     Pelvis,
+    Chest,
 
     L_Shoulder,
     L_Elbow,
@@ -20,8 +21,6 @@ enum class BoneIdx : int {
     R_Shoulder,
     R_Elbow,
     R_Hand,
-
-    Chest,
 
     L_Thigh,
     L_Knee,

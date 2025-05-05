@@ -103,6 +103,9 @@
     <ClCompile Include="cheat\cache\playercache.cpp" />
     <ClCompile Include="cheat\core.cpp" />
     <ClCompile Include="cheat\features\aimbot.cpp" />
+    <ClCompile Include="cheat\features\radar.cpp" />
+    <ClCompile Include="cheat\features\triggerbot.cpp" />
+    <ClCompile Include="cheat\features\weaponutils.cpp" />
     <ClCompile Include="cheat\tick\containertick.cpp" />
     <ClCompile Include="cheat\tick\pickuptick.cpp" />
     <ClCompile Include="cheat\tick\playertick.cpp" />
@@ -144,6 +147,9 @@
     <ClInclude Include="cheat\cache\playercache.h" />
     <ClInclude Include="cheat\core.h" />
     <ClInclude Include="cheat\features\aimbot.h" />
+    <ClInclude Include="cheat\features\radar.h" />
+    <ClInclude Include="cheat\features\triggerbot.h" />
+    <ClInclude Include="cheat\features\weaponutils.h" />
     <ClInclude Include="cheat\tick\containertick.h" />
     <ClInclude Include="cheat\tick\pickuptick.h" />
     <ClInclude Include="cheat\tick\playertick.h" />

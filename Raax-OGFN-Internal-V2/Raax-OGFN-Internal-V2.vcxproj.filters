@@ -40,6 +40,9 @@
     <ClCompile Include="cheat\features\aimbot.cpp" />
     <ClCompile Include="utils\math.cpp" />
     <ClCompile Include="config\keybind.cpp" />
+    <ClCompile Include="cheat\features\radar.cpp" />
+    <ClCompile Include="cheat\features\triggerbot.cpp" />
+    <ClCompile Include="cheat\features\weaponutils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="extern\imgui\imconfig.h" />
@@ -92,6 +95,9 @@
     <ClInclude Include="config\config_reflection.h" />
     <ClInclude Include="config\keybind.h" />
     <ClInclude Include="config\config_field_view.h" />
+    <ClInclude Include="cheat\features\radar.h" />
+    <ClInclude Include="cheat\features\triggerbot.h" />
+    <ClInclude Include="cheat\features\weaponutils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

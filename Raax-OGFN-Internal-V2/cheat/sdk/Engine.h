@@ -185,7 +185,6 @@ class UGameViewportClient : public UObject {
 class UCanvas : public UObject {
   public:
     static inline uint32_t ViewProjectionMatrix_Offset;
-    static inline uint32_t SceneView_Offset;
 
   public:
     inline int32_t SizeX() {
@@ -199,11 +198,6 @@ class UCanvas : public UObject {
         if (this && Prop.Found)
             return *(int32_t*)((uintptr_t)this + Prop.Offset);
         return {};
-    }
-    inline struct FSceneView* SceneView() {
-        if (this)
-            return *(struct FSceneView**)((uintptr_t)this + SceneView_Offset);
-        return nullptr;
     }
     inline FMatrix* ViewProjectionMatrix() {
         if (this)

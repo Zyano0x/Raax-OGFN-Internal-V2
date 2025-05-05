@@ -390,12 +390,6 @@ bool SetupViewProjectionMatrix() {
     Error::ThrowError("Failed to find UCanvas::ViewProjectionMatrix offset!");
     return false;
 }
-bool SetupSceneView() {
-    UCanvas::SceneView_Offset = UCanvas::ViewProjectionMatrix_Offset - sizeof(void*);
-    LOG(LOG_INFO, "Using hardcoded (ViewProjectionMatrix - 8) UCanvas::SceneView offset: 0x%X",
-        UCanvas::SceneView_Offset);
-    return true;
-}
 bool SetupLevelActors() {
     PropertyInfo Info = UObject::GetPropertyInfo("Level", "OwningWorld");
     ULevel*      Level = GetWorld()->PersistentLevel();
@@ -445,6 +439,43 @@ bool SetupComponentSpaceTransformsArray() {
     Error::ThrowError("Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
     return false;
 }
+bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
+    Output = Memory::FindStringRef(L"EditModeInputComponent0");
+    if (Output) {
+        LOG(LOG_INFO, "Found EditModeInputComponent0 offset: %p",
+            reinterpret_cast<void*>(Output - Memory::GetImageBase()));
+        return true;
+    }
+
+    Error::ThrowError("Failed to find EditModeInputComponent0 offset!");
+    return false;
+}
+bool SetupFireOffset(uint64_t EditModeInputComponent0) {
+    uintptr_t FireString = Memory::FindStringRefRange("Fire", (uint8_t*)(EditModeInputComponent0 - 0x4500), 0x4500);
+    if (FireString) {
+        uint64_t FirePressAddress =
+            Memory::PatternScanRange<int32_t>(FireString - 0x28, 0x50, "48 8D 05", false, 3, true);
+        if (FirePressAddress) {
+            AFortPlayerController::pFire_Press =
+                reinterpret_cast<decltype(AFortPlayerController::pFire_Press)>(FirePressAddress);
+            LOG(LOG_INFO, "Found AFortPlayerController::Fire_Press offset: %p",
+                reinterpret_cast<void*>((uint64_t)AFortPlayerController::pFire_Press - Memory::GetImageBase()));
+
+            uint64_t FireReleaseAddress =
+                Memory::PatternScanRange<int32_t>(FireString, 0x50, "48 8D 05", false, 3, true);
+            if (FireReleaseAddress) {
+                AFortPlayerController::pFire_Release =
+                    reinterpret_cast<decltype(AFortPlayerController::pFire_Release)>(FireReleaseAddress);
+                LOG(LOG_INFO, "Found AFortPlayerController::Fire_Release offset: %p",
+                    reinterpret_cast<void*>((uint64_t)AFortPlayerController::pFire_Release - Memory::GetImageBase()));
+                return true;
+            }
+        }
+    }
+
+    Error::ThrowError("Failed to find AFortPlayerController::Fire_Press/Release offset!");
+    return false;
+}
 void FindComponentToWorldOffset() {
     void* execK2_GetComponentToWorld = UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr();
     if (execK2_GetComponentToWorld) {
@@ -468,9 +499,15 @@ void FindComponentToWorldOffset() {
 
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
-                  SetupSceneView() && SetupLevelActors() && SetupComponentSpaceTransformsArray();
+                  SetupLevelActors() && SetupComponentSpaceTransformsArray();
     if (Result)
         FindComponentToWorldOffset();
+
+    uint64_t EditModeInputComponent0 = 0;
+    if (SetupEditModeInputComponent0Offset(EditModeInputComponent0)) {
+        Result = SetupFireOffset(EditModeInputComponent0);
+    }
+
     return Result;
 }
 

@@ -42,6 +42,18 @@ struct ConfigData {
             bool Distance = true;
         } Player;
 
+        struct RadarConfig {
+            bool              Radar = true;
+            bool              RotateWithCamera = true;
+            bool              ShowCameraFOV = true;
+            float             MaxDistance = 150.f;
+            float             PosX = 1.f;
+            float             PosY = 1.f;
+            float             Size = 10.f;
+            SDK::FLinearColor ColorVisible = SDK::FLinearColor(1.f, 0.f, 0.f, 1.f);
+            SDK::FLinearColor ColorHidden = SDK::FLinearColor(0.43f, 0.f, 0.f, 1.f);
+        } Radar;
+
         struct LootConfig {
             bool  LootText = false;
             float LootMaxDistance = 300.f;
@@ -58,6 +70,7 @@ struct ConfigData {
     struct AimbotConfig {
         struct AimbotAmmoConfig {
             bool  Enabled = true;
+            bool  UseInTriggerBot = true;
             float Smoothness = 5.f;
             float MaxDistance = 300.f;
 
@@ -157,6 +170,16 @@ struct ConfigData {
         bool BulletPrediction = true;
         int  AimbotKeybind = ImGuiKey_MouseRight;
     } Aimbot;
+
+    struct TriggerBotConfig {
+        bool  Enabled = false;
+        bool  UseKeybind = false;
+        int   Keybind = ImGuiKey_G;
+        bool  ShowFOV = true;
+        float FOV = 4.f;
+        float MaxDistance = 25.f;
+        float FireDelayS = 0.25f;
+    } TriggerBot;
 
     struct KeybindConfig {
         std::vector<Keybind::KeybindData> Keybinds;

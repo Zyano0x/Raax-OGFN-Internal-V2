@@ -150,14 +150,7 @@ void ListKeybinds() {
 
 // --- Window Tab Functions & Data -----------------------------------
 
-enum class WindowTab {
-    Aimbot = 0,
-    Visuals,
-    Exploits,
-    Keybinds,
-    Config,
-    Misc,
-};
+enum class WindowTab : int { Aimbot = 0, TriggerBot, Visuals, Exploits, Keybinds, Config, Misc, NUM };
 WindowTab Tab = WindowTab::Aimbot;
 
 void AimbotTab() {
@@ -165,7 +158,9 @@ void AimbotTab() {
     static WindowSubTab SubTab = WindowSubTab::Shells;
 
     auto DisplayAimbotConfig = [](Config::ConfigData::AimbotConfig::AimbotAmmoConfig& Config) {
-        ImGui::Checkbox("Aimbot Enabled", &Config.Enabled);
+        ImGui::Checkbox("Enabled", &Config.Enabled);
+        ImGui::Checkbox("Use In Trigger Bot", &Config.UseInTriggerBot);
+
         ImGui::SliderFloat("Smoothness", &Config.Smoothness, 1.f, 20.f);
         ImGui::SliderFloat("Max Distance", &Config.MaxDistance, 1.f, 500.f);
 
@@ -188,12 +183,14 @@ void AimbotTab() {
         ImGui::SliderFloat("Random Bone Refresh Rate", &Config.RandomBoneRefreshRate, 0.1f, 3.f);
     };
 
-    ImGui::Checkbox("Split By Ammo Type", &Config::g_Config.Aimbot.SplitAimbotByAmmo);
-    ImGui::Checkbox("Bullet Prediction", &Config::g_Config.Aimbot.BulletPrediction);
-    static bool WaitingForKeybind = false;
-    GUI::Keybind("Aim Keybind", WaitingForKeybind, (ImGuiKey&)Config::g_Config.Aimbot.AimbotKeybind);
+    auto& AimbotConfig = Config::g_Config.Aimbot;
 
-    if (Config::g_Config.Aimbot.SplitAimbotByAmmo) {
+    ImGui::Checkbox("Split By Ammo Type", &AimbotConfig.SplitAimbotByAmmo);
+    ImGui::Checkbox("Bullet Prediction", &AimbotConfig.BulletPrediction);
+    static bool WaitingForKeybind = false;
+    GUI::Keybind("Aim Keybind", WaitingForKeybind, (ImGuiKey&)AimbotConfig.AimbotKeybind);
+
+    if (AimbotConfig.SplitAimbotByAmmo) {
         ImGui::BeginDisabled(SubTab == WindowSubTab::Shells);
         if (ImGui::Button("Shells"))
             SubTab = WindowSubTab::Shells;
@@ -230,33 +227,49 @@ void AimbotTab() {
         if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
             switch (SubTab) {
             case WindowSubTab::Shells:
-                DisplayAimbotConfig(Config::g_Config.Aimbot.ShellsAimbot);
+                DisplayAimbotConfig(AimbotConfig.ShellsAimbot);
                 break;
             case WindowSubTab::Light:
-                DisplayAimbotConfig(Config::g_Config.Aimbot.LightAimbot);
+                DisplayAimbotConfig(AimbotConfig.LightAimbot);
                 break;
             case WindowSubTab::Medium:
-                DisplayAimbotConfig(Config::g_Config.Aimbot.MediumAimbot);
+                DisplayAimbotConfig(AimbotConfig.MediumAimbot);
                 break;
             case WindowSubTab::Heavy:
-                DisplayAimbotConfig(Config::g_Config.Aimbot.HeavyAimbot);
+                DisplayAimbotConfig(AimbotConfig.HeavyAimbot);
                 break;
             case WindowSubTab::Other:
-                DisplayAimbotConfig(Config::g_Config.Aimbot.OtherAimbot);
+                DisplayAimbotConfig(AimbotConfig.OtherAimbot);
                 break;
             }
         }
         ImGui::EndChild();
     } else {
         if (ImGui::BeginChild("ConfigRegion")) {
-            DisplayAimbotConfig(Config::g_Config.Aimbot.AllAimbot);
+            DisplayAimbotConfig(AimbotConfig.AllAimbot);
         }
         ImGui::EndChild();
     }
 }
 
+void TriggerBotTab() {
+    auto& Config = Config::g_Config.TriggerBot;
+
+    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+        ImGui::Checkbox("Enabled", &Config.Enabled);
+        ImGui::Checkbox("Use Keybind", &Config.UseKeybind);
+        static bool WaitingForKeybind = false;
+        GUI::Keybind("Keybind", WaitingForKeybind, (ImGuiKey&)Config.Keybind);
+        ImGui::Checkbox("Show FOV", &Config.ShowFOV);
+        ImGui::SliderFloat("FOV", &Config.FOV, 0.25f, 180.f);
+        ImGui::SliderFloat("Max Distance", &Config.MaxDistance, 0.f, 500.f);
+        ImGui::SliderFloat("Fire Delay (s)", &Config.FireDelayS, 0.f, 2.f);
+    }
+    ImGui::EndChild();
+}
+
 void VisualsTab() {
-    enum class WindowSubTab { Player = 0, Loot };
+    enum class WindowSubTab { Player = 0, Radar, Loot };
     static WindowSubTab SubTab = WindowSubTab::Player;
 
     ImGui::BeginDisabled(SubTab == WindowSubTab::Player);
@@ -266,47 +279,76 @@ void VisualsTab() {
 
     ImGui::SameLine();
 
+    ImGui::BeginDisabled(SubTab == WindowSubTab::Radar);
+    if (ImGui::Button("Radar"))
+        SubTab = WindowSubTab::Radar;
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+
     ImGui::BeginDisabled(SubTab == WindowSubTab::Loot);
     if (ImGui::Button("Loot"))
         SubTab = WindowSubTab::Loot;
     ImGui::EndDisabled();
 
+    auto& Config = Config::g_Config.Visuals;
+
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         switch (SubTab) {
         case WindowSubTab::Player:
-            ImGui::SliderFloat("Max Distance", &Config::g_Config.Visuals.Player.MaxDistance, 0.f, 500.f);
+            ImGui::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
 
-            ImGui::Checkbox("Box", &Config::g_Config.Visuals.Player.Box);
-            ImGui::Combo("Box Type", (int*)&Config::g_Config.Visuals.Player.BoxType, "Full\000Cornered\000Full 3D");
-            ImGui::SliderFloat("Box Thickness", &Config::g_Config.Visuals.Player.BoxThickness, 1.f, 20.f);
+            ImGui::Checkbox("Box", &Config.Player.Box);
+            ImGui::Combo("Box Type", (int*)&Config.Player.BoxType, "Full\000Cornered\000Full 3D");
+            ImGui::SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
 
-            ImGui::Checkbox("Filled Box", &Config::g_Config.Visuals.Player.FilledBox);
-            ImGui::ColorEdit4("Filled Box Color", (float*)&Config::g_Config.Visuals.Player.FilledBoxColor);
+            ImGui::Checkbox("Filled Box", &Config.Player.FilledBox);
+            ImGui::ColorEdit4("Filled Box Color", (float*)&Config.Player.FilledBoxColor);
 
-            ImGui::Checkbox("Skeleton", &Config::g_Config.Visuals.Player.Skeleton);
-            ImGui::SliderFloat("Skeleton Thickness", &Config::g_Config.Visuals.Player.SkeletonThickness, 1.f, 20.f);
+            ImGui::Checkbox("Skeleton", &Config.Player.Skeleton);
+            ImGui::SliderFloat("Skeleton Thickness", &Config.Player.SkeletonThickness, 1.f, 20.f);
 
-            ImGui::Checkbox("Tracer", &Config::g_Config.Visuals.Player.Tracer);
-            ImGui::SliderFloat("Tracer Thickness", &Config::g_Config.Visuals.Player.TracerThickness, 1.f, 20.f);
-            ImGui::Combo("Tracer Start", (int*)&Config::g_Config.Visuals.Player.TracerStart, "Top\000Middle\000Bottom");
-            ImGui::Combo("Tracer End", (int*)&Config::g_Config.Visuals.Player.TracerEnd, "Top\000Middle\000Bottom");
+            ImGui::Checkbox("Tracer", &Config.Player.Tracer);
+            ImGui::SliderFloat("Tracer Thickness", &Config.Player.TracerThickness, 1.f, 20.f);
+            ImGui::Combo("Tracer Start", (int*)&Config.Player.TracerStart, "Top\000Middle\000Bottom");
+            ImGui::Combo("Tracer End", (int*)&Config.Player.TracerEnd, "Top\000Middle\000Bottom");
 
-            ImGui::Checkbox("Platform", &Config::g_Config.Visuals.Player.Platform);
-            ImGui::Checkbox("Name", &Config::g_Config.Visuals.Player.Name);
-            ImGui::Checkbox("Current Weapon", &Config::g_Config.Visuals.Player.CurrentWeapon);
-            ImGui::Checkbox("Distance", &Config::g_Config.Visuals.Player.Distance);
+            ImGui::Checkbox("Platform", &Config.Player.Platform);
+            ImGui::Checkbox("Name", &Config.Player.Name);
+            ImGui::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
+            ImGui::Checkbox("Distance", &Config.Player.Distance);
             break;
+        case WindowSubTab::Radar: {
+            float MaxPosition = 100.f - Config.Radar.Size;
+            if (Config.Radar.PosX >= MaxPosition) {
+                Config.Radar.PosX = MaxPosition;
+            }
+            if (Config.Radar.PosY >= MaxPosition) {
+                Config.Radar.PosY = MaxPosition;
+            }
+
+            ImGui::Checkbox("Enable Radar", &Config.Radar.Radar);
+            ImGui::Checkbox("Rotate With Camera", &Config.Radar.RotateWithCamera);
+            ImGui::Checkbox("Show Camera FOV", &Config.Radar.ShowCameraFOV);
+            ImGui::SliderFloat("Max Distance", &Config.Radar.MaxDistance, 1.f, 500.f);
+            ImGui::SliderFloat("Position X", &Config.Radar.PosX, 0.f, MaxPosition);
+            ImGui::SliderFloat("Position Y", &Config.Radar.PosY, 0.f, MaxPosition);
+            ImGui::SliderFloat("Size", &Config.Radar.Size, 3.f, 100.f);
+            ImGui::ColorEdit4("Color Visible", (float*)&Config.Radar.ColorVisible);
+            ImGui::ColorEdit4("Color Hidden", (float*)&Config.Radar.ColorHidden);
+            break;
+        }
         case WindowSubTab::Loot:
-            ImGui::Checkbox("Loot Text", &Config::g_Config.Visuals.Loot.LootText);
-            ImGui::SliderFloat("Loot Max Distance", &Config::g_Config.Visuals.Loot.LootMaxDistance, 1.f, 500.f);
-            ImGui::Combo("Minimum Loot Tier", (int*)&Config::g_Config.Visuals.Loot.MinLootTier,
+            ImGui::Checkbox("Loot Text", &Config.Loot.LootText);
+            ImGui::SliderFloat("Loot Max Distance", &Config.Loot.LootMaxDistance, 1.f, 500.f);
+            ImGui::Combo("Minimum Loot Tier", (int*)&Config.Loot.MinLootTier,
                          "Common\000Uncommon\000Rare\000Epic\000Legendary\000Mythic");
 
-            ImGui::Checkbox("Chest Text", &Config::g_Config.Visuals.Loot.ChestText);
-            ImGui::SliderFloat("Chest Max Distance", &Config::g_Config.Visuals.Loot.ChestMaxDistance, 1.f, 500.f);
+            ImGui::Checkbox("Chest Text", &Config.Loot.ChestText);
+            ImGui::SliderFloat("Chest Max Distance", &Config.Loot.ChestMaxDistance, 1.f, 500.f);
 
-            ImGui::Checkbox("Ammo Box Text", &Config::g_Config.Visuals.Loot.AmmoBoxText);
-            ImGui::SliderFloat("Ammo Box Max Distance", &Config::g_Config.Visuals.Loot.AmmoBoxMaxDistance, 1.f, 500.f);
+            ImGui::Checkbox("Ammo Box Text", &Config.Loot.AmmoBoxText);
+            ImGui::SliderFloat("Ammo Box Max Distance", &Config.Loot.AmmoBoxMaxDistance, 1.f, 500.f);
             break;
         }
     }
@@ -361,11 +403,13 @@ void ConfigTab() {
 }
 
 void MiscTab() {
+    auto& ColorConfig = Config::g_Config.Color;
+
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-        ImGui::ColorEdit3("Primary Color Visible", (float*)&Config::g_Config.Color.PrimaryColorVisible);
-        ImGui::ColorEdit3("Primary Color Hidden", (float*)&Config::g_Config.Color.PrimaryColorHidden);
-        ImGui::ColorEdit3("Secondary Color Visible", (float*)&Config::g_Config.Color.SecondaryColorVisible);
-        ImGui::ColorEdit3("Secondary Color Hidden", (float*)&Config::g_Config.Color.SecondaryColorHidden);
+        ImGui::ColorEdit4("Primary Color Visible", (float*)&ColorConfig.PrimaryColorVisible);
+        ImGui::ColorEdit4("Primary Color Hidden", (float*)&ColorConfig.PrimaryColorHidden);
+        ImGui::ColorEdit4("Secondary Color Visible", (float*)&ColorConfig.SecondaryColorVisible);
+        ImGui::ColorEdit4("Secondary Color Hidden", (float*)&ColorConfig.SecondaryColorHidden);
 
         ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
         ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
@@ -384,52 +428,65 @@ void Tick() {
         ImGui::GetForegroundDrawList()->AddCircle(io.MousePos, 5.f, ImColor(0.f, 0.f, 0.f));
         ImGui::GetForegroundDrawList()->AddCircle(io.MousePos, 4.f, ImColor(1.f, 1.f, 1.f));
 
-        ImGui::SetNextWindowSize(ImVec2((ImGui::GetStyle().WindowPadding.x * 7.f) + (100.f * 6), 400.f));
+        constexpr float TabButtonWidth = 90.f;
+        ImGui::SetNextWindowSize(ImVec2((ImGui::GetStyle().WindowPadding.x * ((int)WindowTab::NUM + 1)) +
+                                            (TabButtonWidth * (int)WindowTab::NUM),
+                                        400.f));
         if (ImGui::Begin("Raax-OGFN-Internal V2", nullptr,
                          ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
             ImGui::BeginDisabled(Tab == WindowTab::Aimbot);
-            if (ImGui::Button("Aimbot", ImVec2(100.f, 30.f)))
+            if (ImGui::Button("Aimbot", ImVec2(TabButtonWidth, 30.f)))
                 Tab = WindowTab::Aimbot;
             ImGui::EndDisabled();
 
             ImGui::SameLine();
 
+            ImGui::BeginDisabled(Tab == WindowTab::TriggerBot);
+            if (ImGui::Button("Trigger Bot", ImVec2(TabButtonWidth, 30.f)))
+                Tab = WindowTab::TriggerBot;
+            ImGui::EndDisabled();
+
+            ImGui::SameLine();
+
             ImGui::BeginDisabled(Tab == WindowTab::Visuals);
-            if (ImGui::Button("Visuals", ImVec2(100.f, 30.f)))
+            if (ImGui::Button("Visuals", ImVec2(TabButtonWidth, 30.f)))
                 Tab = WindowTab::Visuals;
             ImGui::EndDisabled();
 
             ImGui::SameLine();
 
             ImGui::BeginDisabled(Tab == WindowTab::Exploits);
-            if (ImGui::Button("Exploits", ImVec2(100.f, 30.f)))
+            if (ImGui::Button("Exploits", ImVec2(TabButtonWidth, 30.f)))
                 Tab = WindowTab::Exploits;
             ImGui::EndDisabled();
 
             ImGui::SameLine();
 
             ImGui::BeginDisabled(Tab == WindowTab::Keybinds);
-            if (ImGui::Button("Keybinds", ImVec2(100.f, 30.f)))
+            if (ImGui::Button("Keybinds", ImVec2(TabButtonWidth, 30.f)))
                 Tab = WindowTab::Keybinds;
             ImGui::EndDisabled();
 
             ImGui::SameLine();
 
             ImGui::BeginDisabled(Tab == WindowTab::Config);
-            if (ImGui::Button("Config", ImVec2(100.f, 30.f)))
+            if (ImGui::Button("Config", ImVec2(TabButtonWidth, 30.f)))
                 Tab = WindowTab::Config;
             ImGui::EndDisabled();
 
             ImGui::SameLine();
 
             ImGui::BeginDisabled(Tab == WindowTab::Misc);
-            if (ImGui::Button("Misc", ImVec2(100.f, 30.f)))
+            if (ImGui::Button("Misc", ImVec2(TabButtonWidth, 30.f)))
                 Tab = WindowTab::Misc;
             ImGui::EndDisabled();
 
             switch (Tab) {
             case WindowTab::Aimbot:
                 AimbotTab();
+                break;
+            case WindowTab::TriggerBot:
+                TriggerBotTab();
                 break;
             case WindowTab::Visuals:
                 VisualsTab();

@@ -16,7 +16,7 @@ std::unordered_map<void*, PlayerInfo> CachedPlayers;
 SDK::FName GetBoneNameFromIdx(BoneIdx Idx) {
     static const std::unordered_map<BoneIdx, SDK::FName> BoneMap = {
         {BoneIdx::Head, "head"},
-        {BoneIdx::Neck, "neck_02"},
+        {BoneIdx::Neck, "neck_01"},
         {BoneIdx::Pelvis, "pelvis"},
 
         {BoneIdx::L_Shoulder, "upperarm_l"},
@@ -184,7 +184,8 @@ PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     PopulateBones(Info);
     PopulateDrawingInfo(Info);
 
-    Info.HeadVisible = SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
+    Info.HeadVisible =
+        SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
 
     return Info;
 }
@@ -216,7 +217,8 @@ void UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
     PopulateBones(Info);
     PopulateDrawingInfo(Info);
 
-    Info.HeadVisible = SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)]);
+    Info.HeadVisible =
+        SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
 }
 
 void ResetPlayerSeenFlags() {

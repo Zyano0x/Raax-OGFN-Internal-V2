@@ -20,9 +20,26 @@ enum class EFortItemTier : uint8_t {
     EFortItemTier_MAX = 12,
 };
 
-class UFortProjectileMovementComponent : public UObject {
+class AFortPlayerController : public APlayerController {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortProjectileMovementComponent", UFortProjectileMovementComponent)
+    static inline void (*pFire_Press)(void*) = nullptr;
+    static inline void (*pFire_Release)(void*) = nullptr;
+
+  public:
+    void Fire_Press() {
+        if (this && pFire_Press) {
+            pFire_Press(this);
+        }
+    }
+
+    void Fire_Release() {
+        if (this && pFire_Release) {
+            pFire_Release(this);
+        }
+    }
+
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController)
 };
 
 class AFortPawn : public ACharacter {
@@ -112,6 +129,18 @@ class AFortWeapon : public AActor {
         if (this && Prop.Found)
             return *(int32_t*)((uintptr_t)this + Prop.Offset);
         return 0;
+    }
+
+    bool IsFiring() {
+        static UFunction* Func = GetFunction("FortWeapon", "IsFiring");
+        struct {
+            bool ReturnValue;
+        } params_IsFiring{};
+
+        if (this && Func)
+            ProcessEvent(Func, &params_IsFiring);
+
+        return params_IsFiring.ReturnValue;
     }
 
     int32_t GetBulletsPerClip() {

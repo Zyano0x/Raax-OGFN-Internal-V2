@@ -73,7 +73,7 @@ uintptr_t PatternScanRange(uintptr_t StartAddress, uint64_t ScanSize, const char
 
 /**
  * @brief Scans the main executable image for a byte pattern.
- * This function is a convenience wrapper around PatternScan, automatically scanning the main executable image.
+ * This function is a convenience wrapper for PatternScan, automatically scanning the main executable image.
  */
 template <typename OperandSize = int32_t>
 uintptr_t PatternScan(const char* Pattern, size_t Offset = -1, bool RelativeAddress = false);
@@ -82,7 +82,16 @@ uintptr_t PatternScan(const char* Pattern, size_t Offset = -1, bool RelativeAddr
  * @brief Finds first instruction that references a string using a LEA instruction in the main executable image.
  * @tparam StringType - Must be `const char*` or `const wchar_t*`.
  * @param RefString - Target string to search for.
+ * @param StartAddress - The starting address for the scan.
+ * @param ScanSize - The size of the memory region to scan.
  * @return The address of the found instruction.
+ */
+template <typename StringType>
+static uintptr_t FindStringRefRange(StringType RefString, uint8_t* StartAddress, size_t ScanSize);
+
+/**
+ * @brief Scans the main images text section for a string reference.
+ * This function is a convenience wrapper for FindStringRefRange, automatically scanning the main images text section.
  */
 template <typename StringType = const char*> uintptr_t FindStringRef(StringType RefString);
 

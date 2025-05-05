@@ -12,15 +12,6 @@ namespace ConfigReflection {
 
 template <typename T> constexpr auto DescribeMembers();
 
-template <> constexpr auto DescribeMembers<Config::ConfigData::ColorConfig>() {
-    using T = Config::ConfigData::ColorConfig;
-    return std::make_tuple(
-        MemberDescriptor<T, SDK::FLinearColor>{"PrimaryColorVisible", &T::PrimaryColorVisible, {}},
-        MemberDescriptor<T, SDK::FLinearColor>{"PrimaryColorHidden", &T::PrimaryColorHidden, {}},
-        MemberDescriptor<T, SDK::FLinearColor>{"SecondaryColorVisible", &T::SecondaryColorVisible, {}},
-        MemberDescriptor<T, SDK::FLinearColor>{"SecondaryColorHidden", &T::SecondaryColorHidden, {}});
-}
-
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::PlayerConfig>() {
     using T = Config::ConfigData::VisualsConfig::PlayerConfig;
     return std::make_tuple(
@@ -40,6 +31,19 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::Pl
         MemberDescriptor<T, bool>{"Distance", &T::Distance, {}});
 }
 
+template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::RadarConfig>() {
+    using T = Config::ConfigData::VisualsConfig::RadarConfig;
+    return std::make_tuple(MemberDescriptor<T, bool>{"Radar", &T::Radar, {}},
+                           MemberDescriptor<T, bool>{"RotateWithCamera", &T::RotateWithCamera, {}},
+                           MemberDescriptor<T, bool>{"ShowCameraFOV", &T::ShowCameraFOV, {}},
+                           MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}},
+                           MemberDescriptor<T, float>{"PosX", &T::PosX, {}},
+                           MemberDescriptor<T, float>{"PosY", &T::PosY, {}},
+                           MemberDescriptor<T, float>{"Size", &T::Size, {}},
+                           MemberDescriptor<T, SDK::FLinearColor>{"ColorVisible", &T::ColorVisible, {}},
+                           MemberDescriptor<T, SDK::FLinearColor>{"ColorHidden", &T::ColorHidden, {}});
+}
+
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::LootConfig>() {
     using T = Config::ConfigData::VisualsConfig::LootConfig;
     return std::make_tuple(MemberDescriptor<T, bool>{"LootText", &T::LootText, {}},
@@ -55,12 +59,14 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig>() 
     using T = Config::ConfigData::VisualsConfig;
     return std::make_tuple(
         MemberDescriptor<T, Config::ConfigData::VisualsConfig::PlayerConfig>{"Player", &T::Player, {}},
+        MemberDescriptor<T, Config::ConfigData::VisualsConfig::RadarConfig>{"Radar", &T::Radar, {}},
         MemberDescriptor<T, Config::ConfigData::VisualsConfig::LootConfig>{"Loot", &T::Loot, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::AimbotConfig::AimbotAmmoConfig>() {
     using T = Config::ConfigData::AimbotConfig::AimbotAmmoConfig;
     return std::make_tuple(MemberDescriptor<T, bool>{"Enabled", &T::Enabled, {}},
+                           MemberDescriptor<T, bool>{"UseInTriggerBot", &T::UseInTriggerBot, {}},
                            MemberDescriptor<T, float>{"Smoothness", &T::Smoothness, {}},
                            MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}},
                            MemberDescriptor<T, bool>{"VisibleCheck", &T::VisibleCheck, {}},
@@ -88,15 +94,35 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::AimbotConfig>() {
                            MemberDescriptor<T, int>{"AimbotKeybind", &T::AimbotKeybind, {}});
 }
 
+template <> constexpr auto DescribeMembers<Config::ConfigData::TriggerBotConfig>() {
+    using T = Config::ConfigData::TriggerBotConfig;
+    return std::make_tuple(
+        MemberDescriptor<T, bool>{"Enabled", &T::Enabled, {}},
+        MemberDescriptor<T, bool>{"UseKeybind", &T::UseKeybind, {}},
+        MemberDescriptor<T, int>{"Keybind", &T::Keybind, {}}, MemberDescriptor<T, bool>{"ShowFOV", &T::ShowFOV, {}},
+        MemberDescriptor<T, float>{"FOV", &T::FOV, {}}, MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}},
+        MemberDescriptor<T, float>{"FireDelayS", &T::FireDelayS, {}});
+}
+
 template <> constexpr auto DescribeMembers<Config::ConfigData::KeybindConfig>() {
     using T = Config::ConfigData::KeybindConfig;
     return std::make_tuple(MemberDescriptor<T, std::string>{"KeybindData", &T::KeybindData, {}});
+}
+
+template <> constexpr auto DescribeMembers<Config::ConfigData::ColorConfig>() {
+    using T = Config::ConfigData::ColorConfig;
+    return std::make_tuple(
+        MemberDescriptor<T, SDK::FLinearColor>{"PrimaryColorVisible", &T::PrimaryColorVisible, {}},
+        MemberDescriptor<T, SDK::FLinearColor>{"PrimaryColorHidden", &T::PrimaryColorHidden, {}},
+        MemberDescriptor<T, SDK::FLinearColor>{"SecondaryColorVisible", &T::SecondaryColorVisible, {}},
+        MemberDescriptor<T, SDK::FLinearColor>{"SecondaryColorHidden", &T::SecondaryColorHidden, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData>() {
     using T = Config::ConfigData;
     return std::make_tuple(MemberDescriptor<T, Config::ConfigData::VisualsConfig>{"Visuals", &T::Visuals, {}},
                            MemberDescriptor<T, Config::ConfigData::AimbotConfig>{"Aimbot", &T::Aimbot, {}},
+                           MemberDescriptor<T, Config::ConfigData::TriggerBotConfig>{"TriggerBot", &T::TriggerBot, {}},
                            MemberDescriptor<T, Config::ConfigData::KeybindConfig>{"Keybinds", &T::Keybinds, {}},
                            MemberDescriptor<T, Config::ConfigData::ColorConfig>{"Color", &T::Color, {}});
 }
