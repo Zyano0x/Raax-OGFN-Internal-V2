@@ -452,32 +452,67 @@ bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
 }
 bool SetupFireOffset(uint64_t EditModeInputComponent0) {
     uintptr_t FireString = Memory::FindStringRefRange("Fire", (uint8_t*)(EditModeInputComponent0 - 0x4500), 0x4500);
-    if (FireString) {
-        uint64_t FirePressAddress = Memory::PatternScanRange<int32_t>(FireString, 0x50, "48 8D 05", true, 3, true);
-        if (FirePressAddress) {
-            AFortPlayerController::pFire_Press =
-                reinterpret_cast<decltype(AFortPlayerController::pFire_Press)>(FirePressAddress);
-            LOG(LOG_INFO, "Found AFortPlayerController::Fire_Press offset: %p",
-                reinterpret_cast<void*>((uint64_t)AFortPlayerController::pFire_Press - Memory::GetImageBase()));
-
-            uint64_t FireReleaseAddress =
-                Memory::PatternScanRange<int32_t>(FireString, 0x50, "48 8D 05", false, 3, true);
-            if (!FireReleaseAddress) {
-                FireReleaseAddress = Memory::PatternScanRange<int32_t>(FireString, 0x50, "4C 8D 2D", false, 3, true);
-            }
-
-            if (FireReleaseAddress) {
-                AFortPlayerController::pFire_Release =
-                    reinterpret_cast<decltype(AFortPlayerController::pFire_Release)>(FireReleaseAddress);
-                LOG(LOG_INFO, "Found AFortPlayerController::Fire_Release offset: %p",
-                    reinterpret_cast<void*>((uint64_t)AFortPlayerController::pFire_Release - Memory::GetImageBase()));
-                return true;
-            }
-        }
+    if (!FireString) {
+        Error::ThrowError("Failed to find Fire_Press \"Fire\" string");
+        return false;
     }
 
-    Error::ThrowError("Failed to find AFortPlayerController::Fire_Press/Release offset!");
-    return false;
+    LOG(LOG_INFO, "Found Fire_Press \"Fire\" string ref: %p",
+        reinterpret_cast<void*>(FireString - Memory::GetImageBase()));
+
+    // Search for all lea r64,m patterns, and return the earliest one
+    auto FindLeaInstruction = [](uintptr_t SearchStart, uintptr_t SearchSize) {
+        constexpr const char* Patterns[] = {
+            "48 8D", // Legacy registers
+            "4C 8D", // Numbered registers
+        };
+
+        uintptr_t EarliestResult = UINT64_MAX;
+        for (const char* Pattern : Patterns) {
+            uintptr_t Result = Memory::PatternScanRange<int32_t>(SearchStart, SearchSize, Pattern, false, 3, true);
+
+            // We would normally virtual query the result to make sure it's a function (executable) and not
+            // something like a string, this isn't possible since fortnite uses rwx for all sections.
+            if (Memory::IsAddressInsideImage(Result) && Result < EarliestResult)
+                EarliestResult = Result;
+        }
+
+        return EarliestResult == UINT64_MAX ? 0 : EarliestResult;
+    };
+
+    uintptr_t FirePressAddress = FindLeaInstruction(FireString - 0x28, 0x50);
+    if (!FirePressAddress) {
+        Error::ThrowError("Failed to find Fire_Press");
+        return false;
+    }
+
+    // Find the next "Fire" string, used for Fire_Release
+    FireString = Memory::FindStringRefRange("Fire", reinterpret_cast<uint8_t*>(FireString + 1), 0x100);
+    if (!FireString) {
+        Error::ThrowError("Failed to find Fire_Release \"Fire\" string");
+        return false;
+    }
+
+    LOG(LOG_INFO, "Found Fire_Release \"Fire\" string ref: %p",
+        reinterpret_cast<void*>(FireString - Memory::GetImageBase()));
+
+    uintptr_t FireReleaseAddress = FindLeaInstruction(FireString - 0x28, 0x50);
+    if (!FireReleaseAddress) {
+        Error::ThrowError("Failed to find Fire_Release");
+        return false;
+    }
+
+    AFortPlayerController::pFire_Press =
+        reinterpret_cast<decltype(AFortPlayerController::pFire_Press)>(FirePressAddress);
+    LOG(LOG_INFO, "Found AFortPlayerController::Fire_Press offset: %p",
+        reinterpret_cast<void*>(FirePressAddress - Memory::GetImageBase()));
+
+    AFortPlayerController::pFire_Release =
+        reinterpret_cast<decltype(AFortPlayerController::pFire_Release)>(FireReleaseAddress);
+    LOG(LOG_INFO, "Found AFortPlayerController::Fire_Release offset: %p",
+        reinterpret_cast<void*>(FireReleaseAddress - Memory::GetImageBase()));
+
+    return true;
 }
 void FindComponentToWorldOffset() {
     void* execK2_GetComponentToWorld = UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr();
