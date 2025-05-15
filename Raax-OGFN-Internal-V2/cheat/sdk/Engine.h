@@ -343,6 +343,21 @@ class AActor : public UObject {
         return nullptr;
     }
 
+    float WasRecentlyRendered(float Tolerence) {
+        static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
+        struct {
+            float Tolerence;
+            float ReturnValue;
+        } params_WasRecentlyRendered{};
+
+        params_WasRecentlyRendered.Tolerence = Tolerence;
+
+        if (this && Func)
+            ProcessEvent(Func, &params_WasRecentlyRendered);
+
+        return params_WasRecentlyRendered.ReturnValue;
+    }
+
   public:
     STATICCLASS_DEFAULTOBJECT("Actor", AActor)
 };

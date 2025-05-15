@@ -453,8 +453,7 @@ bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
 bool SetupFireOffset(uint64_t EditModeInputComponent0) {
     uintptr_t FireString = Memory::FindStringRefRange("Fire", (uint8_t*)(EditModeInputComponent0 - 0x4500), 0x4500);
     if (FireString) {
-        uint64_t FirePressAddress =
-            Memory::PatternScanRange<int32_t>(FireString - 0x28, 0x50, "48 8D 05", false, 3, true);
+        uint64_t FirePressAddress = Memory::PatternScanRange<int32_t>(FireString, 0x50, "48 8D 05", true, 3, true);
         if (FirePressAddress) {
             AFortPlayerController::pFire_Press =
                 reinterpret_cast<decltype(AFortPlayerController::pFire_Press)>(FirePressAddress);
@@ -463,6 +462,10 @@ bool SetupFireOffset(uint64_t EditModeInputComponent0) {
 
             uint64_t FireReleaseAddress =
                 Memory::PatternScanRange<int32_t>(FireString, 0x50, "48 8D 05", false, 3, true);
+            if (!FireReleaseAddress) {
+                FireReleaseAddress = Memory::PatternScanRange<int32_t>(FireString, 0x50, "4C 8D 2D", false, 3, true);
+            }
+
             if (FireReleaseAddress) {
                 AFortPlayerController::pFire_Release =
                     reinterpret_cast<decltype(AFortPlayerController::pFire_Release)>(FireReleaseAddress);

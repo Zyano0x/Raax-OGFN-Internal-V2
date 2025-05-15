@@ -3,6 +3,7 @@
 
 #include <cheat/core.h>
 #include <config/config.h>
+#include <utils/math.h>
 
 namespace Cache {
 namespace Player {
@@ -156,45 +157,7 @@ void ForceRefreshIfNeeded() {
     }
 }
 
-PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
-    PlayerInfo Info;
-    Info.Pawn = Pawn;
-    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Pawn->PlayerState());
-    Info.Mesh = Pawn->Mesh();
-    Info.CurrentWeapon = Pawn->CurrentWeapon();
-    if (Info.CurrentWeapon) {
-        Info.WeaponName = Info.CurrentWeapon->WeaponData()->DisplayName()->ToString();
-        Info.WeaponTier = Info.CurrentWeapon->WeaponData()->Tier();
-        Info.AmmoCount = Info.CurrentWeapon->AmmoCount();
-        Info.BulletsPerClip = Info.CurrentWeapon->GetBulletsPerClip();
-    }
-    Info.PlayerName = Info.PlayerState->GetPlayerName().ToString();
-    Info.Platform = Info.PlayerState->Platform().ToString();
-    for (int i = 0; i < static_cast<int>(BoneIdx::NUM); i++) {
-        if (i == static_cast<int>(BoneIdx::Chest))
-            continue;
-
-        int32_t Bone = Info.Mesh->GetBoneIndex(GetBoneNameFromIdx(static_cast<BoneIdx>(i)));
-        Info.BoneIndicies[i] = Bone;
-    }
-    Info.RootWorldLocation = Pawn->RootComponent()->RelativeLocation();
-    Info.DistanceM = Core::g_CameraLocation.Dist(Info.RootWorldLocation) / 100.f;
-    Info.SeenThisFrame = true;
-
-    PopulateBones(Info);
-    PopulateDrawingInfo(Info);
-
-    Info.HeadVisible =
-        SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
-
-    return Info;
-}
-
-void UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
-    Info.Pawn = Pawn;
-    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Pawn->PlayerState());
-    Info.Mesh = Pawn->Mesh();
-
+void SharedInfoUpdate(PlayerInfo& Info) {
     SDK::AFortWeapon* NewWeapon = Info.Pawn->CurrentWeapon();
     if (NewWeapon) {
         if (NewWeapon != Info.CurrentWeapon) {
@@ -210,15 +173,55 @@ void UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
     }
     Info.CurrentWeapon = NewWeapon;
 
-    Info.RootWorldLocation = Pawn->RootComponent()->RelativeLocation();
+    Info.RootWorldLocation = Info.Pawn->RootComponent()->RelativeLocation();
     Info.DistanceM = Core::g_CameraLocation.Dist(Info.RootWorldLocation) / 100.f;
     Info.SeenThisFrame = true;
 
     PopulateBones(Info);
     PopulateDrawingInfo(Info);
 
-    Info.HeadVisible =
-        SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
+    for (int i = 0; i < sizeof(Info.BoundCorners2D) / sizeof(*Info.BoundCorners2D); i++) {
+        if (Math::IsOnScreen(Info.BoundCorners2D[i])) {
+            Info.IsOnScreen = true;
+            break;
+        }
+    }
+
+    // Small optimisation. Checking for head visible with a line trace took 0.7% CPU time, adding this quick check
+    // allows us avoid unnecassary line traces. This brought CPU time down to 0.2% for non visible targets on srceen.
+    if (Info.IsOnScreen && !Info.Pawn->WasRecentlyRendered(0.1f)) {
+        Info.HeadVisible = false;
+    } else {
+        Info.HeadVisible =
+            SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
+    }
+}
+
+PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
+    PlayerInfo Info;
+    Info.Pawn = Pawn;
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState());
+    Info.Mesh = Info.Pawn->Mesh();
+
+    Info.PlayerName = Info.PlayerState->GetPlayerName().ToString();
+    Info.Platform = Info.PlayerState->Platform().ToString();
+    for (int i = 0; i < static_cast<int>(BoneIdx::NUM); i++) {
+        if (i == static_cast<int>(BoneIdx::Chest))
+            continue;
+
+        int32_t Bone = Info.Mesh->GetBoneIndex(GetBoneNameFromIdx(static_cast<BoneIdx>(i)));
+        Info.BoneIndicies[i] = Bone;
+    }
+
+    SharedInfoUpdate(Info);
+    return Info;
+}
+
+void UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
+    Info.Pawn = Pawn;
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState());
+    Info.Mesh = Info.Pawn->Mesh();
+    SharedInfoUpdate(Info);
 }
 
 void ResetPlayerSeenFlags() {

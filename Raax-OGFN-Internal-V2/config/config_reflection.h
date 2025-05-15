@@ -28,7 +28,9 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::Pl
         MemberDescriptor<T, Config::ConfigData::TracerPos>{"TracerEnd", &T::TracerEnd, {}},
         MemberDescriptor<T, bool>{"Platform", &T::Platform, {}}, MemberDescriptor<T, bool>{"Name", &T::Name, {}},
         MemberDescriptor<T, bool>{"CurrentWeapon", &T::CurrentWeapon, {}},
-        MemberDescriptor<T, bool>{"Distance", &T::Distance, {}});
+        MemberDescriptor<T, bool>{"Distance", &T::Distance, {}}, MemberDescriptor<T, bool>{"OSI", &T::OSI, {}},
+        MemberDescriptor<T, bool>{"OSIMatchFOV", &T::OSIMatchFOV, {}},
+        MemberDescriptor<T, float>{"OSIFOV", &T::OSIFOV, {}}, MemberDescriptor<T, float>{"OSISize", &T::OSISize, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::RadarConfig>() {
@@ -124,7 +126,8 @@ template <> constexpr auto DescribeMembers<Config::ConfigData>() {
                            MemberDescriptor<T, Config::ConfigData::AimbotConfig>{"Aimbot", &T::Aimbot, {}},
                            MemberDescriptor<T, Config::ConfigData::TriggerBotConfig>{"TriggerBot", &T::TriggerBot, {}},
                            MemberDescriptor<T, Config::ConfigData::KeybindConfig>{"Keybinds", &T::Keybinds, {}},
-                           MemberDescriptor<T, Config::ConfigData::ColorConfig>{"Color", &T::Color, {}});
+                           MemberDescriptor<T, Config::ConfigData::ColorConfig>{"Color", &T::Color, {}},
+                           MemberDescriptor<T, int>{"MenuKeybind", &T::MenuKeybind, {}});
 }
 
 // --- Field Util Functions & Structs --------------------------------

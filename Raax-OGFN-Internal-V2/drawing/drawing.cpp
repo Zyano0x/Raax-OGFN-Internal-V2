@@ -38,18 +38,24 @@ void Tick() {
 
 // --- Drawing Utility Functions -------------------------------------
 
-void BeginBatchedLines() {
+void BeginBatchedLines(size_t ReserveCount) {
     g_BatchedLines = true;
+    g_BatchedLinesList.reserve(ReserveCount);
 }
 void EndBatchedLines() {
+    if (g_BatchedLinesList.empty()) {
+        g_BatchedLines = false;
+        return;
+    }
+
     for (const auto& Line : g_BatchedLinesList) {
-        if (Line.Outlined)
+        if (Line.Outlined) {
             g_DrawList->AddLine(
                 ImVec2(Line.A.X, Line.A.Y), ImVec2(Line.B.X, Line.B.Y),
                 ImColor(Line.OutlineColor.R, Line.OutlineColor.G, Line.OutlineColor.B, Line.OutlineColor.A),
                 Line.OutlineThickness + Line.Thickness);
+        }
     }
-
     for (const auto& Line : g_BatchedLinesList) {
         g_DrawList->AddLine(ImVec2(Line.A.X, Line.A.Y), ImVec2(Line.B.X, Line.B.Y),
                             ImColor(Line.Color.R, Line.Color.G, Line.Color.B, Line.Color.A), Line.Thickness);
@@ -191,7 +197,7 @@ void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& Rend
     if (BoxCorners[0].X == -1.f && BoxCorners[0].Y == -1.f)
         return;
 
-    BeginBatchedLines();
+    BeginBatchedLines(Outlined ? 24 : 12);
 
     // Bottom
     Line(BoxCorners[0], BoxCorners[1], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
@@ -222,6 +228,27 @@ void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments, const
                               Thickness + OutlineThickness);
     g_DrawList->AddCircle(ImVec2(ScreenPosition.X, ScreenPosition.Y), Radius,
                           ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Segments, Thickness);
+}
+
+void Triangle(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPositionB,
+              const SDK::FVector2D& ScreenPositionC, bool Filled, const SDK::FLinearColor& RenderColor, float Thickness,
+              bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
+    ImVec2 Points[3] = {ImVec2(ScreenPositionA.X, ScreenPositionA.Y), ImVec2(ScreenPositionB.X, ScreenPositionB.Y),
+                        ImVec2(ScreenPositionC.X, ScreenPositionC.Y)};
+
+    if (Outlined) {
+        ImGui::GetBackgroundDrawList()->AddTriangle(
+            Points[0], Points[1], Points[2], ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A),
+            Thickness + OutlineThickness);
+    }
+
+    if (Filled) {
+        g_DrawList->AddTriangleFilled(Points[0], Points[1], Points[2],
+                                      ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A));
+    } else {
+        g_DrawList->AddTriangle(Points[0], Points[1], Points[2],
+                                ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Thickness);
+    }
 }
 
 } // namespace Drawing

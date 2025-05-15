@@ -2,13 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="extern\imgui\imgui.cpp" />
-    <ClCompile Include="extern\imgui\imgui_demo.cpp" />
-    <ClCompile Include="extern\imgui\imgui_draw.cpp" />
-    <ClCompile Include="extern\imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="extern\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="extern\imgui\imgui_tables.cpp" />
-    <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="cheat\hooks.cpp" />
     <ClCompile Include="extern\minhook\src\hde\hde32.c" />
     <ClCompile Include="extern\minhook\src\hde\hde64.c" />
@@ -43,16 +36,15 @@
     <ClCompile Include="cheat\features\radar.cpp" />
     <ClCompile Include="cheat\features\triggerbot.cpp" />
     <ClCompile Include="cheat\features\weaponutils.cpp" />
+    <ClCompile Include="extern\imgui\imgui.cpp" />
+    <ClCompile Include="extern\imgui\imgui_demo.cpp" />
+    <ClCompile Include="extern\imgui\imgui_draw.cpp" />
+    <ClCompile Include="extern\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="extern\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="extern\imgui\imgui_tables.cpp" />
+    <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="extern\imgui\imconfig.h" />
-    <ClInclude Include="extern\imgui\imgui.h" />
-    <ClInclude Include="extern\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="extern\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="extern\imgui\imgui_internal.h" />
-    <ClInclude Include="extern\imgui\imstb_rectpack.h" />
-    <ClInclude Include="extern\imgui\imstb_textedit.h" />
-    <ClInclude Include="extern\imgui\imstb_truetype.h" />
     <ClInclude Include="cheat\hooks.h" />
     <ClInclude Include="extern\minhook\include\MinHook.h" />
     <ClInclude Include="extern\minhook\src\hde\hde32.h" />
@@ -98,6 +90,16 @@
     <ClInclude Include="cheat\features\radar.h" />
     <ClInclude Include="cheat\features\triggerbot.h" />
     <ClInclude Include="cheat\features\weaponutils.h" />
+    <ClInclude Include="extern\imgui\imconfig.h" />
+    <ClInclude Include="extern\imgui\imgui.h" />
+    <ClInclude Include="extern\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="extern\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="extern\imgui\imgui_internal.h" />
+    <ClInclude Include="extern\imgui\imstb_rectpack.h" />
+    <ClInclude Include="extern\imgui\imstb_textedit.h" />
+    <ClInclude Include="extern\imgui\imstb_truetype.h" />
+    <ClInclude Include="extern\raaxgui\raaxgui_impl.h" />
+    <ClInclude Include="extern\raaxgui\raaxgui.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

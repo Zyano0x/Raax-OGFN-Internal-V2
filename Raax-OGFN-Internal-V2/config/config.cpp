@@ -192,15 +192,17 @@ template <typename T> bool DeserializeValue(T& Output, const std::string& Data) 
 
         std::string Content = Data.substr(Start + 1, End - Start - 1);
         const auto  Members = ConfigReflection::DescribeMembers<T>();
-        bool        AnySuccess = false;
+        bool        AllSuccess = true;
+        bool        FoundAnyContent = false;
 
         std::apply(
             [&](const auto&... Member) {
                 auto ProcessMember = [&](const auto& m) {
                     std::string SearchStr = "\"" + std::string(m.Name) + "\":";
                     size_t      Pos = Content.find(SearchStr);
-                    if (Pos == std::string::npos)
+                    if (Pos == std::string::npos) {
                         return;
+                    }
 
                     size_t ValueStart = Pos + SearchStr.length();
                     size_t ValueEnd = ValueStart;
@@ -231,18 +233,21 @@ template <typename T> bool DeserializeValue(T& Output, const std::string& Data) 
                     }
 
                     std::string ValueStr = Content.substr(ValueStart, ValueEnd - ValueStart);
-                    if (!ValueStr.empty()) {
-                        using MemberType = std::remove_reference_t<decltype(Output.*(m.Ptr))>;
-                        if (DeserializeValue<MemberType>(Output.*(m.Ptr), ValueStr)) {
-                            AnySuccess = true;
-                        }
+                    if (ValueStr.empty()) {
+                        AllSuccess = false;
+                        return;
+                    }
+
+                    using MemberType = std::remove_reference_t<decltype(Output.*(m.Ptr))>;
+                    if (!DeserializeValue<MemberType>(Output.*(m.Ptr), ValueStr)) {
+                        AllSuccess = false;
                     }
                 };
                 (ProcessMember(Member), ...);
             },
             Members);
 
-        return AnySuccess;
+        return AllSuccess;
     } else if constexpr (std::is_enum_v<T>) {
         return TryParseEnum<T>(Data, Output);
     } else if constexpr (std::is_same_v<T, bool>) {

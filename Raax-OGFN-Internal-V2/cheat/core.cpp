@@ -16,6 +16,7 @@
 #include <gui/gui.h>
 #include <utils/log.h>
 #include <utils/math.h>
+#include <filesystem>
 
 namespace Core {
 
@@ -24,6 +25,8 @@ namespace Core {
 void UpdateGlobalVariables() {
     g_ScreenSizeX = SDK::GetCanvas()->SizeX();
     g_ScreenSizeY = SDK::GetCanvas()->SizeY();
+    g_ScreenCenterX = g_ScreenSizeX / 2.f;
+    g_ScreenCenterY = g_ScreenSizeY / 2.f;
     g_FOV = SDK::GetLocalController()->PlayerCameraManager()->GetFOVAngle();
     g_PixelsPerDegree = g_ScreenSizeX / Math::RadiansToDegrees(
                                             (2.f * tan(0.5f * Math::DegreesToRadians(std::clamp(g_FOV, 0.f, 120.f)))));
@@ -86,6 +89,8 @@ void TickRenderThread() {
 
 int32_t       g_ScreenSizeX = 0;
 int32_t       g_ScreenSizeY = 0;
+int32_t       g_ScreenCenterX = 0;
+int32_t       g_ScreenCenterY = 0;
 float         g_PixelsPerDegree = 0.f;
 float         g_FOV = 0.f;
 SDK::FVector  g_CameraLocation = SDK::FVector();

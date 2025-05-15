@@ -19,7 +19,7 @@ struct ConfigData {
 
     struct VisualsConfig {
         struct PlayerConfig {
-            float MaxDistance = 300.f;
+            float MaxDistance = 300.f; 
 
             bool    Box = true;
             BoxType BoxType = BoxType::Cornered;
@@ -40,6 +40,11 @@ struct ConfigData {
             bool Name = true;
             bool CurrentWeapon = true;
             bool Distance = true;
+
+            bool OSI = false;
+            bool OSIMatchFOV = true;
+            float OSIFOV = 10.f;
+            float OSISize = 8.f;
         } Player;
 
         struct RadarConfig {
@@ -192,6 +197,8 @@ struct ConfigData {
         SDK::FLinearColor SecondaryColorVisible = SDK::FLinearColor(0.f, 0.47f, 1.f, 1.f);
         SDK::FLinearColor SecondaryColorHidden = SDK::FLinearColor(0.f, 0.17f, 0.34f, 1.f);
     } Color;
+
+    int MenuKeybind = ImGuiKey_Insert;
 
     std::string SerializeConfig(bool FullConfig);
     bool        DeserializeConfig(const std::string& Data);

@@ -19,6 +19,8 @@ void TickRenderThread();
 
 extern int32_t       g_ScreenSizeX;
 extern int32_t       g_ScreenSizeY;
+extern int32_t       g_ScreenCenterX;
+extern int32_t       g_ScreenCenterY;
 extern float         g_PixelsPerDegree;
 extern float         g_FOV;
 extern SDK::FVector  g_CameraLocation;

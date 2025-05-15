@@ -53,6 +53,7 @@ struct PlayerInfo {
     int32_t                      BulletsPerClip = 0;
     float                        DistanceM = 0.f;
     bool                         HeadVisible = false;
+    bool                         IsOnScreen = false;
     bool                         SeenThisFrame = false;
 };
 
