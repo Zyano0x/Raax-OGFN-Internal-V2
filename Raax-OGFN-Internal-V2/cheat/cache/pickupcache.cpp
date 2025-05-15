@@ -1,5 +1,6 @@
 #include "pickupcache.h"
 #include <chrono>
+#include <config/config.h>
 
 namespace Cache {
 namespace Pickup {
@@ -57,15 +58,17 @@ const std::unordered_map<void*, PickupInfo>& GetCachedPickups() {
 void UpdateCache() {
     ResetPickupSeenFlags();
 
-    static std::vector<SDK::AFortPickup*> PickupList;
-    SDK::GetAllActorsOfClass<SDK::AFortPickup>(PickupList);
-    for (const auto& Pickup : PickupList) {
-        auto It = CachedPickups.find(Pickup);
-        if (It == CachedPickups.end()) {
-            CachedPickups[Pickup] = CreateNewPickupInfo(Pickup);
-        }
-        else {
-            UpdateExistingPickupInfo(It->second, Pickup);
+    const auto& Config = Config::g_Config.Visuals.Loot;
+    if (Config.LootText) {
+        static std::vector<SDK::AFortPickup*> PickupList;
+        SDK::GetAllActorsOfClass<SDK::AFortPickup>(PickupList);
+        for (const auto& Pickup : PickupList) {
+            auto It = CachedPickups.find(Pickup);
+            if (It == CachedPickups.end()) {
+                CachedPickups[Pickup] = CreateNewPickupInfo(Pickup);
+            } else {
+                UpdateExistingPickupInfo(It->second, Pickup);
+            }
         }
     }
 

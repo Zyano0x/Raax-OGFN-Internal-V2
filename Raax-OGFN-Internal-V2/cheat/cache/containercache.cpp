@@ -1,4 +1,5 @@
 #include "containercache.h"
+#include <config/config.h>
 #include <chrono>
 
 namespace Cache {
@@ -10,8 +11,7 @@ std::unordered_map<void*, ContainerInfo> CachedContainers;
 
 // --- Cache Utility Functions ---------------------------------------
 
-ContainerInfo CreateNewContainerInfo(SDK::ABuildingContainer*        Container,
-                                                       ContainerType Type) {
+ContainerInfo CreateNewContainerInfo(SDK::ABuildingContainer* Container, ContainerType Type) {
     ContainerInfo Info;
     Info.Container = Container;
     Info.RootWorldLocation = Container->RootComponent()->RelativeLocation();
@@ -34,13 +34,10 @@ void ResetContainerSeenFlags() {
 }
 
 void RemoveUnseenContainers() {
-    std::erase_if(CachedContainers, [](const auto& Cache) {
-        return !Cache.second.SeenThisFrame;
-        });
+    std::erase_if(CachedContainers, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
 }
 
-template<typename T>
-void CacheContainersOfType(std::vector<T*>& ContainerList, ContainerType Type) {
+template <typename T> void CacheContainersOfType(std::vector<T*>& ContainerList, ContainerType Type) {
     SDK::GetAllActorsOfClassAllLevels<T>(ContainerList);
     for (const auto& Container : ContainerList) {
         auto It = CachedContainers.find(Container);
@@ -52,22 +49,20 @@ void CacheContainersOfType(std::vector<T*>& ContainerList, ContainerType Type) {
     }
 }
 
-template<typename T>
-bool CheckIfStaticClassIsLoaded(float CheckDelayS) {
+template <typename T> bool CheckIfStaticClassIsLoaded(float CheckDelayS) {
     static bool Found = false;
     if (Found)
         return true;
 
     static std::chrono::time_point<std::chrono::high_resolution_clock> LastCheckTime;
-    auto        Now = std::chrono::steady_clock::now();
-    auto        Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
+    auto                                                               Now = std::chrono::steady_clock::now();
+    auto Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
     if (Elapsed < CheckDelayS)
         return false;
 
     LastCheckTime = Now;
 
-    if (T::StaticClass() &&
-        T::StaticClass()) {
+    if (T::StaticClass() && T::StaticClass()) {
         Found = true;
         return true;
     }
@@ -91,11 +86,16 @@ void UpdateCache() {
         return;
     }
 
-    static std::vector<SDK::ATiered_Chest_Athena_C*> ChestList;
-    CacheContainersOfType<SDK::ATiered_Chest_Athena_C>(ChestList, ContainerType::Chest);
+    const auto& Config = Config::g_Config.Visuals.Loot;
+    if (Config.ChestText) {
+        static std::vector<SDK::ATiered_Chest_Athena_C*> ChestList;
+        CacheContainersOfType<SDK::ATiered_Chest_Athena_C>(ChestList, ContainerType::Chest);
+    }
 
-    static std::vector<SDK::ATiered_Ammo_Athena_C*> AmmoBoxList;
-    CacheContainersOfType<SDK::ATiered_Ammo_Athena_C>(AmmoBoxList, ContainerType::AmmoBox);
+    if (Config.AmmoBoxText) {
+        static std::vector<SDK::ATiered_Ammo_Athena_C*> AmmoBoxList;
+        CacheContainersOfType<SDK::ATiered_Ammo_Athena_C>(AmmoBoxList, ContainerType::AmmoBox);
+    }
 
     RemoveUnseenContainers();
 }

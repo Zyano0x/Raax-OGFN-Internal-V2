@@ -11,7 +11,7 @@ void Tick();
 
 // --- Drawing Utility Functions -------------------------------------
 
-void BeginBatchedLines();
+void BeginBatchedLines(size_t ReserveCount = 0);
 void EndBatchedLines();
 
 // --- Drawing Functions ---------------------------------------------
@@ -46,5 +46,11 @@ void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments,
             const SDK::FLinearColor& RenderColor = SDK::FLinearColor::White, float Thickness = 1.f,
             bool Outlined = true, float OutlineThickness = 1.f,
             const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black);
+
+void Triangle(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPositionB,
+              const SDK::FVector2D& ScreenPositionC, bool Filled,
+              const SDK::FLinearColor& RenderColor = SDK::FLinearColor::White, float Thickness = 1.f,
+              bool Outlined = true, float OutlineThickness = 1.f,
+              const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black);
 
 } // namespace Drawing

@@ -56,7 +56,7 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
 
     auto  AimRot = Math::FindLookAtRotation(Core::g_CameraLocation, TargetWorldPos);
     float DistDeg = Math::GetDegreeDistance(Core::g_CameraRotation, AimRot);
-    float DistPix = TargetScreenPos.Dist({Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY / 2.f});
+    float DistPix = TargetScreenPos.Dist({(float)Core::g_ScreenCenterX, (float)Core::g_ScreenCenterY});
     float DistCombined = DistDeg + DistanceM * 0.25f;
 
     bool InDeadZone = false;
@@ -141,7 +141,7 @@ void TickRenderThread() {
         return;
 
     s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
-    SDK::FVector2D Center = SDK::FVector2D(Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY / 2.f);
+    SDK::FVector2D Center = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenCenterY);
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::White);
     if (s.Config.UseDeadzone && s.Config.ShowDeadzoneFOV)

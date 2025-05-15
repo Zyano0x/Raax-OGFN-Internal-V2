@@ -37,7 +37,7 @@ bool IsCandidate(const Cache::Player::PlayerInfo& Info) {
 
     auto  AimRot = Math::FindLookAtRotation(Core::g_CameraLocation, TargetWorldPos);
     float DistDeg = Math::GetDegreeDistance(Core::g_CameraRotation, AimRot);
-    float DistPix = TargetScreenPos.Dist({Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY / 2.f});
+    float DistPix = TargetScreenPos.Dist({(float)Core::g_ScreenCenterX, (float)Core::g_ScreenCenterY});
     float DistCombined = DistDeg + DistMeters * 0.25f;
 
     if (Math::IsOnScreen(TargetScreenPos) && (DistPix > Config.FOV * Core::g_PixelsPerDegree)) {
@@ -90,7 +90,7 @@ void TickRenderThread() {
     const auto& Config = Config::g_Config.TriggerBot;
     PressingKey = ImGui::IsKeyDown((ImGuiKey)Config.Keybind);
 
-    SDK::FVector2D Center = SDK::FVector2D(Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY / 2.f);
+    SDK::FVector2D Center = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenCenterY);
     Drawing::Circle(Center, Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::Green);
 }
 

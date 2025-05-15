@@ -11,19 +11,20 @@ namespace Container {
 
 // --- Container Utility Functions -----------------------------------
 
-void RenderContainer(const Cache::Container::ContainerInfo& Info, const std::string& FormatStr, float DistM, float MaxDist, float FadeStart) {
+void RenderContainer(const Cache::Container::ContainerInfo& Info, const std::string& FormatStr,
+                     const SDK::FLinearColor& Color, float DistM, float MaxDist, float FadeStart) {
     if (DistM <= MaxDist) {
         float Alpha = 1.0f;
         if (DistM > FadeStart)
             Alpha = 1.0f - ((DistM - FadeStart) / (MaxDist - FadeStart));
 
-        SDK::FLinearColor Color(0.95f, 0.68f, 0.1f, Alpha);
         SDK::FLinearColor OutlineColor = SDK::FLinearColor::Black;
-        OutlineColor.A = Color.A;
+        OutlineColor.A = Alpha;
 
         char Buffer[64];
         snprintf(Buffer, sizeof(Buffer), FormatStr.c_str(), static_cast<int>(DistM));
-        Drawing::Text(Buffer, Info.RootScreenLocation, Color, 12.f, true, true, true, 1.f, OutlineColor);
+        Drawing::Text(Buffer, Info.RootScreenLocation, SDK::FLinearColor(Color.R, Color.G, Color.B, Alpha), 12.f, true,
+                      true, true, 1.f, OutlineColor);
     }
 }
 
@@ -34,8 +35,8 @@ void TickGameThread() {
 }
 void TickRenderThread() {
     const auto& LootConfig = Config::g_Config.Visuals.Loot;
-    bool ChestText = LootConfig.ChestText;
-    bool AmmoBoxText = LootConfig.AmmoBoxText;
+    bool        ChestText = LootConfig.ChestText;
+    bool        AmmoBoxText = LootConfig.AmmoBoxText;
     if (!ChestText && !AmmoBoxText)
         return;
 
@@ -50,9 +51,11 @@ void TickRenderThread() {
 
         float DistM = Info.RootWorldLocation.Dist(Core::g_CameraLocation) / 100.f;
         if (Info.Type == Cache::Container::ContainerType::Chest && ChestText) {
-            RenderContainer(Info, "Chest [{} m]", DistM, MaxDistChest, FadeStartChest);
+            RenderContainer(Info, "Chest [{} m]", SDK::FLinearColor(0.95f, 0.68f, 0.1f, 1.f), DistM, MaxDistChest,
+                            FadeStartChest);
         } else if (Info.Type == Cache::Container::ContainerType::AmmoBox && AmmoBoxText) {
-            RenderContainer(Info, "Ammo Box [{} m]", DistM, MaxDistAmmoBox, FadeStartAmmoBox);
+            RenderContainer(Info, "Ammo Box [{} m]", SDK::FLinearColor(0.1f, 0.6f, 0.f, 1.f), DistM, MaxDistAmmoBox,
+                            FadeStartAmmoBox);
         }
     }
 }

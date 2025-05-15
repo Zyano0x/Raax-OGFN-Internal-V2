@@ -7,7 +7,8 @@
 #include <utils/memory.h>
 
 DWORD Main(LPVOID) {
-    LOG(LOG_INFO, "Core::Init() -> %d", Core::Init());
+    bool Result = Core::Init();
+    LOG(LOG_INFO, "Core::Init() -> %d", Result);
     return 0;
 }
 

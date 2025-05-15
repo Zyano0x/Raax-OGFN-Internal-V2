@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include <extern/imgui/imgui.h>
+#define NOMINMAX
 #include <config/config.h>
 #include <config/keybind.h>
 #include <config/config_reflection.h>
@@ -317,15 +318,16 @@ void VisualsTab() {
             ImGui::Checkbox("Name", &Config.Player.Name);
             ImGui::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
             ImGui::Checkbox("Distance", &Config.Player.Distance);
+
+            ImGui::Checkbox("OSI Enabled", &Config.Player.OSI);
+            ImGui::Checkbox("OSI Match FOV", &Config.Player.OSIMatchFOV);
+            ImGui::SliderFloat("OSI FOV", &Config.Player.OSIFOV, 0.25f, 180.f);
+            ImGui::SliderFloat("OSI Size", &Config.Player.OSISize, 1.f, 20.f);
             break;
         case WindowSubTab::Radar: {
             float MaxPosition = 100.f - Config.Radar.Size;
-            if (Config.Radar.PosX >= MaxPosition) {
-                Config.Radar.PosX = MaxPosition;
-            }
-            if (Config.Radar.PosY >= MaxPosition) {
-                Config.Radar.PosY = MaxPosition;
-            }
+            Config.Radar.PosX = std::min(Config.Radar.PosX, MaxPosition);
+            Config.Radar.PosY = std::min(Config.Radar.PosY, MaxPosition);
 
             ImGui::Checkbox("Enable Radar", &Config.Radar.Radar);
             ImGui::Checkbox("Rotate With Camera", &Config.Radar.RotateWithCamera);
@@ -411,6 +413,9 @@ void MiscTab() {
         ImGui::ColorEdit4("Secondary Color Visible", (float*)&ColorConfig.SecondaryColorVisible);
         ImGui::ColorEdit4("Secondary Color Hidden", (float*)&ColorConfig.SecondaryColorHidden);
 
+        static bool WaitingForKeybind = false;
+        GUI::Keybind("Menu Keybind", WaitingForKeybind, (ImGuiKey&)Config::g_Config.MenuKeybind);
+
         ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
         ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
     }
@@ -420,7 +425,7 @@ void MiscTab() {
 // --- Public Tick Functions -----------------------------------------
 
 void Tick() {
-    if (ImGui::IsKeyReleased(ImGuiKey_Insert))
+    if (ImGui::IsKeyReleased((ImGuiKey)Config::g_Config.MenuKeybind))
         GUI::MainWindow::g_WindowOpen = !GUI::MainWindow::g_WindowOpen;
 
     if (GUI::MainWindow::g_WindowOpen) {

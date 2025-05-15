@@ -1,12 +1,14 @@
 #include "playertick.h"
 #include <array>
 
+#include <cheat/features/weaponutils.h>
 #include <cheat/cache/playercache.h>
 #include <cheat/tick/pickuptick.h>
 #include <cheat/sdk/sdk.h>
 #include <drawing/drawing.h>
 #include <config/config.h>
 #include <cheat/core.h>
+#include <utils/math.h>
 
 namespace Tick {
 namespace Player {
@@ -83,7 +85,7 @@ void TickRenderThread() {
         }
 
         if (PlayerConfig.Skeleton) {
-            Drawing::BeginBatchedLines();
+            Drawing::BeginBatchedLines(BoneConnections.size());
             for (const auto& Pair : BoneConnections) {
                 Drawing::Line(Info.BoneScreenPos[static_cast<int>(Pair.first)],
                               Info.BoneScreenPos[static_cast<int>(Pair.second)], SecondaryColor,
@@ -97,13 +99,13 @@ void TickRenderThread() {
 
             switch (PlayerConfig.TracerStart) {
             case Config::ConfigData::TracerPos::Bottom:
-                TracerStart = SDK::FVector2D(Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY);
+                TracerStart = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenSizeY);
                 break;
             case Config::ConfigData::TracerPos::Middle:
-                TracerStart = SDK::FVector2D(Core::g_ScreenSizeX / 2.f, Core::g_ScreenSizeY / 2.f);
+                TracerStart = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenCenterY);
                 break;
             case Config::ConfigData::TracerPos::Top:
-                TracerStart = SDK::FVector2D(Core::g_ScreenSizeX / 2.f, 0.f);
+                TracerStart = SDK::FVector2D(Core::g_ScreenCenterX, 0.f);
                 break;
             }
 
@@ -151,6 +153,48 @@ void TickRenderThread() {
 
             Drawing::Text(Buffer, BottomTextPos, PrimaryColor, FontSize, true, false);
             BottomTextPos.Y += 2.f + FontSize;
+        }
+
+        if (PlayerConfig.OSI && !Info.IsOnScreen) {
+            SDK::FVector2D TipPoint, BasePoint1, BasePoint2;
+            SDK::FVector   HeadPosition = Info.RootWorldLocation;
+            SDK::FVector   HeadPosition2D = SDK::Project3D(HeadPosition);
+            if (HeadPosition2D.Z <= 0.f) {
+                HeadPosition2D.X *= -1.f;
+                HeadPosition2D.Y *= -1.f;
+                HeadPosition2D.X += Core::g_ScreenSizeX;
+                HeadPosition2D.Y += Core::g_ScreenSizeY;
+            }
+
+            float CurrentFOV = 0.f;
+            if (PlayerConfig.OSIMatchFOV) {
+                CurrentFOV = Features::WeaponUtils::GetState().Config.FOV;
+            } else {
+                CurrentFOV = PlayerConfig.OSIFOV;
+            }
+
+            if (!CurrentFOV) {
+                CurrentFOV = PlayerConfig.OSIFOV;
+            }
+
+            float          Radius = CurrentFOV * Core::g_PixelsPerDegree;
+            SDK::FVector2D DirectionToPlayer =
+                SDK::FVector2D(HeadPosition2D.X - Core::g_ScreenCenterX, HeadPosition2D.Y - Core::g_ScreenCenterY);
+            float Magnitude =
+                std::sqrt(DirectionToPlayer.X * DirectionToPlayer.X + DirectionToPlayer.Y * DirectionToPlayer.Y);
+            DirectionToPlayer = DirectionToPlayer / Magnitude;
+
+            float          Angle = std::atan2(DirectionToPlayer.Y, DirectionToPlayer.X);
+            SDK::FVector2D IndicatorPosition = {Core::g_ScreenCenterX + std::cos(Angle) * Radius,
+                                                Core::g_ScreenCenterY + std::sin(Angle) * Radius};
+
+            TipPoint = IndicatorPosition + DirectionToPlayer * PlayerConfig.OSISize;
+            BasePoint1 =
+                IndicatorPosition + SDK::FVector2D(-DirectionToPlayer.Y, DirectionToPlayer.X) * PlayerConfig.OSISize;
+            BasePoint2 =
+                IndicatorPosition - SDK::FVector2D(-DirectionToPlayer.Y, DirectionToPlayer.X) * PlayerConfig.OSISize;
+
+            Drawing::Triangle(BasePoint1, BasePoint2, TipPoint, true, PrimaryColor);
         }
     }
 }
