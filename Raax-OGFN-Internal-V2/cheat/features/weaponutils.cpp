@@ -1,4 +1,5 @@
 #include "weaponutils.h"
+#include <chrono>
 
 #include <extern/imgui/imgui.h>
 #include <cheat/core.h>
