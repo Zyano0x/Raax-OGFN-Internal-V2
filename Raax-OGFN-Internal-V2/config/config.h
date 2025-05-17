@@ -2,6 +2,7 @@
 
 #include "keybind.h"
 #include <string>
+#include <format>
 
 #include <cheat/sdk/Basic.h>
 #include <extern/imgui/imgui.h>
@@ -19,7 +20,7 @@ struct ConfigData {
 
     struct VisualsConfig {
         struct PlayerConfig {
-            float MaxDistance = 300.f; 
+            float MaxDistance = 300.f;
 
             bool    Box = true;
             BoxType BoxType = BoxType::Cornered;
@@ -41,8 +42,8 @@ struct ConfigData {
             bool CurrentWeapon = true;
             bool Distance = true;
 
-            bool OSI = false;
-            bool OSIMatchFOV = true;
+            bool  OSI = false;
+            bool  OSIMatchFOV = true;
             float OSIFOV = 10.f;
             float OSISize = 8.f;
         } Player;

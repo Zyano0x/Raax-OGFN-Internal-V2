@@ -9,7 +9,7 @@
 
 namespace SDK {
 
-extern float g_EngineVersion;
+// --- Classes & Structs ---------------------------------------------
 
 enum class ETraceTypeQuery : uint8_t {
     TraceTypeQuery1 = 0,
@@ -63,32 +63,16 @@ struct FHitResult {
 
 class UKismetSystemLibrary : public UObject {
   public:
-    static inline bool (*KismetSystemLibraryLineTraceSingle)(UObject*, const FVector&, const FVector&, ETraceTypeQuery,
-                                                             bool, TArray<class AActor*>&, EDrawDebugTrace, FHitResult&,
-                                                             bool, const FLinearColor&, const FLinearColor&,
-                                                             float) = nullptr;
+    static bool (*KismetSystemLibraryLineTraceSingle)(UObject*, const FVector&, const FVector&, ETraceTypeQuery, bool,
+                                                      TArray<class AActor*>&, EDrawDebugTrace, FHitResult&, bool,
+                                                      const FLinearColor&, const FLinearColor&, float);
 
   public:
-    static FString GetEngineVersion() {
-        static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
-        struct {
-            FString ReturnValue;
-        } params{};
-
-        if (Func)
-            StaticClass()->ProcessEvent(Func, &params);
-
-        return params.ReturnValue;
-    }
-
-    static bool LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
-                                ETraceTypeQuery TraceChannel, bool bTraceComplex, TArray<AActor*>& ActorsToIgnore,
-                                EDrawDebugTrace DrawDebugType, FHitResult& OutHit, bool bIgnoreSelf,
-                                const FLinearColor& TraceColor, const FLinearColor& TraceHitColor, float DrawTime) {
-        return KismetSystemLibraryLineTraceSingle(WorldContextObject, Start, End, TraceChannel, bTraceComplex,
-                                                  ActorsToIgnore, EDrawDebugTrace::None, OutHit, bIgnoreSelf,
-                                                  SDK::FLinearColor::White, SDK::FLinearColor::White, 0.f);
-    }
+    static FString GetEngineVersion();
+    static bool    LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
+                                   ETraceTypeQuery TraceChannel, bool bTraceComplex, TArray<AActor*>& ActorsToIgnore,
+                                   EDrawDebugTrace DrawDebugType, FHitResult& OutHit, bool bIgnoreSelf,
+                                   const FLinearColor& TraceColor, const FLinearColor& TraceHitColor, float DrawTime);
 
   public:
     STATICCLASS_DEFAULTOBJECT("KismetSystemLibrary", UKismetSystemLibrary)
@@ -96,12 +80,7 @@ class UKismetSystemLibrary : public UObject {
 
 class UEngine : public UObject {
   public:
-    inline class UGameViewportClient* GameViewport() {
-        static PropertyInfo Prop = GetPropertyInfo("Engine", "GameViewport");
-        if (this && Prop.Found)
-            return *(class UGameViewportClient**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class UGameViewportClient* GameViewport();
 
   public:
     STATICCLASS_DEFAULTOBJECT("Engine", UEngine)
@@ -109,18 +88,8 @@ class UEngine : public UObject {
 
 class UWorld : public UObject {
   public:
-    inline class ULevel* PersistentLevel() {
-        static PropertyInfo Prop = GetPropertyInfo("World", "PersistentLevel");
-        if (this && Prop.Found)
-            return *(class ULevel**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-    inline TArray<class ULevel*>* Levels() {
-        static PropertyInfo Prop = GetPropertyInfo("World", "Levels");
-        if (this && Prop.Found)
-            return (TArray<class ULevel*>*)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class ULevel*    PersistentLevel();
+    TArray<ULevel*>* Levels();
 
   public:
     STATICCLASS_DEFAULTOBJECT("World", UWorld)
@@ -128,20 +97,11 @@ class UWorld : public UObject {
 
 class ULevel : public UObject {
   public:
-    static inline uint32_t Actors_Offset;
+    static uint32_t Actors_Offset;
 
   public:
-    inline TArray<class AActor*>* Actors() {
-        if (this)
-            return (TArray<class AActor*>*)((uintptr_t)this + Actors_Offset);
-        return nullptr;
-    }
-    class AWorldSettings* WorldSettings() {
-        static PropertyInfo Prop = GetPropertyInfo("Level", "WorldSettings");
-        if (this && Prop.Found)
-            return *(AWorldSettings**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    TArray<AActor*>*      Actors();
+    class AWorldSettings* WorldSettings();
 
   public:
     STATICCLASS_DEFAULTOBJECT("Level", ULevel)
@@ -149,12 +109,7 @@ class ULevel : public UObject {
 
 class UGameInstance : public UObject {
   public:
-    inline TArray<class ULocalPlayer*>* LocalPlayers() {
-        static PropertyInfo Prop = GetPropertyInfo("GameInstance", "LocalPlayers");
-        if (this && Prop.Found)
-            return (TArray<class ULocalPlayer*>*)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    TArray<class ULocalPlayer*>* LocalPlayers();
 
   public:
     STATICCLASS_DEFAULTOBJECT("GameInstance", UGameInstance)
@@ -165,18 +120,8 @@ class UGameViewportClient : public UObject {
     static inline int DrawTransition_Idx;
 
   public:
-    inline class UWorld* World() {
-        static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "World");
-        if (this && Prop.Found)
-            return *(class UWorld**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-    inline class UGameInstance* GameInstance() {
-        static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "GameInstance");
-        if (this && Prop.Found)
-            return *(class UGameInstance**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    UWorld*        World();
+    UGameInstance* GameInstance();
 
   public:
     STATICCLASS_DEFAULTOBJECT("GameViewportClient", UGameViewportClient)
@@ -184,26 +129,16 @@ class UGameViewportClient : public UObject {
 
 class UCanvas : public UObject {
   public:
-    static inline uint32_t ViewProjectionMatrix_Offset;
+    static uint32_t ViewProjectionMatrix_Offset;
 
   public:
-    inline int32_t SizeX() {
-        static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeX");
-        if (this && Prop.Found)
-            return *(int32_t*)((uintptr_t)this + Prop.Offset);
-        return {};
-    }
-    inline int32_t SizeY() {
-        static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeY");
-        if (this && Prop.Found)
-            return *(int32_t*)((uintptr_t)this + Prop.Offset);
-        return {};
-    }
-    inline FMatrix* ViewProjectionMatrix() {
-        if (this)
-            return (FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
-        return nullptr;
-    }
+    int32_t  SizeX();
+    int32_t  SizeY();
+    FMatrix* ViewProjectionMatrix();
+
+  public:
+    void K2_DrawLine(const struct FVector2D& ScreenPositionA, const struct FVector2D& ScreenPositionB, float Thickness,
+                     const struct FLinearColor& RenderColor);
 
   public:
     STATICCLASS_DEFAULTOBJECT("Canvas", UCanvas)
@@ -211,12 +146,7 @@ class UCanvas : public UObject {
 
 class UPlayer : public UObject {
   public:
-    class APlayerController* PlayerController() {
-        static PropertyInfo Prop = GetPropertyInfo("Player", "PlayerController");
-        if (this && Prop.Found)
-            return *(class APlayerController**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class APlayerController* PlayerController();
 
   public:
     STATICCLASS_DEFAULTOBJECT("Player", UPlayer)
@@ -229,42 +159,12 @@ class ULocalPlayer : public UPlayer {
 
 class USceneComponent : public UObject {
   public:
-    static inline uint32_t ComponentToWorld_Offset;
+    static uint32_t ComponentToWorld_Offset;
 
   public:
-    FVector RelativeLocation() {
-        static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "RelativeLocation");
-        if (this && Prop.Found)
-            return *(FVector*)((uintptr_t)this + Prop.Offset);
-        return {};
-    }
-    FVector ComponentVelocity() {
-        static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "ComponentVelocity");
-        if (this && Prop.Found)
-            return *(FVector*)((uintptr_t)this + Prop.Offset);
-        return {};
-    }
-    FTransform ComponentToWorld() {
-        if (this) {
-            if (ComponentToWorld_Offset) {
-                return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
-            } else {
-                static UFunction* Func = GetFunction("SceneComponent", "K2_GetComponentToWorld");
-                struct {
-                    FTransform ReturnValue;
-                } params{};
-
-                if (Func)
-                    ProcessEvent(Func, &params);
-                else
-                    LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld!");
-
-                return params.ReturnValue;
-            }
-        }
-
-        return {};
-    }
+    FVector    RelativeLocation();
+    FVector    ComponentVelocity();
+    FTransform ComponentToWorld();
 
   public:
     STATICCLASS_DEFAULTOBJECT("SceneComponent", USceneComponent)
@@ -272,38 +172,11 @@ class USceneComponent : public UObject {
 
 class USkinnedMeshComponent : public USceneComponent {
   public:
-    static inline uint32_t ComponentSpaceTransformsArray_Offset;
+    static uint32_t ComponentSpaceTransformsArray_Offset;
 
   public:
-    TArray<FTransform>* ComponentSpaceTransformsArray() {
-        if (this) {
-            TArray<FTransform>* FirstArray =
-                (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
-            if (FirstArray && FirstArray->IsValid())
-                return FirstArray;
-
-            TArray<FTransform>* SecondArray =
-                (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset +
-                                      sizeof(TArray<FTransform>));
-            if (SecondArray && SecondArray->IsValid())
-                return SecondArray;
-        }
-        return nullptr;
-    }
-    int32_t GetBoneIndex(FName BoneName) {
-        static UFunction* Func = GetFunction("SkinnedMeshComponent", "GetBoneIndex");
-        struct {
-            FName   BoneName;
-            int32_t ReturnValue;
-        } params{};
-
-        params.BoneName = BoneName;
-
-        if (this && Func)
-            ProcessEvent(Func, &params);
-
-        return params.ReturnValue;
-    }
+    TArray<FTransform>* ComponentSpaceTransformsArray();
+    int32_t             GetBoneIndex(FName BoneName);
 
   public:
     STATICCLASS_DEFAULTOBJECT("SkinnedMeshComponent", USkinnedMeshComponent)
@@ -311,24 +184,8 @@ class USkinnedMeshComponent : public USceneComponent {
 
 class USkeletalMeshComponent : public USkinnedMeshComponent {
   public:
-    FTransform GetBoneMatrix(int32_t BoneIndex) {
-        if (this) {
-            TArray<FTransform>* Array = ComponentSpaceTransformsArray();
-            if (Array && Array->IsValid())
-                return Array->GetByIndex(BoneIndex);
-        }
-        return {};
-    }
-    FVector GetBoneLocation(int32_t BoneIndex) {
-        if (this) {
-            FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
-            FTransform ComponentToWrld = ComponentToWorld();
-
-            FMatrix Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
-            return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
-        }
-        return {};
-    }
+    FTransform GetBoneMatrix(int32_t BoneIndex);
+    FVector    GetBoneLocation(int32_t BoneIndex);
 
   public:
     STATICCLASS_DEFAULTOBJECT("SkeletalMeshComponent", USkeletalMeshComponent)
@@ -336,27 +193,8 @@ class USkeletalMeshComponent : public USkinnedMeshComponent {
 
 class AActor : public UObject {
   public:
-    class USceneComponent* RootComponent() {
-        static PropertyInfo Prop = GetPropertyInfo("Actor", "RootComponent");
-        if (this && Prop.Found)
-            return *(class USceneComponent**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-
-    float WasRecentlyRendered(float Tolerence) {
-        static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
-        struct {
-            float Tolerence;
-            float ReturnValue;
-        } params_WasRecentlyRendered{};
-
-        params_WasRecentlyRendered.Tolerence = Tolerence;
-
-        if (this && Func)
-            ProcessEvent(Func, &params_WasRecentlyRendered);
-
-        return params_WasRecentlyRendered.ReturnValue;
-    }
+    USceneComponent* RootComponent();
+    float            WasRecentlyRendered(float Tolerence);
 
   public:
     STATICCLASS_DEFAULTOBJECT("Actor", AActor)
@@ -364,12 +202,7 @@ class AActor : public UObject {
 
 class AWorldSettings : AActor {
   public:
-    float WorldGravityZ() {
-        static PropertyInfo Prop = GetPropertyInfo("WorldSettings", "WorldGravityZ");
-        if (this && Prop.Found)
-            return *(float*)((uintptr_t)this + Prop.Offset);
-        return 0.f;
-    }
+    float WorldGravityZ();
 
   public:
     STATICCLASS_DEFAULTOBJECT("WorldSettings", AWorldSettings)
@@ -377,39 +210,9 @@ class AWorldSettings : AActor {
 
 class APlayerCameraManager : public AActor {
   public:
-    FVector GetCameraLocation() {
-        static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraLocation");
-        struct {
-            FVector ReturnValue;
-        } params_GetCameraLocation{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetCameraLocation);
-
-        return params_GetCameraLocation.ReturnValue;
-    }
-    FRotator GetCameraRotation() {
-        static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraRotation");
-        struct {
-            FRotator ReturnValue;
-        } params_GetCameraRotation{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetCameraRotation);
-
-        return params_GetCameraRotation.ReturnValue;
-    }
-    float GetFOVAngle() {
-        static UFunction* Func = GetFunction("PlayerCameraManager", "GetFOVAngle");
-        struct {
-            float ReturnValue;
-        } params_GetFOVAngle{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetFOVAngle);
-
-        return params_GetFOVAngle.ReturnValue;
-    }
+    FVector  GetCameraLocation();
+    FRotator GetCameraRotation();
+    float    GetFOVAngle();
 
   public:
     STATICCLASS_DEFAULTOBJECT("PlayerCameraManager", APlayerCameraManager)
@@ -417,57 +220,12 @@ class APlayerCameraManager : public AActor {
 
 class APlayerController : public AActor {
   public:
-    class APawn* AcknowledgedPawn() {
-        static PropertyInfo Prop = GetPropertyInfo("PlayerController", "AcknowledgedPawn");
-        if (this && Prop.Found)
-            return *(class APawn**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-
-    class APlayerCameraManager* PlayerCameraManager() {
-        static PropertyInfo Prop = GetPropertyInfo("PlayerController", "PlayerCameraManager");
-        if (this && Prop.Found)
-            return *(class APlayerCameraManager**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-
-    float InputYawScale() {
-        static PropertyInfo Prop = GetPropertyInfo("PlayerController", "InputYawScale");
-        if (this && Prop.Found)
-            return *(float*)((uintptr_t)this + Prop.Offset);
-        return 0.f;
-    }
-
-    float InputPitchScale() {
-        static PropertyInfo Prop = GetPropertyInfo("PlayerController", "InputPitchScale");
-        if (this && Prop.Found)
-            return *(float*)((uintptr_t)this + Prop.Offset);
-        return 0.f;
-    }
-
-    void AddYawInput(float Val) {
-        static UFunction* Func = GetFunction("PlayerController", "AddYawInput");
-        struct {
-            float Val;
-        } params_AddYawInput{};
-
-        params_AddYawInput.Val = Val;
-
-        if (this && Func)
-            ProcessEvent(Func, &params_AddYawInput);
-    }
-
-    void AddPitchInput(float Val) {
-        static UFunction* Func = GetFunction("PlayerController", "AddPitchInput");
-        struct {
-            float Val;
-        } params_AddPitchInput{};
-
-        params_AddPitchInput.Val = Val;
-
-        if (this && Func)
-            ProcessEvent(Func, &params_AddPitchInput);
-    }
+    class APawn*          AcknowledgedPawn();
+    APlayerCameraManager* PlayerCameraManager();
+    float                 InputYawScale();
+    float                 InputPitchScale();
+    void                  AddYawInput(float Val);
+    void                  AddPitchInput(float Val);
 
   public:
     STATICCLASS_DEFAULTOBJECT("PlayerController", APlayerController)
@@ -475,12 +233,7 @@ class APlayerController : public AActor {
 
 class APawn : public AActor {
   public:
-    class APlayerState* PlayerState() {
-        static PropertyInfo Prop = GetPropertyInfo("Pawn", "PlayerState");
-        if (this && Prop.Found)
-            return *(class APlayerState**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class APlayerState* PlayerState();
 
   public:
     STATICCLASS_DEFAULTOBJECT("Pawn", APawn)
@@ -488,12 +241,7 @@ class APawn : public AActor {
 
 class ACharacter : public APawn {
   public:
-    class USkeletalMeshComponent* Mesh() {
-        static PropertyInfo Prop = GetPropertyInfo("Character", "Mesh");
-        if (this && Prop.Found)
-            return *(class USkeletalMeshComponent**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    USkeletalMeshComponent* Mesh();
 
   public:
     STATICCLASS_DEFAULTOBJECT("Character", ACharacter)
@@ -501,29 +249,21 @@ class ACharacter : public APawn {
 
 class APlayerState : public AActor {
   public:
-    FString GetPlayerName() {
-        static UFunction* Func = GetFunction("PlayerState", "GetPlayerName");
-        struct {
-            FString return_value;
-        } params_GetPlayerName{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetPlayerName);
-
-        return params_GetPlayerName.return_value;
-    }
+    FString GetPlayerName();
 
   public:
     STATICCLASS_DEFAULTOBJECT("PlayerState", APlayerState)
 };
 
-class ULocalPlayer*      GetLocalPlayer();
-class APlayerController* GetLocalController();
-class APawn*             GetLocalPawn();
+// --- Public Functions ----------------------------------------------
 
-class UEngine* GetEngine();
-class UWorld*  GetWorld();
-class UCanvas* GetCanvas();
+ULocalPlayer*      GetLocalPlayer();
+APlayerController* GetLocalController();
+APawn*             GetLocalPawn();
+
+UEngine* GetEngine();
+UWorld*  GetWorld();
+UCanvas* GetCanvas();
 
 FVector  GetCameraLocation();
 FRotator GetCameraRotation();

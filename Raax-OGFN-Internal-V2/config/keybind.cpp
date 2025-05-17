@@ -1,6 +1,7 @@
 #include "keybind.h"
 #include "config_reflection.h"
 #include <sstream>
+#include <charconv>
 
 #include <gui/mainwindow.h>
 

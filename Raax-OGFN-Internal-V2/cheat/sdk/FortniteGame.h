@@ -4,6 +4,8 @@
 
 namespace SDK {
 
+// --- Classes & Structs ---------------------------------------------
+
 enum class EFortItemTier : uint8_t {
     No_Tier = 0,
     I = 1,
@@ -22,21 +24,12 @@ enum class EFortItemTier : uint8_t {
 
 class AFortPlayerController : public APlayerController {
   public:
-    static inline void (*pFire_Press)(void*) = nullptr;
-    static inline void (*pFire_Release)(void*) = nullptr;
+    static void (*pFire_Press)(void*);
+    static void (*pFire_Release)(void*);
 
   public:
-    void Fire_Press() {
-        if (this && pFire_Press) {
-            pFire_Press(this);
-        }
-    }
-
-    void Fire_Release() {
-        if (this && pFire_Release) {
-            pFire_Release(this);
-        }
-    }
+    void Fire_Press();
+    void Fire_Release();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController)
@@ -44,12 +37,7 @@ class AFortPlayerController : public APlayerController {
 
 class AFortPawn : public ACharacter {
   public:
-    class AFortWeapon* CurrentWeapon() {
-        static PropertyInfo Prop = GetPropertyInfo("FortPawn", "CurrentWeapon");
-        if (this && Prop.Found)
-            return *(AFortWeapon**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class AFortWeapon* CurrentWeapon();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn)
@@ -57,12 +45,7 @@ class AFortPawn : public ACharacter {
 
 class AFortPlayerState : public APlayerState {
   public:
-    FString Platform() {
-        static PropertyInfo Prop = GetPropertyInfo("FortPlayerState", "Platform");
-        if (this && Prop.Found)
-            return *(FString*)((uintptr_t)this + Prop.Offset);
-        return {};
-    }
+    FString Platform();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerState", AFortPlayerState)
@@ -70,90 +53,36 @@ class AFortPlayerState : public APlayerState {
 
 class ABuildingContainer : public AActor {
   public:
-    bool bAlreadySearched() {
-        static PropertyInfo Prop = GetPropertyInfo("BuildingContainer", "bAlreadySearched");
-        if (this && Prop.Found) {
-            if (Prop.ByteMask)
-                return *(uint8_t*)((uintptr_t)this + Prop.Offset) & Prop.ByteMask;
-            else
-                return *(bool*)((uintptr_t)this + Prop.Offset);
-        }
-        return false;
-    }
+    bool bAlreadySearched();
 
   public:
-    STATICCLASS_DEFAULTOBJECT("BuildingContainer", ABuildingContainer);
+    STATICCLASS_DEFAULTOBJECT("BuildingContainer", ABuildingContainer)
 };
 
 class ATiered_Chest_Athena_C : public ABuildingContainer {
   public:
-    STATICCLASS_DEFAULTOBJECT("Tiered_Chest_Athena_C", ATiered_Chest_Athena_C);
+    STATICCLASS_DEFAULTOBJECT("Tiered_Chest_Athena_C", ATiered_Chest_Athena_C)
 };
 
 class ATiered_Ammo_Athena_C : public ABuildingContainer {
   public:
-    STATICCLASS_DEFAULTOBJECT("Tiered_Ammo_Athena_C", ATiered_Ammo_Athena_C);
+    STATICCLASS_DEFAULTOBJECT("Tiered_Ammo_Athena_C", ATiered_Ammo_Athena_C)
 };
 
 class AFortPickup : public AActor {
   public:
-    class FFortItemEntry* PrimaryPickupItemEntry() {
-        static PropertyInfo Prop = GetPropertyInfo("FortPickup", "PrimaryPickupItemEntry");
-        if (this && Prop.Found)
-            return (FFortItemEntry*)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class FFortItemEntry* PrimaryPickupItemEntry();
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortPickup", AFortPickup);
+    STATICCLASS_DEFAULTOBJECT("FortPickup", AFortPickup)
 };
 
 class AFortWeapon : public AActor {
   public:
-    uint8_t WeaponCoreAnimation() {
-        static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "WeaponCoreAnimation");
-        if (this && Prop.Found)
-            return *(uint8_t*)((uintptr_t)this + Prop.Offset);
-        return 0;
-    }
-
-    class UFortWeaponItemDefinition* WeaponData() {
-        static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "WeaponData");
-        if (this && Prop.Found)
-            return *(UFortWeaponItemDefinition**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-
-    int32_t AmmoCount() {
-        static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "AmmoCount");
-        if (this && Prop.Found)
-            return *(int32_t*)((uintptr_t)this + Prop.Offset);
-        return 0;
-    }
-
-    bool IsFiring() {
-        static UFunction* Func = GetFunction("FortWeapon", "IsFiring");
-        struct {
-            bool ReturnValue;
-        } params_IsFiring{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_IsFiring);
-
-        return params_IsFiring.ReturnValue;
-    }
-
-    int32_t GetBulletsPerClip() {
-        static UFunction* Func = GetFunction("FortWeapon", "GetBulletsPerClip");
-        struct {
-            int32_t ReturnValue;
-        } params_GetBulletsPerClip{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetBulletsPerClip);
-
-        return params_GetBulletsPerClip.ReturnValue;
-    }
+    uint8_t                          WeaponCoreAnimation();
+    class UFortWeaponItemDefinition* WeaponData();
+    int32_t                          AmmoCount();
+    int32_t                          GetBulletsPerClip();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon)
@@ -161,46 +90,9 @@ class AFortWeapon : public AActor {
 
 class AFortProjectileBase : public AActor {
   public:
-    float GravityScale() {
-        static PropertyInfo Prop = GetPropertyInfo("FortProjectileBase", "GravityScale");
-        if (this && Prop.Found)
-            return *(float*)((uintptr_t)this + Prop.Offset);
-        return 0.f;
-    }
-
-    class UFortProjectileMovementComponent* ProjectileMovementComponent() {
-        static PropertyInfo Prop = GetPropertyInfo("FortProjectileBase", "ProjectileMovementComponent");
-        if (this && Prop.Found)
-            return *(class UFortProjectileMovementComponent**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-
-    float GetDefaultGravityScale() {
-        static UFunction* Func = GetFunction("FortProjectileBase", "GetDefaultGravityScale");
-        struct {
-            float ReturnValue;
-        } params_GetDefaultGravityScale{};
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetDefaultGravityScale);
-
-        return params_GetDefaultGravityScale.ReturnValue;
-    }
-
-    float GetDefaultSpeed(float InChargePercent) {
-        static UFunction* Func = GetFunction("FortProjectileBase", "GetDefaultSpeed");
-        struct {
-            float InChargePercent;
-            float ReturnValue;
-        } params_GetDefaultSpeed{};
-
-        params_GetDefaultSpeed.InChargePercent = InChargePercent;
-
-        if (this && Func)
-            ProcessEvent(Func, &params_GetDefaultSpeed);
-
-        return params_GetDefaultSpeed.ReturnValue;
-    }
+    float GravityScale();
+    float GetDefaultGravityScale();
+    float GetDefaultSpeed(float InChargePercent);
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase)
@@ -208,12 +100,7 @@ class AFortProjectileBase : public AActor {
 
 class FFortItemEntry : public UObject {
   public:
-    class UFortItemDefinition* ItemDefinition() {
-        static PropertyInfo Prop = GetPropertyInfo("FortItemEntry", "ItemDefinition");
-        if (this && Prop.Found)
-            return *(UFortItemDefinition**)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
+    class UFortItemDefinition* ItemDefinition();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry)
@@ -221,19 +108,8 @@ class FFortItemEntry : public UObject {
 
 class UFortItemDefinition : public UObject {
   public:
-    FText* DisplayName() {
-        static PropertyInfo Prop = GetPropertyInfo("FortItemDefinition", "DisplayName");
-        if (this && Prop.Found)
-            return (FText*)((uintptr_t)this + Prop.Offset);
-        return nullptr;
-    }
-
-    EFortItemTier Tier() {
-        static PropertyInfo Prop = GetPropertyInfo("FortItemDefinition", "Tier");
-        if (this && Prop.Found)
-            return *(EFortItemTier*)((uintptr_t)this + Prop.Offset);
-        return EFortItemTier::No_Tier;
-    }
+    FText*        DisplayName();
+    EFortItemTier Tier();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition)
@@ -241,14 +117,7 @@ class UFortItemDefinition : public UObject {
 
 class UFortWeaponItemDefinition : public UFortItemDefinition {
   public:
-    class UFortWeaponItemDefinition* AmmoData() {
-        static PropertyInfo Prop = GetPropertyInfo("FortWeaponItemDefinition", "AmmoData");
-        if (this && Prop.Found) {
-            auto SoftObjectPtr = (TSoftObjectPtr<UFortWeaponItemDefinition>*)((uintptr_t)this + Prop.Offset);
-            return SoftObjectPtr->Get();
-        }
-        return nullptr;
-    }
+    UFortWeaponItemDefinition* AmmoData();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition)
@@ -256,14 +125,7 @@ class UFortWeaponItemDefinition : public UFortItemDefinition {
 
 class UFortWeaponRangedItemDefinition : public UFortWeaponItemDefinition {
   public:
-    class UClass* ProjectileTemplate() {
-        static PropertyInfo Prop = GetPropertyInfo("FortWeaponRangedItemDefinition", "ProjectileTemplate");
-        if (this && Prop.Found) {
-            auto SoftClassPtr = (TSoftClassPtr<UClass>*)((uintptr_t)this + Prop.Offset);
-            return SoftClassPtr->Get();
-        }
-        return nullptr;
-    }
+    UClass* ProjectileTemplate();
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition)

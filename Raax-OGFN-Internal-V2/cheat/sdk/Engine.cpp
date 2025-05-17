@@ -4,17 +4,362 @@
 
 namespace SDK {
 
-class ULocalPlayer* GetLocalPlayer() {
+// --- Classes & Structs ---------------------------------------------
+
+bool (*UKismetSystemLibrary::KismetSystemLibraryLineTraceSingle)(UObject*, const FVector&, const FVector&,
+                                                                 ETraceTypeQuery, bool, TArray<class AActor*>&,
+                                                                 EDrawDebugTrace, FHitResult&, bool,
+                                                                 const FLinearColor&, const FLinearColor&,
+                                                                 float) = nullptr;
+FString UKismetSystemLibrary::GetEngineVersion() {
+    static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
+    struct {
+        FString ReturnValue;
+    } params{};
+
+    if (Func)
+        StaticClass()->ProcessEvent(Func, &params);
+
+    return params.ReturnValue;
+}
+bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
+                                           ETraceTypeQuery TraceChannel, bool bTraceComplex,
+                                           TArray<AActor*>& ActorsToIgnore, EDrawDebugTrace DrawDebugType,
+                                           FHitResult& OutHit, bool bIgnoreSelf, const FLinearColor& TraceColor,
+                                           const FLinearColor& TraceHitColor, float DrawTime) {
+    return KismetSystemLibraryLineTraceSingle(WorldContextObject, Start, End, TraceChannel, bTraceComplex,
+                                              ActorsToIgnore, EDrawDebugTrace::None, OutHit, bIgnoreSelf,
+                                              SDK::FLinearColor::White, SDK::FLinearColor::White, 0.f);
+}
+
+UGameViewportClient* UEngine::GameViewport() {
+    static PropertyInfo Prop = GetPropertyInfo("Engine", "GameViewport");
+    if (this && Prop.Found)
+        return *(UGameViewportClient**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+ULevel* UWorld::PersistentLevel() {
+    static PropertyInfo Prop = GetPropertyInfo("World", "PersistentLevel");
+    if (this && Prop.Found)
+        return *(ULevel**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+TArray<ULevel*>* UWorld::Levels() {
+    static PropertyInfo Prop = GetPropertyInfo("World", "Levels");
+    if (this && Prop.Found)
+        return (TArray<ULevel*>*)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+uint32_t         ULevel::Actors_Offset;
+TArray<AActor*>* ULevel::Actors() {
+    if (this)
+        return (TArray<AActor*>*)((uintptr_t)this + Actors_Offset);
+    return nullptr;
+}
+AWorldSettings* ULevel::WorldSettings() {
+    static PropertyInfo Prop = GetPropertyInfo("Level", "WorldSettings");
+    if (this && Prop.Found)
+        return *(AWorldSettings**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+TArray<ULocalPlayer*>* UGameInstance::LocalPlayers() {
+    static PropertyInfo Prop = GetPropertyInfo("GameInstance", "LocalPlayers");
+    if (this && Prop.Found)
+        return (TArray<ULocalPlayer*>*)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+UWorld* UGameViewportClient::World() {
+    static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "World");
+    if (this && Prop.Found)
+        return *(UWorld**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+UGameInstance* UGameViewportClient::GameInstance() {
+    static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "GameInstance");
+    if (this && Prop.Found)
+        return *(UGameInstance**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+uint32_t UCanvas::ViewProjectionMatrix_Offset;
+int32_t  UCanvas::SizeX() {
+    static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeX");
+    if (this && Prop.Found)
+        return *(int32_t*)((uintptr_t)this + Prop.Offset);
+    return {};
+}
+int32_t UCanvas::SizeY() {
+    static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeY");
+    if (this && Prop.Found)
+        return *(int32_t*)((uintptr_t)this + Prop.Offset);
+    return {};
+}
+FMatrix* UCanvas::ViewProjectionMatrix() {
+    if (this)
+        return (FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
+    return nullptr;
+}
+void UCanvas::K2_DrawLine(const struct FVector2D& ScreenPositionA, const struct FVector2D& ScreenPositionB,
+                          float Thickness, const struct FLinearColor& RenderColor) {
+    static UFunction* Func = GetFunction("Canvas", "K2_DrawLine");
+    struct {
+        FVector2D    ScreenPositionA;
+        FVector2D    ScreenPositionB;
+        float        Thickness;
+        FLinearColor RenderColor;
+    } params_K2_DrawLine{};
+
+    params_K2_DrawLine.ScreenPositionA = ScreenPositionA;
+    params_K2_DrawLine.ScreenPositionB = ScreenPositionB;
+    params_K2_DrawLine.Thickness = Thickness;
+    params_K2_DrawLine.RenderColor = RenderColor;
+
+    if (this && Func)
+        ProcessEvent(Func, &params_K2_DrawLine);
+}
+
+APlayerController* UPlayer::PlayerController() {
+    static PropertyInfo Prop = GetPropertyInfo("Player", "PlayerController");
+    if (this && Prop.Found)
+        return *(APlayerController**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+uint32_t USceneComponent::ComponentToWorld_Offset;
+FVector  USceneComponent::RelativeLocation() {
+    static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "RelativeLocation");
+    if (this && Prop.Found)
+        return *(FVector*)((uintptr_t)this + Prop.Offset);
+    return {};
+}
+FVector USceneComponent::ComponentVelocity() {
+    static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "ComponentVelocity");
+    if (this && Prop.Found)
+        return *(FVector*)((uintptr_t)this + Prop.Offset);
+    return {};
+}
+FTransform USceneComponent::ComponentToWorld() {
+    if (this) {
+        if (ComponentToWorld_Offset) {
+            return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
+        } else {
+            static UFunction* Func = GetFunction("SceneComponent", "K2_GetComponentToWorld");
+            struct {
+                FTransform ReturnValue;
+            } params_ComponentToWorld{};
+
+            if (Func)
+                ProcessEvent(Func, &params_ComponentToWorld);
+            else
+                LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld!");
+
+            return params_ComponentToWorld.ReturnValue;
+        }
+    }
+
+    return {};
+}
+
+uint32_t            USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset;
+TArray<FTransform>* USkinnedMeshComponent::ComponentSpaceTransformsArray() {
+    if (this) {
+        TArray<FTransform>* FirstArray = (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
+        if (FirstArray && FirstArray->IsValid())
+            return FirstArray;
+
+        TArray<FTransform>* SecondArray =
+            (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
+        if (SecondArray && SecondArray->IsValid())
+            return SecondArray;
+    }
+    return nullptr;
+}
+int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) {
+    static UFunction* Func = GetFunction("SkinnedMeshComponent", "GetBoneIndex");
+    struct {
+        FName   BoneName;
+        int32_t ReturnValue;
+    } params_GetBoneIndex{};
+
+    params_GetBoneIndex.BoneName = BoneName;
+
+    if (this && Func)
+        ProcessEvent(Func, &params_GetBoneIndex);
+
+    return params_GetBoneIndex.ReturnValue;
+}
+
+FTransform USkeletalMeshComponent::GetBoneMatrix(int32_t BoneIndex) {
+    if (this) {
+        TArray<FTransform>* Array = ComponentSpaceTransformsArray();
+        if (Array && Array->IsValid())
+            return Array->GetByIndex(BoneIndex);
+    }
+    return {};
+}
+FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) {
+    if (this) {
+        FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
+        FTransform ComponentToWrld = ComponentToWorld();
+
+        FMatrix Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
+        return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
+    }
+    return {};
+}
+
+USceneComponent* AActor::RootComponent() {
+    static PropertyInfo Prop = GetPropertyInfo("Actor", "RootComponent");
+    if (this && Prop.Found)
+        return *(USceneComponent**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+float AActor::WasRecentlyRendered(float Tolerence) {
+    static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
+    struct {
+        float Tolerence;
+        float ReturnValue;
+    } params_WasRecentlyRendered{};
+
+    params_WasRecentlyRendered.Tolerence = Tolerence;
+
+    if (this && Func)
+        ProcessEvent(Func, &params_WasRecentlyRendered);
+
+    return params_WasRecentlyRendered.ReturnValue;
+}
+
+float AWorldSettings::WorldGravityZ() {
+    static PropertyInfo Prop = GetPropertyInfo("WorldSettings", "WorldGravityZ");
+    if (this && Prop.Found)
+        return *(float*)((uintptr_t)this + Prop.Offset);
+    return 0.f;
+}
+
+FVector APlayerCameraManager::GetCameraLocation() {
+    static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraLocation");
+    struct {
+        FVector ReturnValue;
+    } params_GetCameraLocation{};
+
+    if (this && Func)
+        ProcessEvent(Func, &params_GetCameraLocation);
+
+    return params_GetCameraLocation.ReturnValue;
+}
+FRotator APlayerCameraManager::GetCameraRotation() {
+    static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraRotation");
+    struct {
+        FRotator ReturnValue;
+    } params_GetCameraRotation{};
+
+    if (this && Func)
+        ProcessEvent(Func, &params_GetCameraRotation);
+
+    return params_GetCameraRotation.ReturnValue;
+}
+float APlayerCameraManager::GetFOVAngle() {
+    static UFunction* Func = GetFunction("PlayerCameraManager", "GetFOVAngle");
+    struct {
+        float ReturnValue;
+    } params_GetFOVAngle{};
+
+    if (this && Func)
+        ProcessEvent(Func, &params_GetFOVAngle);
+
+    return params_GetFOVAngle.ReturnValue;
+}
+
+APawn* APlayerController::AcknowledgedPawn() {
+    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "AcknowledgedPawn");
+    if (this && Prop.Found)
+        return *(APawn**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+APlayerCameraManager* APlayerController::PlayerCameraManager() {
+    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "PlayerCameraManager");
+    if (this && Prop.Found)
+        return *(APlayerCameraManager**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+float APlayerController::InputYawScale() {
+    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "InputYawScale");
+    if (this && Prop.Found)
+        return *(float*)((uintptr_t)this + Prop.Offset);
+    return 0.f;
+}
+float APlayerController::InputPitchScale() {
+    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "InputPitchScale");
+    if (this && Prop.Found)
+        return *(float*)((uintptr_t)this + Prop.Offset);
+    return 0.f;
+}
+void APlayerController::AddYawInput(float Val) {
+    static UFunction* Func = GetFunction("PlayerController", "AddYawInput");
+    struct {
+        float Val;
+    } params_AddYawInput{};
+
+    params_AddYawInput.Val = Val;
+
+    if (this && Func)
+        ProcessEvent(Func, &params_AddYawInput);
+}
+void APlayerController::AddPitchInput(float Val) {
+    static UFunction* Func = GetFunction("PlayerController", "AddPitchInput");
+    struct {
+        float Val;
+    } params_AddPitchInput{};
+
+    params_AddPitchInput.Val = Val;
+
+    if (this && Func)
+        ProcessEvent(Func, &params_AddPitchInput);
+}
+
+APlayerState* APawn::PlayerState() {
+    static PropertyInfo Prop = GetPropertyInfo("Pawn", "PlayerState");
+    if (this && Prop.Found)
+        return *(APlayerState**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+USkeletalMeshComponent* ACharacter::Mesh() {
+    static PropertyInfo Prop = GetPropertyInfo("Character", "Mesh");
+    if (this && Prop.Found)
+        return *(USkeletalMeshComponent**)((uintptr_t)this + Prop.Offset);
+    return nullptr;
+}
+
+FString APlayerState::GetPlayerName() {
+    static UFunction* Func = GetFunction("PlayerState", "GetPlayerName");
+    struct {
+        FString return_value;
+    } params_GetPlayerName{};
+
+    if (this && Func)
+        ProcessEvent(Func, &params_GetPlayerName);
+
+    return params_GetPlayerName.return_value;
+}
+
+// --- Public Functions ----------------------------------------------
+
+ULocalPlayer* GetLocalPlayer() {
     return GetEngine()->GameViewport()->GameInstance()->LocalPlayers()->GetByIndex(0);
 }
-class APlayerController* GetLocalController() {
+APlayerController* GetLocalController() {
     return GetLocalPlayer()->PlayerController();
 }
-class APawn* GetLocalPawn() {
+APawn* GetLocalPawn() {
     return GetLocalController()->AcknowledgedPawn();
 }
 
-class UEngine* GetEngine() {
+UEngine* GetEngine() {
     static UEngine* GEngine = nullptr;
     if (!GEngine) {
         for (int i = 0; i < UObject::Objects.Num(); i++) {
@@ -31,10 +376,10 @@ class UEngine* GetEngine() {
 
     return GEngine;
 }
-class UWorld* GetWorld() {
+UWorld* GetWorld() {
     return GetEngine()->GameViewport()->World();
 }
-class UCanvas* GetCanvas() {
+UCanvas* GetCanvas() {
     static UCanvas* GCanvas = nullptr;
     if (!GCanvas || !GCanvas->Class || !GCanvas->IsA(UCanvas::StaticClass())) {
         for (int i = 0; i < UObject::Objects.Num(); i++) {

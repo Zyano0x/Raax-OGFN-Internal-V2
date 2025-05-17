@@ -52,9 +52,11 @@ static uintptr_t PatternScanRangeBytes(uintptr_t StartAddress, uint64_t ScanSize
         }
     }
 
+#if CFG_DEBUGMEMORYOUTPUT
     if (WarnIfNotFound)
         LOG(LOG_WARN, "Failed to find pattern! (0x%p, 0x%p)", reinterpret_cast<void*>(StartAddress),
             reinterpret_cast<void*>(ScanSize));
+#endif
 
     return 0;
 }
@@ -120,10 +122,12 @@ static uintptr_t FindStringRefRange(StringType RefString, uint8_t* StartAddress,
         }
     }
 
+#if CFG_DEBUGMEMORYOUTPUT
     if constexpr (IsChar)
         LOG(LOG_WARN, "Failed to find string! (%s)", RefString);
     else if constexpr (IsWChar)
         LOG(LOG_WARN, "Failed to find string! (%S)", RefString);
+#endif
 
     return 0;
 }
@@ -153,7 +157,9 @@ static uint32_t FindMatchingValueOffset(const std::vector<std::pair<void*, T>>& 
             return Offset;
     }
 
+#if CFG_DEBUGMEMORYOUTPUT
     LOG(LOG_WARN, "Failed to find matching value offset!");
+#endif
     return 0;
 }
 

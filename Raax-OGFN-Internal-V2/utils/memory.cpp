@@ -1,29 +1,36 @@
 #include "memory.h"
 #include <intrin.h>
 
-PIMAGE_DOS_HEADER Memory::GetDosHeader(uintptr_t ModuleBase) {
+namespace Memory {
+
+PIMAGE_DOS_HEADER GetDosHeader(uintptr_t ModuleBase) {
     const PIMAGE_DOS_HEADER DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(ModuleBase);
     if (DosHeader->e_magic == IMAGE_DOS_SIGNATURE)
         return DosHeader;
 
+#if CFG_DEBUGMEMORYOUTPUT
     LOG(LOG_WARN, "Attempted to get DosHeader from invalid ModuleBase! (0x%p)", ModuleBase);
+#endif
     return nullptr;
 }
 
-PIMAGE_NT_HEADERS64 Memory::GetNtHeaders(uintptr_t ModuleBase) {
+PIMAGE_NT_HEADERS64 GetNtHeaders(uintptr_t ModuleBase) {
     const PIMAGE_DOS_HEADER DosHeader = GetDosHeader(ModuleBase);
     if (!DosHeader)
         return nullptr;
 
-    const PIMAGE_NT_HEADERS NtHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>((reinterpret_cast<uintptr_t>(DosHeader) + DosHeader->e_lfanew));
+    const PIMAGE_NT_HEADERS NtHeaders =
+        reinterpret_cast<PIMAGE_NT_HEADERS>((reinterpret_cast<uintptr_t>(DosHeader) + DosHeader->e_lfanew));
     if (NtHeaders->Signature == IMAGE_NT_SIGNATURE)
         return NtHeaders;
 
+#if CFG_DEBUGMEMORYOUTPUT
     LOG(LOG_WARN, "Attempted to get NtHeaders from invalid ModuleBase! (0x%p)", ModuleBase);
+#endif
     return nullptr;
 }
 
-PIMAGE_SECTION_HEADER Memory::GetSectionFromName(const char* Name, uintptr_t ModuleBase) {
+PIMAGE_SECTION_HEADER GetSectionFromName(const char* Name, uintptr_t ModuleBase) {
     const PIMAGE_NT_HEADERS NtHeaders = GetNtHeaders(ModuleBase);
     if (!NtHeaders)
         return nullptr;
@@ -35,34 +42,36 @@ PIMAGE_SECTION_HEADER Memory::GetSectionFromName(const char* Name, uintptr_t Mod
         Sect++;
     }
 
+#if CFG_DEBUGMEMORYOUTPUT
     LOG(LOG_WARN, "Failed to find section from name! (%s, 0x%p)", Name, ModuleBase);
+#endif
     return nullptr;
 }
 
-
-uint64_t Memory::GetModuleSize(uintptr_t ModuleBase) {
+uint64_t GetModuleSize(uintptr_t ModuleBase) {
     const PIMAGE_NT_HEADERS NtHeaders = GetNtHeaders(ModuleBase);
     return NtHeaders ? NtHeaders->OptionalHeader.SizeOfImage : 0;
 }
 
-bool Memory::IsAddressInsideModule(uintptr_t Address, uintptr_t ModuleBase) {
+bool IsAddressInsideModule(uintptr_t Address, uintptr_t ModuleBase) {
     return Address >= ModuleBase && Address <= ModuleBase + GetModuleSize(ModuleBase);
 }
 
-
-uintptr_t Memory::GetImageBase() {
+uintptr_t GetImageBase() {
     // Same as NtCurrentPeb()->ImageBaseAddress
     return *(uintptr_t*)(__readgsqword(0x60) + 0x10);
 }
 
-uint64_t Memory::GetImageSize() {
+uint64_t GetImageSize() {
     return GetModuleSize(GetImageBase());
 }
 
-PIMAGE_SECTION_HEADER Memory::GetImageTextSection() {
+PIMAGE_SECTION_HEADER GetImageTextSection() {
     return GetSectionFromName(".text", GetImageBase());
 }
 
-bool Memory::IsAddressInsideImage(uintptr_t Address) {
+bool IsAddressInsideImage(uintptr_t Address) {
     return IsAddressInsideModule(Address, GetImageBase());
 }
+
+} // namespace Memory

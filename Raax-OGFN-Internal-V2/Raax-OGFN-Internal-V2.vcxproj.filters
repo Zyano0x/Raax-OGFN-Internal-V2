@@ -19,7 +19,7 @@
     <ClCompile Include="gui\gui.cpp" />
     <ClCompile Include="gui\dx11\dx11.cpp" />
     <ClCompile Include="cheat\sdk\Engine.cpp" />
-    <ClCompile Include="drawing\drawing.cpp" />
+    <ClCompile Include="drawing\drawing_imgui.cpp" />
     <ClCompile Include="cheat\tick\playertick.cpp" />
     <ClCompile Include="cheat\drawtransition.cpp" />
     <ClCompile Include="config\config.cpp" />
@@ -43,6 +43,8 @@
     <ClCompile Include="extern\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="extern\imgui\imgui_tables.cpp" />
     <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="drawing\drawing_engine.cpp" />
+    <ClCompile Include="cheat\sdk\FortniteGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />

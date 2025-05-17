@@ -6,4 +6,4 @@ namespace Error {
 
 void ThrowError(const std::string& Msg);
 
-}
+} // namespace Error

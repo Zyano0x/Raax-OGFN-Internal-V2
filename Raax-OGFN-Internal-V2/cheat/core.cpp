@@ -71,6 +71,12 @@ void TickGameThread() {
 
     Features::Aimbot::TickGameThread();
     Features::TriggerBot::TickGameThread();
+
+    // For engine builds, render and game thread is merged since rendering happens at DrawTransition ticks, which is
+    // when TickGameThread is triggered
+#ifdef _ENGINE
+    TickRenderThread();
+#endif
 }
 
 void TickRenderThread() {

@@ -11,6 +11,7 @@ namespace SDK {
 // --- Unreal-Engine general offsets ---------------------------------
 
 bool SetupGObjects() {
+    // Two standard patterns for finding chunked and non-chunked GObjects.
     static const std::vector<std::pair<const std::string, const std::string>> Patterns = {
         {"Chunked", "48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1"}, {"Fixed", "48 8B 05 ? ? ? ? 48 8D 14 C8 EB 02"}};
 
@@ -72,20 +73,24 @@ bool SetupFNameToString() {
 bool SetupFNameConstructorW() {
     uintptr_t StringRef = Memory::FindStringRef(L"CanvasObject");
     if (StringRef) {
-        uintptr_t FNameConstructorW = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8", false, 1, true);
-        if (FNameConstructorW) {
-            FName::FNameConstructorW = reinterpret_cast<decltype(FName::FNameConstructorW)>(FNameConstructorW);
-            LOG(LOG_INFO, "Found FNameConstructorW offset: 0x%p",
-                reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameConstructorW) -
-                                        Memory::GetImageBase()));
-            return true;
-        }
+        Error::ThrowError("Failed to find FNameConstructorW: \"CanvasObject\" string");
+        return false;
     }
 
-    Error::ThrowError("Failed to find FNameConstructorW!");
-    return false;
+    uintptr_t FNameConstructorW = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8", false, 1, true);
+    if (!FNameConstructorW) {
+        Error::ThrowError("Failed to find FNameConstructorW: Call FNameConstructorW instruction");
+        return false;
+    }
+
+    FName::FNameConstructorW = reinterpret_cast<decltype(FName::FNameConstructorW)>(FNameConstructorW);
+    LOG(LOG_INFO, "Found FNameConstructorW offset: 0x%p",
+        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameConstructorW) - Memory::GetImageBase()));
+    return true;
 }
 bool SetupUKismetSystemLibraryLineTraceSingle() {
+    // Two patterns for LineTraceSingle. One supports older UE4 versions, and the other supports later UE4 versions and
+    // some UE5 versions.
     static const std::vector<std::pair<size_t, const std::string>> Patterns = {
         {151, "48 8B 43 20 48 8D 4D E0 0F 10 45 C0 44 0F B6 8D ? ? ? ? 48 85 C0 0F 10 4D D0 4C 8D 45 A0 40 0F 95 C7 66 "
               "0F 7F 45 ? 48 8D 55 B0 F2 0F 10 45 ? 48 03 F8 8B 45 88 F2 0F 11 45 ? F2 0F 10 45 ? 89 45 A8 8B 45 98 F2 "
@@ -200,7 +205,9 @@ bool Setup_UStruct_Children() {
     return false;
 }
 bool Setup_UStruct_ChildProperties() {
-    UStruct::ChildProperties_Offset = 0x50; // temp
+    UStruct::ChildProperties_Offset = 0x50; // Potentially unsafe to be hardcoded.
+    LOG(LOG_INFO, "Using potentially unsafe hardcoded UStruct::ChildProperties offset: 0x%X",
+        UStruct::ChildProperties_Offset);
     return true;
 }
 bool Setup_UField_Next() {
@@ -329,7 +336,7 @@ bool SetupEngineVersion() {
         EngineVersionStr.ToString().c_str());
     return true;
 }
-bool SetupDrawTransition() { // actually drawtransition but fake lier liar
+bool SetupDrawTransition() {
     void**       VTable = UObject::FindObjectFast("Default__GameViewportClient")->VTable;
     PropertyInfo GameInstanceProp = UObject::GetPropertyInfo("GameViewportClient", "GameInstance");
     int          bSuppressTransitionMessage = GameInstanceProp.Offset + sizeof(void*);
@@ -401,8 +408,7 @@ bool SetupLevelActors() {
 
     if (Info.Found) {
         for (int i = 0x70; i < Info.Offset; i += 8) {
-            // We will check if the address is a valid TArray<AActor*>
-            // by checking if the Max() is greater than Num()
+            // We will check if the address is a valid TArray<AActor*> by checking if the Max() is greater than Num()
             // and if the pointer to the data is valid.
             TArray<AActor*>* Actors = reinterpret_cast<TArray<AActor*>*>((uintptr_t)Level + i);
             if (!Actors->IsValid())
