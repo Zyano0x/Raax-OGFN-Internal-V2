@@ -351,6 +351,9 @@ void VisualsTab() {
 
             ImGui::Checkbox("Ammo Box Text", &Config.Loot.AmmoBoxText);
             ImGui::SliderFloat("Ammo Box Max Distance", &Config.Loot.AmmoBoxMaxDistance, 1.f, 500.f);
+
+            ImGui::Checkbox("Supply Drop Text", &Config.Loot.SupplyDropText);
+            ImGui::SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 500.f);
             break;
         }
     }
@@ -417,6 +420,7 @@ void MiscTab() {
         GUI::Keybind("Menu Keybind", WaitingForKeybind, (ImGuiKey&)Config::g_Config.MenuKeybind);
 
         ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
+        ImGui::Text("NotTacs was here.");
         ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
     }
     ImGui::EndChild();

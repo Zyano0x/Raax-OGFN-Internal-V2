@@ -296,6 +296,7 @@ inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level =
             OutVector.push_back(static_cast<UEType*>(Actor));
     }
 }
+
 template <typename UEType = AActor, bool ClearVector = true>
 inline void GetAllActorsOfClassAllLevels(std::vector<UEType*>& OutVector) {
     if constexpr (ClearVector)

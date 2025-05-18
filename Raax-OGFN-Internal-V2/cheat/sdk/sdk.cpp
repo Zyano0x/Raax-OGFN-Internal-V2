@@ -72,7 +72,7 @@ bool SetupFNameToString() {
 }
 bool SetupFNameConstructorW() {
     uintptr_t StringRef = Memory::FindStringRef(L"CanvasObject");
-    if (StringRef) {
+    if (!StringRef) {
         Error::ThrowError("Failed to find FNameConstructorW: \"CanvasObject\" string");
         return false;
     }
@@ -124,7 +124,9 @@ bool SetupUnrealGeneralOffsets() {
 // --- Unreal-Engine struct/class offsets ----------------------------
 
 bool Setup_UProperty_Offset_Internal() {
-    UProperty::Offset_Internal_Offset = 0x44;
+    /*temporary*/
+    static bool bUnrealVersionHigherThan23 = false;
+    UProperty::Offset_Internal_Offset = bUnrealVersionHigherThan23 ? 0x4C : 0x44;
     LOG(LOG_INFO, "Using hardcoded UProperty::Offset_Internal offset: 0x%X", UProperty::Offset_Internal_Offset);
     return true;
 }

@@ -70,6 +70,9 @@ struct ConfigData {
 
             bool  AmmoBoxText = false;
             float AmmoBoxMaxDistance = 300.f;
+
+            bool SupplyDropText = false;
+            float SupplyDropMaxDistance = 300.f;
         } Loot;
     } Visuals;
 

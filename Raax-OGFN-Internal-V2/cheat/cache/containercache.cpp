@@ -8,6 +8,7 @@ namespace Container {
 // --- Cache Data ----------------------------------------------------
 
 std::unordered_map<void*, ContainerInfo> CachedContainers;
+std::unordered_map<void*, GameplayActorInfo> CachedGameplayActors;
 
 // --- Cache Utility Functions ---------------------------------------
 
@@ -21,8 +22,26 @@ ContainerInfo CreateNewContainerInfo(SDK::ABuildingContainer* Container, Contain
     return Info;
 }
 
+GameplayActorInfo CreateNewGameplayActorInfo(SDK::AActor* GameplayActor, GameplayActorType Type)
+{
+    GameplayActorInfo Info;
+    Info.GameplayActor = GameplayActor;
+    Info.RootWorldLocation = GameplayActor->RootComponent()->RelativeLocation();
+    Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
+    Info.Type = Type;
+    Info.SeenThisFrame = true;
+    return Info;
+}
+
 void UpdateExistingContainerInfo(ContainerInfo& Info, SDK::ABuildingContainer* Container) {
     Info.RootWorldLocation = Container->RootComponent()->RelativeLocation();
+    Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
+    Info.SeenThisFrame = true;
+}
+
+void UpdateExistingGameplayActorInfo(GameplayActorInfo& Info, SDK::AActor* GameplayActor)
+{
+    Info.RootWorldLocation = GameplayActor->RootComponent()->RelativeLocation();
     Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
     Info.SeenThisFrame = true;
 }
@@ -31,10 +50,18 @@ void ResetContainerSeenFlags() {
     for (auto& [_, Cache] : CachedContainers) {
         Cache.SeenThisFrame = false;
     }
+    for (auto& [_, Cache] : CachedGameplayActors) {
+        Cache.SeenThisFrame = false;
+    }
 }
 
 void RemoveUnseenContainers() {
     std::erase_if(CachedContainers, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
+}
+
+void RemoveUnseenGameplayActors()
+{
+    std::erase_if(CachedGameplayActors, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
 }
 
 template <typename T> void CacheContainersOfType(std::vector<T*>& ContainerList, ContainerType Type) {
@@ -45,6 +72,24 @@ template <typename T> void CacheContainersOfType(std::vector<T*>& ContainerList,
             CachedContainers[Container] = CreateNewContainerInfo(Container, Type);
         } else {
             UpdateExistingContainerInfo(It->second, Container);
+        }
+    }
+}
+
+template <typename T>
+void CacheGameplayActorsOfType(std::vector<T*> GameplayActorList, GameplayActorType Type)
+{
+    SDK::GetAllActorsOfClassAllLevels<T>(GameplayActorList);
+    for (const auto& GameplayActor : GameplayActorList)
+    {
+        auto It = CachedGameplayActors.find(GameplayActor);
+        if (It == CachedGameplayActors.end())
+        {
+            CachedGameplayActors[GameplayActor] = CreateNewGameplayActorInfo(GameplayActor, Type);
+        }
+        else
+        {
+            UpdateExistingGameplayActorInfo(It->second, GameplayActor);
         }
     }
 }
@@ -76,13 +121,20 @@ const std::unordered_map<void*, ContainerInfo>& GetCachedContainers() {
     return CachedContainers;
 }
 
+const std::unordered_map<void*, GameplayActorInfo>& GetCachedGameplayActors() {
+    return CachedGameplayActors;
+}
+
 void UpdateCache() {
     ResetContainerSeenFlags();
+    //Reset
 
     // For some reason, the ammo box class is loaded once you get in game (tested on 14.40)
     // To fix performance issues we only check if the class is loaded every 5 seconds
     if (!CheckIfStaticClassIsLoaded<SDK::ATiered_Chest_Athena_C>(5.f) ||
-        !CheckIfStaticClassIsLoaded<SDK::ATiered_Ammo_Athena_C>(5.f)) {
+        !CheckIfStaticClassIsLoaded<SDK::ATiered_Ammo_Athena_C>(5.f) || 
+        !CheckIfStaticClassIsLoaded<SDK::AFortAthenaSupplyDrop>(5.f) ||  
+        !CheckIfStaticClassIsLoaded<SDK::AFortAthenaSupplyDropBalloon>(5.f)) {
         return;
     }
 
@@ -96,8 +148,16 @@ void UpdateCache() {
         static std::vector<SDK::ATiered_Ammo_Athena_C*> AmmoBoxList;
         CacheContainersOfType<SDK::ATiered_Ammo_Athena_C>(AmmoBoxList, ContainerType::AmmoBox);
     }
+    if (Config.SupplyDropText)
+    {
+        static std::vector<SDK::AFortAthenaSupplyDrop*> SupplyDropList;
+        CacheGameplayActorsOfType<SDK::AFortAthenaSupplyDrop>(SupplyDropList, GameplayActorType::SupplyDrop);
+        static std::vector<SDK::AFortAthenaSupplyDropBalloon*> SupplyDropList2;
+        CacheGameplayActorsOfType<SDK::AFortAthenaSupplyDropBalloon>(SupplyDropList2, GameplayActorType::SupplyDrop);
+    }
 
     RemoveUnseenContainers();
+    RemoveUnseenGameplayActors();
 }
 
 } // namespace Container
