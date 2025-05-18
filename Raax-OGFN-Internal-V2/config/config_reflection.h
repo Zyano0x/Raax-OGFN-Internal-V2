@@ -49,12 +49,21 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::Ra
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::LootConfig>() {
     using T = Config::ConfigData::VisualsConfig::LootConfig;
     return std::make_tuple(MemberDescriptor<T, bool>{"LootText", &T::LootText, {}},
+                           MemberDescriptor<T, bool>{"LootFadeOff", &T::LootFadeOff, {}},
                            MemberDescriptor<T, float>{"LootMaxDistance", &T::LootMaxDistance, {}},
-                           MemberDescriptor<T, Config::ConfigData::Tier>{"MinLootTier", &T::MinLootTier, {}},
+                           MemberDescriptor<T, Config::ConfigData::Tier>{"LootMinTier", &T::LootMinTier, {}},
                            MemberDescriptor<T, bool>{"ChestText", &T::ChestText, {}},
+                           MemberDescriptor<T, bool>{"ChestFadeOff", &T::ChestFadeOff, {}},
                            MemberDescriptor<T, float>{"ChestMaxDistance", &T::ChestMaxDistance, {}},
                            MemberDescriptor<T, bool>{"AmmoBoxText", &T::AmmoBoxText, {}},
-                           MemberDescriptor<T, float>{"AmmoBoxMaxDistance", &T::AmmoBoxMaxDistance, {}});
+                           MemberDescriptor<T, bool>{"AmmoBoxFadeOff", &T::AmmoBoxFadeOff, {}},
+                           MemberDescriptor<T, float>{"AmmoBoxMaxDistance", &T::AmmoBoxMaxDistance, {}},
+                           MemberDescriptor<T, bool>{"SupplyDropText", &T::SupplyDropText, {}},
+                           MemberDescriptor<T, bool>{"SupplyDropFadeOff", &T::SupplyDropFadeOff, {}},
+                           MemberDescriptor<T, float>{"SupplyDropMaxDistance", &T::SupplyDropMaxDistance, {}},
+                           MemberDescriptor<T, bool>{"LlamaText", &T::LlamaText, {}},
+                           MemberDescriptor<T, bool>{"LlamaFadeOff", &T::LlamaFadeOff, {}},
+                           MemberDescriptor<T, float>{"LlamaMaxDistance", &T::LlamaMaxDistance, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig>() {

@@ -56,11 +56,11 @@ void TickRenderThread() {
         return;
 
     float MaxDist = LootConfig.LootMaxDistance;
-    float FadeStart = MaxDist * 0.2f;
+    float FadeStart = LootConfig.LootFadeOff ? MaxDist * 0.2f : FLT_MAX;
 
     for (const auto& [_, Info] : Cache::Pickup::GetCachedPickups()) {
         // If the tier enum changes this check will break, but it doesnt change afaik so idc
-        if (static_cast<int>(Info.Tier) < static_cast<int>(LootConfig.MinLootTier) + 1)
+        if (static_cast<int>(Info.Tier) < static_cast<int>(LootConfig.LootMinTier) + 1)
             continue;
 
         float DistM = Info.RootWorldLocation.Dist(Core::g_CameraLocation) / 100.f;

@@ -62,17 +62,25 @@ struct ConfigData {
 
         struct LootConfig {
             bool  LootText = false;
+            bool  LootFadeOff = true;
             float LootMaxDistance = 300.f;
-            Tier  MinLootTier = Tier::Epic;
+            Tier  LootMinTier = Tier::Epic;
 
             bool  ChestText = false;
+            bool  ChestFadeOff = true;
             float ChestMaxDistance = 300.f;
 
             bool  AmmoBoxText = false;
+            bool  AmmoBoxFadeOff = true;
             float AmmoBoxMaxDistance = 300.f;
 
-            bool SupplyDropText = false;
-            float SupplyDropMaxDistance = 300.f;
+            bool  SupplyDropText = false;
+            bool  SupplyDropFadeOff = false;
+            float SupplyDropMaxDistance = 1000.f;
+
+            bool  LlamaText = false;
+            bool  LlamaFadeOff = false;
+            float LlamaMaxDistance = 1000.f;
         } Loot;
     } Visuals;
 

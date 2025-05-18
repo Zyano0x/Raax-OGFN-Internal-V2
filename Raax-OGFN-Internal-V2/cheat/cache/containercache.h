@@ -18,22 +18,22 @@ struct ContainerInfo {
     bool                     SeenThisFrame = false;
 };
 
-enum class GameplayActorType {Llama, SupplyDrop};
+enum class GameplayActorType { Llama, SupplyDrop };
 
-struct GameplayActorInfo
-{
-    SDK::AActor* GameplayActor = nullptr;
-    SDK::FVector RootWorldLocation;
-    SDK::FVector2D RootScreenLocation;
+struct GameplayActorInfo {
+    SDK::AActor*      GameplayActor = nullptr;
+    SDK::FVector      RootWorldLocation;
+    SDK::FVector2D    RootScreenLocation;
     GameplayActorType Type = GameplayActorType::SupplyDrop;
     bool              SeenThisFrame = false;
 };
 
 // --- Public Cache Functions ----------------------------------------
 
-const std::unordered_map<void*, ContainerInfo>& GetCachedContainers();
+const std::unordered_map<void*, ContainerInfo>&     GetCachedContainers();
 const std::unordered_map<void*, GameplayActorInfo>& GetCachedGameplayActors();
-void UpdateCache();
+
+void                                                UpdateCache();
 
 } // namespace Container
 } // namespace Cache

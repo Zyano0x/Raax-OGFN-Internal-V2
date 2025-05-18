@@ -69,22 +69,19 @@ class ATiered_Ammo_Athena_C : public ABuildingContainer {
     STATICCLASS_DEFAULTOBJECT("Tiered_Ammo_Athena_C", ATiered_Ammo_Athena_C)
 };
 
-class AFortAthenaSupplyDrop : public AActor
-{
+class AFortAthenaSupplyDrop : public AActor {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortAthenaSupplyDrop", AFortAthenaSupplyDrop);
+    STATICCLASS_DEFAULTOBJECT("FortAthenaSupplyDrop", AFortAthenaSupplyDrop)
 };
 
-class AFortAthenaSupplyDropBalloon : public AActor
-{
-    public:
-       STATICCLASS_DEFAULTOBJECT("FortAthenaSupplyDropBalloon", AFortAthenaSupplyDropBalloon);
+class AAthenaSupplyDrop_C : public AFortAthenaSupplyDrop {
+  public:
+    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_C", AAthenaSupplyDrop_C)
 };
 
-class AAthenaSupplyDrop_Llama : public AActor
-{
-    public:
-    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_Llama", AAthenaSupplyDrop_Llama);
+class AAthenaSupplyDrop_Llama_C : public AFortAthenaSupplyDrop {
+  public:
+    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_Llama_C", AAthenaSupplyDrop_Llama_C)
 };
 
 class AFortPickup : public AActor {

@@ -342,18 +342,26 @@ void VisualsTab() {
         }
         case WindowSubTab::Loot:
             ImGui::Checkbox("Loot Text", &Config.Loot.LootText);
-            ImGui::SliderFloat("Loot Max Distance", &Config.Loot.LootMaxDistance, 1.f, 500.f);
-            ImGui::Combo("Minimum Loot Tier", (int*)&Config.Loot.MinLootTier,
+            ImGui::Checkbox("Loot Fade Off", &Config.Loot.LootFadeOff);
+            ImGui::SliderFloat("Loot Max Distance", &Config.Loot.LootMaxDistance, 1.f, 1000.f);
+            ImGui::Combo("Loot Minimum Tier", (int*)&Config.Loot.LootMinTier,
                          "Common\000Uncommon\000Rare\000Epic\000Legendary\000Mythic");
 
             ImGui::Checkbox("Chest Text", &Config.Loot.ChestText);
-            ImGui::SliderFloat("Chest Max Distance", &Config.Loot.ChestMaxDistance, 1.f, 500.f);
+            ImGui::Checkbox("Chest Fade Off", &Config.Loot.ChestFadeOff);
+            ImGui::SliderFloat("Chest Max Distance", &Config.Loot.ChestMaxDistance, 1.f, 1000.f);
 
             ImGui::Checkbox("Ammo Box Text", &Config.Loot.AmmoBoxText);
-            ImGui::SliderFloat("Ammo Box Max Distance", &Config.Loot.AmmoBoxMaxDistance, 1.f, 500.f);
+            ImGui::Checkbox("Ammo Box Fade Off", &Config.Loot.AmmoBoxFadeOff);
+            ImGui::SliderFloat("Ammo Box Max Distance", &Config.Loot.AmmoBoxMaxDistance, 1.f, 1000.f);
 
             ImGui::Checkbox("Supply Drop Text", &Config.Loot.SupplyDropText);
-            ImGui::SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 500.f);
+            ImGui::Checkbox("Supply Drop Fade Off", &Config.Loot.SupplyDropFadeOff);
+            ImGui::SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 1000.f);
+
+            ImGui::Checkbox("Llama Text", &Config.Loot.LlamaText);
+            ImGui::Checkbox("Llama Fade Off", &Config.Loot.LlamaFadeOff);
+            ImGui::SliderFloat("Llama Max Distance", &Config.Loot.LlamaMaxDistance, 1.f, 1000.f);
             break;
         }
     }
@@ -420,8 +428,8 @@ void MiscTab() {
         GUI::Keybind("Menu Keybind", WaitingForKeybind, (ImGuiKey&)Config::g_Config.MenuKeybind);
 
         ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
-        ImGui::Text("NotTacs was here.");
-        ImGui::Text("discord.gg/Sde5mtbQe6 - github.com/raax7");
+        ImGui::Text("Made by: Raax, Toxy & NotTacs");
+        ImGui::Text("2ly.link/26uAo - github.com/raax7");
     }
     ImGui::EndChild();
 }
