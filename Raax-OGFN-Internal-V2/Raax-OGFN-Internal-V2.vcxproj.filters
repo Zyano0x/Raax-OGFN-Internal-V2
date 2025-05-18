@@ -45,6 +45,7 @@
     <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
     <ClCompile Include="drawing\drawing_engine.cpp" />
     <ClCompile Include="cheat\sdk\FortniteGame.cpp" />
+    <ClCompile Include="cheat\tick\exploittick.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />
@@ -102,6 +103,7 @@
     <ClInclude Include="extern\imgui\imstb_truetype.h" />
     <ClInclude Include="extern\raaxgui\raaxgui_impl.h" />
     <ClInclude Include="extern\raaxgui\raaxgui.h" />
+    <ClInclude Include="cheat\tick\exploittick.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

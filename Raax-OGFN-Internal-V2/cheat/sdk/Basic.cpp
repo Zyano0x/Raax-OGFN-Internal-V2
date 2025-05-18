@@ -2,7 +2,10 @@
 #include "Engine.h"
 #include "Containers.h"
 
+#include "sdk.h"
 #include <utils/math.h>
+
+
 
 namespace SDK {
 
@@ -47,17 +50,22 @@ std::string FName::ToString() const {
     return FStr.ToString();
 }
 
-wchar_t* FText::Get() const {
-    if (this && Data)
-        return Data->Name;
 
-    return nullptr;
-}
 std::string FText::ToString() const {
-    wchar_t* Text = Get();
-    if (Text) {
-        std::wstring Temp(Text);
-        return std::string(Temp.begin(), Temp.end());
+    if (!Data)
+        return "";
+
+    if (SDK::g_EngineVersion >= 5.f) {
+        FString* Text = (FString*)((uint64_t)Data + 0x30);
+        if (Text->IsValid()) {
+            return Text->ToString();
+        }
+    } else {
+        wchar_t* Text = *(wchar_t**)((uint64_t)Data + 0x28);
+        if (Text) {
+            std::wstring Temp(Text);
+            return std::string(Temp.begin(), Temp.end());
+        }
     }
 
     return "";

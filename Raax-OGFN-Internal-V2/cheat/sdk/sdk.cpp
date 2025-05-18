@@ -546,8 +546,8 @@ void FindComponentToWorldOffset() {
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
                   SetupLevelActors() && SetupComponentSpaceTransformsArray();
-    if (Result)
-        FindComponentToWorldOffset();
+    /* if (Result)
+       FindComponentToWorldOffset();*/
 
     uint64_t EditModeInputComponent0 = 0;
     if (SetupEditModeInputComponent0Offset(EditModeInputComponent0)) {

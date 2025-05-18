@@ -38,20 +38,12 @@ class FName {
     void operator=(const char* Name);
 };
 
-class FTextData {
-  public:
-    uint8_t  Pad[0x28];
-    wchar_t* Name;
-    int32_t  Length;
-};
-
 class FText {
   private:
-    FTextData* Data;
+    void* Data;
     uint8_t    Pad[0x10];
 
   public:
-    wchar_t*    Get() const;
     std::string ToString() const;
 };
 

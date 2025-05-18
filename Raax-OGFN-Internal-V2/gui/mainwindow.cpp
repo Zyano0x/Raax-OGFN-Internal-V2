@@ -369,8 +369,12 @@ void VisualsTab() {
 }
 
 void ExploitsTab() {
+    auto& Config = Config::g_Config.ExploitsConfig;
     if (ImGui::BeginChild("ConfigRegion")) {
-        ImGui::Text("Nothing here yet...");
+        ImGui::Checkbox("Rapid Fire", &Config.RapidFire);
+        ImGui::Checkbox("Make Every Gun Automatic", &Config.MakeEveryWeaponAutomatic);
+        ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
+        ImGui::Checkbox("No Spread", &Config.NoSpread);
     }
     ImGui::EndChild();
 }

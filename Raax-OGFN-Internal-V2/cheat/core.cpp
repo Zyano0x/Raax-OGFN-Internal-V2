@@ -7,6 +7,7 @@
 #include <cheat/tick/playertick.h>
 #include <cheat/tick/containertick.h>
 #include <cheat/tick/pickuptick.h>
+#include <cheat/tick/exploittick.h>
 #include <cheat/features/weaponutils.h>
 #include <cheat/features/radar.h>
 #include <cheat/features/aimbot.h>
@@ -66,6 +67,7 @@ void TickGameThread() {
     Tick::Container::TickGameThread();
     Tick::Pickup::TickGameThread();
     Tick::Player::TickGameThread();
+    Tick::Exploits::TickGameThread();
 
     Features::WeaponUtils::TickGameThread();
 

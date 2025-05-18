@@ -212,6 +212,14 @@ FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) {
     return {};
 }
 
+void USkeletalMeshComponent::Set_LastPoseTickFrame(uint32_t Value)
+{
+    static PropertyInfo Prop = GetPropertyInfo("SkeletalMeshComponent", "LastPoseTickFrame");
+    if (this && Prop.Found)
+        *(uint32_t*)((uintptr_t)this + Prop.Offset) = Value;
+    return;
+}
+
 USceneComponent* AActor::RootComponent() {
     static PropertyInfo Prop = GetPropertyInfo("Actor", "RootComponent");
     if (this && Prop.Found)

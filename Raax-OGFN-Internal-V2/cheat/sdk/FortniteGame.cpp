@@ -24,6 +24,13 @@ AFortWeapon* AFortPawn::CurrentWeapon() {
     return nullptr;
 }
 
+void AFortPlayerPawnAthena::Set_ReviveFromDBNOTime(float Value) {
+    static PropertyInfo Prop = GetPropertyInfo("FortPlayerPawnAthena", "ReviveFromDBNOTime");
+    if (this && Prop.Found)
+        *(float*)((uintptr_t)this + Prop.Offset) = Value;
+    return;
+}
+
 FString AFortPlayerState::Platform() {
     static PropertyInfo Prop = GetPropertyInfo("FortPlayerState", "Platform");
     if (this && Prop.Found)
@@ -77,6 +84,41 @@ int32_t AFortWeapon::GetBulletsPerClip() {
         ProcessEvent(Func, &params_GetBulletsPerClip);
 
     return params_GetBulletsPerClip.ReturnValue;
+}
+
+float AFortWeapon::LastFireTime() {
+    static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "LastFireTime");
+
+    if (this && Prop.Found)
+        return *(float*)(uint64_t(this) + Prop.Offset);
+
+    return 0.f;
+}
+
+float AFortWeapon::LastFireTimeVerified() {
+    static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "LastFireTimeVerified");
+
+    if (this && Prop.Found)
+        return *(float*)(uint64_t(this) + Prop.Offset);
+    return 0.f;
+}
+
+void AFortWeapon::Set_LastFireTime(float Value) {
+    static PropertyInfo Prop = GetPropertyInfo("FortWeapon", "LastFireTime");
+
+    if (this && Prop.Found)
+        (*(float*)(uint64_t(this) + Prop.Offset) = Value);
+
+    return;
+}
+
+void AFortWeapon::Set_CustomTimeDilation(float Value) {
+    static PropertyInfo Prop = GetPropertyInfo("Actor", "CustomTimeDilation");
+
+    if (this && Prop.Found)
+        (*(float*)(uint64_t(this) + Prop.Offset) = Value);
+
+    return;
 }
 
 float AFortProjectileBase::GravityScale() {
@@ -140,6 +182,13 @@ UFortWeaponItemDefinition* UFortWeaponItemDefinition::AmmoData() {
     return nullptr;
 }
 
+void UFortWeaponItemDefinition::SetTriggerType(EFortWeaponTriggerType TriggerType) {
+    static PropertyInfo Prop = GetPropertyInfo("FortWeaponItemDefinition", "TriggerType");
+    if (this && Prop.Found) {
+        *(EFortWeaponTriggerType*)(uint64_t(this) + Prop.Offset) = TriggerType;
+    }
+    return;
+}
 UClass* UFortWeaponRangedItemDefinition::ProjectileTemplate() {
     static PropertyInfo Prop = GetPropertyInfo("FortWeaponRangedItemDefinition", "ProjectileTemplate");
     if (this && Prop.Found) {

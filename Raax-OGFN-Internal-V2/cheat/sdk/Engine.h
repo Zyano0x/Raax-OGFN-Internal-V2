@@ -186,6 +186,7 @@ class USkeletalMeshComponent : public USkinnedMeshComponent {
   public:
     FTransform GetBoneMatrix(int32_t BoneIndex);
     FVector    GetBoneLocation(int32_t BoneIndex);
+    void       Set_LastPoseTickFrame(uint32_t Value);
 
   public:
     STATICCLASS_DEFAULTOBJECT("SkeletalMeshComponent", USkeletalMeshComponent)

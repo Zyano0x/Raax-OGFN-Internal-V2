@@ -189,6 +189,7 @@
     <ClCompile Include="cheat\features\weaponutils.cpp" />
     <ClCompile Include="cheat\sdk\FortniteGame.cpp" />
     <ClCompile Include="cheat\tick\containertick.cpp" />
+    <ClCompile Include="cheat\tick\exploittick.cpp" />
     <ClCompile Include="cheat\tick\pickuptick.cpp" />
     <ClCompile Include="cheat\tick\playertick.cpp" />
     <ClCompile Include="cheat\drawtransition.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="cheat\features\triggerbot.h" />
     <ClInclude Include="cheat\features\weaponutils.h" />
     <ClInclude Include="cheat\tick\containertick.h" />
+    <ClInclude Include="cheat\tick\exploittick.h" />
     <ClInclude Include="cheat\tick\pickuptick.h" />
     <ClInclude Include="cheat\tick\playertick.h" />
     <ClInclude Include="cheat\drawtransition.h" />

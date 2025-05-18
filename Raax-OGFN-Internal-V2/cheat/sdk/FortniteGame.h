@@ -43,6 +43,22 @@ class AFortPawn : public ACharacter {
     STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn)
 };
 
+class AFortPlayerPawn : public AFortPawn
+{
+  public:
+
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortPlayerPawn", AFortPlayerPawn);
+};
+
+class AFortPlayerPawnAthena : public AFortPlayerPawn
+{
+  public:
+    void Set_ReviveFromDBNOTime(float Value);
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortPlayerPawnAthena", AFortPlayerPawnAthena);
+};
+
 class AFortPlayerState : public APlayerState {
   public:
     FString Platform();
@@ -98,6 +114,10 @@ class AFortWeapon : public AActor {
     class UFortWeaponItemDefinition* WeaponData();
     int32_t                          AmmoCount();
     int32_t                          GetBulletsPerClip();
+    float                            LastFireTime();
+    float                            LastFireTimeVerified();
+    void                             Set_LastFireTime(float NewLastFireTime);
+    void                             Set_CustomTimeDilation(float Value);
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon)
@@ -130,9 +150,18 @@ class UFortItemDefinition : public UObject {
     STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition)
 };
 
+enum class EFortWeaponTriggerType : uint8_t {
+    OnPress = 0,
+    Automatic = 1,
+    OnRelease = 2,
+    OnPressAndRelease = 3,
+    EFortWeaponTriggerType_MAX = 4,
+};
+
 class UFortWeaponItemDefinition : public UFortItemDefinition {
   public:
     UFortWeaponItemDefinition* AmmoData();
+    void                       SetTriggerType(EFortWeaponTriggerType TriggerType);
 
   public:
     STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition)

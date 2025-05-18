@@ -82,6 +82,8 @@ struct ConfigData {
             bool  LlamaFadeOff = false;
             float LlamaMaxDistance = 1000.f;
         } Loot;
+
+
     } Visuals;
 
     struct AimbotConfig {
@@ -209,6 +211,13 @@ struct ConfigData {
         SDK::FLinearColor SecondaryColorVisible = SDK::FLinearColor(0.f, 0.47f, 1.f, 1.f);
         SDK::FLinearColor SecondaryColorHidden = SDK::FLinearColor(0.f, 0.17f, 0.34f, 1.f);
     } Color;
+
+    struct ExploitConfig {
+        bool RapidFire = false;
+        bool MakeEveryWeaponAutomatic = false;
+        bool InstantRevive = false;
+        bool NoSpread = false;
+    } ExploitsConfig;
 
     int MenuKeybind = ImGuiKey_Insert;
 
