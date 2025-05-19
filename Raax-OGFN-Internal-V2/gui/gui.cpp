@@ -11,7 +11,9 @@
 #include <utils/log.h>
 #include <gui/mainwindow.h>
 
+#ifndef _ENGINE
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 namespace GUI {
 
@@ -19,16 +21,23 @@ namespace GUI {
 
 bool Init() {
     LOG(LOG_TRACE, "Setting up GUI...");
+#ifndef _ENGINE
     return DX11::Init();
+#else
+    return true;
+#endif
 }
 
 void Destroy() {
     LOG(LOG_TRACE, "Destroying GUI...");
-    return DX11::Destroy();
+#ifndef _ENGINE
+    DX11::Destroy();
+#endif
 }
 
 // --- ImGui Utility Functions ---------------------------------------
 
+#ifndef _ENGINE
 ImGuiKey GetLastReleasedKey() {
     for (int i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; i++) {
         if (ImGui::IsKeyReleased((ImGuiKey)i))
@@ -37,8 +46,10 @@ ImGuiKey GetLastReleasedKey() {
 
     return ImGuiKey_None;
 }
+#endif
 
 void Keybind(const char* Str, bool& WaitingForKeybind, ImGuiKey& OutKeybind) {
+#ifndef _ENGINE
     std::string KeybindStr = Str;
     KeybindStr += ": ";
     KeybindStr += ImGui::GetKeyName(OutKeybind);
@@ -55,18 +66,21 @@ void Keybind(const char* Str, bool& WaitingForKeybind, ImGuiKey& OutKeybind) {
         }
     }
     WaitingForKeybind |= Result;
+#endif
 }
 
 // --- Hook Functions ------------------------------------------------
 
 LRESULT __stdcall h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     if (g_SetupImGui) {
+#ifndef _ENGINE
         // Still prevents any clashing issues with ImGui render thread and game thread collisions whilst also fixing
         // dead lock issues on some older seasons (tested on 7.40)
         {
             std::lock_guard<std::recursive_mutex> lock(g_WndProcMutex);
             ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
         }
+#endif
 
         if (MainWindow::g_WindowOpen) {
             // Just copied straight from ImGui. Replace later, cba now.

@@ -7,13 +7,15 @@
 #include <cheat/tick/playertick.h>
 #include <cheat/tick/containertick.h>
 #include <cheat/tick/pickuptick.h>
-#include <cheat/tick/exploittick.h>
 #include <cheat/features/weaponutils.h>
 #include <cheat/features/radar.h>
 #include <cheat/features/aimbot.h>
 #include <cheat/features/triggerbot.h>
+#include <cheat/features/exploits.h>
+#include <drawing/drawing.h>
 #include <config/keybind.h>
 #include <globals.h>
+#include <gui/mainwindow.h>
 #include <gui/gui.h>
 #include <utils/log.h>
 #include <utils/math.h>
@@ -67,12 +69,13 @@ void TickGameThread() {
     Tick::Container::TickGameThread();
     Tick::Pickup::TickGameThread();
     Tick::Player::TickGameThread();
-    Tick::Exploits::TickGameThread();
 
     Features::WeaponUtils::TickGameThread();
 
     Features::Aimbot::TickGameThread();
     Features::TriggerBot::TickGameThread();
+
+    Features::Exploits::TickGameThread();
 
     // For engine builds, render and game thread is merged since rendering happens at DrawTransition ticks, which is
     // when TickGameThread is triggered
@@ -82,6 +85,15 @@ void TickGameThread() {
 }
 
 void TickRenderThread() {
+#ifdef _ENGINE
+    static bool Init = false;
+    if (!Init) {
+        Drawing::Init();
+        Init = true;
+    }
+#endif
+    Drawing::Tick();
+
     Tick::Container::TickRenderThread();
     Tick::Pickup::TickRenderThread();
     Tick::Player::TickRenderThread();
@@ -91,6 +103,8 @@ void TickRenderThread() {
     Features::TriggerBot::TickRenderThread();
 
     Keybind::Tick();
+
+    GUI::MainWindow::Tick();
 }
 
 // --- Global Variables ----------------------------------------------

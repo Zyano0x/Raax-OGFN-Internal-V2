@@ -10,6 +10,7 @@
 namespace GUI {
 namespace MainWindow {
 
+#ifndef _ENGINE
 // --- Keybind UI Functions ------------------------------------------
 
 template <typename T>
@@ -357,11 +358,11 @@ void VisualsTab() {
 
             ImGui::Checkbox("Supply Drop Text", &Config.Loot.SupplyDropText);
             ImGui::Checkbox("Supply Drop Fade Off", &Config.Loot.SupplyDropFadeOff);
-            ImGui::SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 1000.f);
+            ImGui::SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 2500.f);
 
             ImGui::Checkbox("Llama Text", &Config.Loot.LlamaText);
             ImGui::Checkbox("Llama Fade Off", &Config.Loot.LlamaFadeOff);
-            ImGui::SliderFloat("Llama Max Distance", &Config.Loot.LlamaMaxDistance, 1.f, 1000.f);
+            ImGui::SliderFloat("Llama Max Distance", &Config.Loot.LlamaMaxDistance, 1.f, 2500.f);
             break;
         }
     }
@@ -369,12 +370,13 @@ void VisualsTab() {
 }
 
 void ExploitsTab() {
-    auto& Config = Config::g_Config.ExploitsConfig;
+    auto& Config = Config::g_Config.Exploit;
+
     if (ImGui::BeginChild("ConfigRegion")) {
         ImGui::Checkbox("Rapid Fire", &Config.RapidFire);
-        ImGui::Checkbox("Make Every Gun Automatic", &Config.MakeEveryWeaponAutomatic);
-        ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
         ImGui::Checkbox("No Spread", &Config.NoSpread);
+        ImGui::Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
+        ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
     }
     ImGui::EndChild();
 }
@@ -529,6 +531,9 @@ void Tick() {
         ImGui::End();
     }
 }
+#else
+void Tick() {}
+#endif
 
 // --- Global Variables ----------------------------------------------
 

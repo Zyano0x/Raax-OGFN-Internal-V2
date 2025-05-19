@@ -40,10 +40,11 @@ class FName {
 
 class FText {
   private:
-    void* Data;
-    uint8_t    Pad[0x10];
+    void*   Data;
+    uint8_t Pad[0x10];
 
   public:
+    FString*    Get() const;
     std::string ToString() const;
 };
 

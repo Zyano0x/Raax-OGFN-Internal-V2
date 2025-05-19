@@ -127,6 +127,15 @@ class UGameViewportClient : public UObject {
     STATICCLASS_DEFAULTOBJECT("GameViewportClient", UGameViewportClient)
 };
 
+class UFont : public UObject {
+  public:
+    int32_t LegacyFontSize();
+    void    Set_LegacyFontSize(int32_t Value);
+
+  public:
+    STATICCLASS_DEFAULTOBJECT("Font", UFont)
+};
+
 class UCanvas : public UObject {
   public:
     static uint32_t ViewProjectionMatrix_Offset;
@@ -137,8 +146,12 @@ class UCanvas : public UObject {
     FMatrix* ViewProjectionMatrix();
 
   public:
-    void K2_DrawLine(const struct FVector2D& ScreenPositionA, const struct FVector2D& ScreenPositionB, float Thickness,
-                     const struct FLinearColor& RenderColor);
+    void K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
+                     const FLinearColor& RenderColor);
+    void K2_DrawText(UFont* RenderFont, const FString& RenderText, const FVector2D& ScreenPosition,
+                     const FVector2D& Scale, const FLinearColor& RenderColor, float Kerning,
+                     const FLinearColor& ShadowColor, const FVector2D& ShadowOffset, bool bCentreX, bool bCentreY,
+                     bool bOutlined, const FLinearColor& OutlineColor);
 
   public:
     STATICCLASS_DEFAULTOBJECT("Canvas", UCanvas)

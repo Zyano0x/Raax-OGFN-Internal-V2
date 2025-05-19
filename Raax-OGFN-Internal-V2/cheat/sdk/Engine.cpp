@@ -1,5 +1,6 @@
 #include "Engine.h"
 
+#include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
 
 namespace SDK {
@@ -85,6 +86,18 @@ UGameInstance* UGameViewportClient::GameInstance() {
     return nullptr;
 }
 
+int32_t UFont::LegacyFontSize() {
+    static PropertyInfo Prop = GetPropertyInfo("Font", "LegacyFontSize");
+    if (this && Prop.Found)
+        return *(int32_t*)((uintptr_t)this + Prop.Offset);
+    return {};
+}
+void UFont::Set_LegacyFontSize(int32_t Value) {
+    static PropertyInfo Prop = GetPropertyInfo("Font", "LegacyFontSize");
+    if (this && Prop.Found)
+        *(int32_t*)((uintptr_t)this + Prop.Offset) = Value;
+}
+
 uint32_t UCanvas::ViewProjectionMatrix_Offset;
 int32_t  UCanvas::SizeX() {
     static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeX");
@@ -103,8 +116,8 @@ FMatrix* UCanvas::ViewProjectionMatrix() {
         return (FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
     return nullptr;
 }
-void UCanvas::K2_DrawLine(const struct FVector2D& ScreenPositionA, const struct FVector2D& ScreenPositionB,
-                          float Thickness, const struct FLinearColor& RenderColor) {
+void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
+                          const FLinearColor& RenderColor) {
     static UFunction* Func = GetFunction("Canvas", "K2_DrawLine");
     struct {
         FVector2D    ScreenPositionA;
@@ -120,6 +133,73 @@ void UCanvas::K2_DrawLine(const struct FVector2D& ScreenPositionA, const struct 
 
     if (this && Func)
         ProcessEvent(Func, &params_K2_DrawLine);
+}
+void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FVector2D& ScreenPosition,
+                          const FVector2D& Scale, const FLinearColor& RenderColor, float Kerning,
+                          const FLinearColor& ShadowColor, const FVector2D& ShadowOffset, bool bCentreX, bool bCentreY,
+                          bool bOutlined, const FLinearColor& OutlineColor) {
+    static UFunction* Func = GetFunction("Canvas", "K2_DrawText");
+    if (g_EngineVersion >= 4.22f) {
+        struct {
+            UFont*       RenderFont;
+            FString      RenderText;
+            FVector2D    ScreenPosition;
+            FVector2D    Scale;
+            FLinearColor RenderColor;
+            float        Kerning;
+            FLinearColor ShadowColor;
+            FVector2D    ShadowOffset;
+            bool         bCentreX;
+            bool         bCentreY;
+            bool         bOutlined;
+            FLinearColor OutlineColor;
+        } params_K2_DrawText_1{};
+
+        params_K2_DrawText_1.RenderFont = RenderFont;
+        params_K2_DrawText_1.RenderText = RenderText;
+        params_K2_DrawText_1.ScreenPosition = {ScreenPosition.X, ScreenPosition.Y};
+        params_K2_DrawText_1.Scale = Scale;
+        params_K2_DrawText_1.RenderColor = RenderColor;
+        params_K2_DrawText_1.Kerning = Kerning;
+        params_K2_DrawText_1.ShadowColor = ShadowColor;
+        params_K2_DrawText_1.ShadowOffset = ShadowOffset;
+        params_K2_DrawText_1.bCentreX = bCentreX;
+        params_K2_DrawText_1.bCentreY = bCentreY;
+        params_K2_DrawText_1.bOutlined = bOutlined;
+        params_K2_DrawText_1.OutlineColor = OutlineColor;
+
+        if (this && Func)
+            ProcessEvent(Func, &params_K2_DrawText_1);
+    } else {
+        struct {
+            UFont*       RenderFont;
+            FString      RenderText;
+            FVector2D    ScreenPosition;
+            FLinearColor RenderColor;
+            float        Kerning;
+            FLinearColor ShadowColor;
+            FVector2D    ShadowOffset;
+            bool         bCentreX;
+            bool         bCentreY;
+            bool         bOutlined;
+            FLinearColor OutlineColor;
+        } params_K2_DrawText_2{};
+
+        params_K2_DrawText_2.RenderFont = RenderFont;
+        params_K2_DrawText_2.RenderText = RenderText;
+        params_K2_DrawText_2.ScreenPosition = {ScreenPosition.X, ScreenPosition.Y};
+        params_K2_DrawText_2.RenderColor = RenderColor;
+        params_K2_DrawText_2.Kerning = Kerning;
+        params_K2_DrawText_2.ShadowColor = ShadowColor;
+        params_K2_DrawText_2.ShadowOffset = ShadowOffset;
+        params_K2_DrawText_2.bCentreX = bCentreX;
+        params_K2_DrawText_2.bCentreY = bCentreY;
+        params_K2_DrawText_2.bOutlined = bOutlined;
+        params_K2_DrawText_2.OutlineColor = OutlineColor;
+
+        if (this && Func)
+            ProcessEvent(Func, &params_K2_DrawText_2);
+    }
 }
 
 APlayerController* UPlayer::PlayerController() {
@@ -212,8 +292,7 @@ FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) {
     return {};
 }
 
-void USkeletalMeshComponent::Set_LastPoseTickFrame(uint32_t Value)
-{
+void USkeletalMeshComponent::Set_LastPoseTickFrame(uint32_t Value) {
     static PropertyInfo Prop = GetPropertyInfo("SkeletalMeshComponent", "LastPoseTickFrame");
     if (this && Prop.Found)
         *(uint32_t*)((uintptr_t)this + Prop.Offset) = Value;

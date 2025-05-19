@@ -36,16 +36,16 @@
     <ClCompile Include="cheat\features\radar.cpp" />
     <ClCompile Include="cheat\features\triggerbot.cpp" />
     <ClCompile Include="cheat\features\weaponutils.cpp" />
-    <ClCompile Include="extern\imgui\imgui.cpp" />
-    <ClCompile Include="extern\imgui\imgui_demo.cpp" />
-    <ClCompile Include="extern\imgui\imgui_draw.cpp" />
     <ClCompile Include="extern\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="drawing\drawing_engine.cpp" />
+    <ClCompile Include="cheat\sdk\FortniteGame.cpp" />
+    <ClCompile Include="cheat\features\exploits.cpp" />
     <ClCompile Include="extern\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="extern\imgui\imgui_tables.cpp" />
     <ClCompile Include="extern\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="drawing\drawing_engine.cpp" />
-    <ClCompile Include="cheat\sdk\FortniteGame.cpp" />
-    <ClCompile Include="cheat\tick\exploittick.cpp" />
+    <ClCompile Include="extern\imgui\imgui_draw.cpp" />
+    <ClCompile Include="extern\imgui\imgui_demo.cpp" />
+    <ClCompile Include="extern\imgui\imgui.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />
@@ -93,17 +93,17 @@
     <ClInclude Include="cheat\features\radar.h" />
     <ClInclude Include="cheat\features\triggerbot.h" />
     <ClInclude Include="cheat\features\weaponutils.h" />
-    <ClInclude Include="extern\imgui\imconfig.h" />
-    <ClInclude Include="extern\imgui\imgui.h" />
     <ClInclude Include="extern\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="extern\raaxgui\raaxgui_impl.h" />
+    <ClInclude Include="extern\raaxgui\raaxgui.h" />
+    <ClInclude Include="cheat\features\exploits.h" />
+    <ClInclude Include="extern\imgui\imstb_truetype.h" />
     <ClInclude Include="extern\imgui\imgui_impl_win32.h" />
     <ClInclude Include="extern\imgui\imgui_internal.h" />
     <ClInclude Include="extern\imgui\imstb_rectpack.h" />
     <ClInclude Include="extern\imgui\imstb_textedit.h" />
-    <ClInclude Include="extern\imgui\imstb_truetype.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_impl.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui.h" />
-    <ClInclude Include="cheat\tick\exploittick.h" />
+    <ClInclude Include="extern\imgui\imgui.h" />
+    <ClInclude Include="extern\imgui\imconfig.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

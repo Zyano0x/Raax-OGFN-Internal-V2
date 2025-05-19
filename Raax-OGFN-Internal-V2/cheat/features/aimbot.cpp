@@ -140,12 +140,14 @@ void TickRenderThread() {
     if (!s.Config.Enabled || s.CurrentAmmo == WeaponUtils::AmmoType::Unknown)
         return;
 
+#ifndef _ENGINE
     s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
     SDK::FVector2D Center = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenCenterY);
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::White);
     if (s.Config.UseDeadzone && s.Config.ShowDeadzoneFOV)
         Drawing::Circle(Center, s.Config.DeadzoneFOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::Red);
+#endif
 }
 
 } // namespace Aimbot

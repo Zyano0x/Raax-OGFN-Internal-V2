@@ -72,9 +72,7 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    Drawing::Tick();
     Core::TickRenderThread();
-    GUI::MainWindow::Tick();
 
     ImGui::EndFrame();
     ImGui::Render();

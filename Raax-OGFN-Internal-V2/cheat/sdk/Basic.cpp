@@ -50,22 +50,18 @@ std::string FName::ToString() const {
     return FStr.ToString();
 }
 
-
+FString* FText::Get() const {
+    uint32_t Offset = g_EngineVersion >= 5.f ? 0x30 : 0x28;
+    FString* Text = (FString*)((uint64_t)Data + Offset);
+    return Text;
+}
 std::string FText::ToString() const {
     if (!Data)
         return "";
 
-    if (SDK::g_EngineVersion >= 5.f) {
-        FString* Text = (FString*)((uint64_t)Data + 0x30);
-        if (Text->IsValid()) {
-            return Text->ToString();
-        }
-    } else {
-        wchar_t* Text = *(wchar_t**)((uint64_t)Data + 0x28);
-        if (Text) {
-            std::wstring Temp(Text);
-            return std::string(Temp.begin(), Temp.end());
-        }
+    FString* Text = Get();
+    if (Text->IsValid()) {
+        return Text->ToString();
     }
 
     return "";

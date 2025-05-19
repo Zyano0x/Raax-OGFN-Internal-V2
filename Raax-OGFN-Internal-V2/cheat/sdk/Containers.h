@@ -136,6 +136,19 @@ template <typename ElementType> class TArray {
 
 class FString : public TArray<wchar_t> {
   public:
+    FString() : TArray<wchar_t>() {}
+
+    FString(const wchar_t* Str) {
+        const uint32_t NullTerminatedLength = static_cast<uint32_t>(wcslen(Str) + 1);
+
+        Data = static_cast<wchar_t*>(FMemory::Malloc(NullTerminatedLength, 0));
+        NumElements = NullTerminatedLength;
+        MaxElements = NullTerminatedLength;
+
+        memcpy(Data, Str, NullTerminatedLength * sizeof(wchar_t));
+    }
+
+  public:
     inline std::wstring ToWString() const { return IsValid() ? Data : L""; }
 
     inline std::string ToString() const {
@@ -145,6 +158,10 @@ class FString : public TArray<wchar_t> {
         }
         return "";
     }
+
+  public:
+    inline wchar_t*       CStr() { return Data; }
+    inline const wchar_t* CStr() const { return Data; }
 };
 
 } // namespace SDK

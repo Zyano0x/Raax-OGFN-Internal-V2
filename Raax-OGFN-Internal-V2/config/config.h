@@ -76,13 +76,12 @@ struct ConfigData {
 
             bool  SupplyDropText = false;
             bool  SupplyDropFadeOff = false;
-            float SupplyDropMaxDistance = 1000.f;
+            float SupplyDropMaxDistance = 2500.f;
 
             bool  LlamaText = false;
             bool  LlamaFadeOff = false;
-            float LlamaMaxDistance = 1000.f;
+            float LlamaMaxDistance = 2500.f;
         } Loot;
-
 
     } Visuals;
 
@@ -200,6 +199,13 @@ struct ConfigData {
         float FireDelayS = 0.25f;
     } TriggerBot;
 
+    struct ExploitConfig {
+        bool RapidFire = false;
+        bool NoSpread = false;
+        bool AutomaticWeapons = false;
+        bool InstantRevive = false;
+    } Exploit;
+
     struct KeybindConfig {
         std::vector<Keybind::KeybindData> Keybinds;
         std::string                       KeybindData;
@@ -211,13 +217,6 @@ struct ConfigData {
         SDK::FLinearColor SecondaryColorVisible = SDK::FLinearColor(0.f, 0.47f, 1.f, 1.f);
         SDK::FLinearColor SecondaryColorHidden = SDK::FLinearColor(0.f, 0.17f, 0.34f, 1.f);
     } Color;
-
-    struct ExploitConfig {
-        bool RapidFire = false;
-        bool MakeEveryWeaponAutomatic = false;
-        bool InstantRevive = false;
-        bool NoSpread = false;
-    } ExploitsConfig;
 
     int MenuKeybind = ImGuiKey_Insert;
 

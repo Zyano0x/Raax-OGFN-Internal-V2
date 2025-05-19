@@ -115,6 +115,14 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::TriggerBotConfig>
         MemberDescriptor<T, float>{"FireDelayS", &T::FireDelayS, {}});
 }
 
+template <> constexpr auto DescribeMembers<Config::ConfigData::ExploitConfig>() {
+    using T = Config::ConfigData::ExploitConfig;
+    return std::make_tuple(MemberDescriptor<T, bool>{"RapidFire", &T::RapidFire, {}},
+                           MemberDescriptor<T, bool>{"NoSpread", &T::NoSpread, {}},
+                           MemberDescriptor<T, bool>{"AutomaticWeapons", &T::AutomaticWeapons, {}},
+                           MemberDescriptor<T, bool>{"InstantRevive", &T::InstantRevive, {}});
+}
+
 template <> constexpr auto DescribeMembers<Config::ConfigData::KeybindConfig>() {
     using T = Config::ConfigData::KeybindConfig;
     return std::make_tuple(MemberDescriptor<T, std::string>{"KeybindData", &T::KeybindData, {}});
@@ -134,12 +142,11 @@ template <> constexpr auto DescribeMembers<Config::ConfigData>() {
     return std::make_tuple(MemberDescriptor<T, Config::ConfigData::VisualsConfig>{"Visuals", &T::Visuals, {}},
                            MemberDescriptor<T, Config::ConfigData::AimbotConfig>{"Aimbot", &T::Aimbot, {}},
                            MemberDescriptor<T, Config::ConfigData::TriggerBotConfig>{"TriggerBot", &T::TriggerBot, {}},
+                           MemberDescriptor<T, Config::ConfigData::ExploitConfig>{"Exploit", &T::Exploit, {}},
                            MemberDescriptor<T, Config::ConfigData::KeybindConfig>{"Keybinds", &T::Keybinds, {}},
                            MemberDescriptor<T, Config::ConfigData::ColorConfig>{"Color", &T::Color, {}},
                            MemberDescriptor<T, int>{"MenuKeybind", &T::MenuKeybind, {}});
 }
-
-
 
 // --- Field Util Functions & Structs --------------------------------
 

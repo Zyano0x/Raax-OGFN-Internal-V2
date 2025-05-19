@@ -96,9 +96,11 @@ void Tick() {
     }
 
     for (const auto& Keybind : Config::g_Config.Keybinds.Keybinds) {
+#ifndef _ENGINE
         if (ImGui::IsKeyPressed(Keybind.Keybind, false) && Keybind.ReflectedBool.Is<bool>()) {
             Keybind.ReflectedBool.As<bool>() = !Keybind.ReflectedBool.As<bool>();
         }
+#endif
     }
 }
 
