@@ -13,8 +13,8 @@ Global
 		Release_ImGui|x64 = Release_ImGui|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{131220A3-7773-4A71-9C92-13BC75D73646}.Debug_Engine|x64.ActiveCfg = Debug_ImGui|x64
-		{131220A3-7773-4A71-9C92-13BC75D73646}.Debug_Engine|x64.Build.0 = Debug_ImGui|x64
+		{131220A3-7773-4A71-9C92-13BC75D73646}.Debug_Engine|x64.ActiveCfg = Debug_Engine|x64
+		{131220A3-7773-4A71-9C92-13BC75D73646}.Debug_Engine|x64.Build.0 = Debug_Engine|x64
 		{131220A3-7773-4A71-9C92-13BC75D73646}.Debug_ImGui|x64.ActiveCfg = Debug_ImGui|x64
 		{131220A3-7773-4A71-9C92-13BC75D73646}.Debug_ImGui|x64.Build.0 = Debug_ImGui|x64
 		{131220A3-7773-4A71-9C92-13BC75D73646}.Release_Engine|x64.ActiveCfg = Release_Engine|x64
