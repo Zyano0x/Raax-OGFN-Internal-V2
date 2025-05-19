@@ -89,12 +89,14 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SD
 void Text(const wchar_t* RenderText, const SDK::FVector2D& ScreenPosition, const SDK::FLinearColor& RenderColor,
           float FontSize, bool CenteredX, bool CenteredY, bool Outlined, float OutlineThickness,
           const SDK::FLinearColor& OutlineColor) {
-    int32_t OriginalFontSize = g_Font->LegacyFontSize();
-    g_Font->Set_LegacyFontSize(FontSize);
-    g_Canvas->K2_DrawText(g_Font, RenderText, ScreenPosition, {1.f, 1.f}, RenderColor, false,
-                          SDK::FLinearColor(0.f, 0.f, 0.f, 0.f), SDK::FVector2D(0.f, 0.f), CenteredX, CenteredY,
-                          Outlined, OutlineColor);
-    g_Font->Set_LegacyFontSize(OriginalFontSize);
+    if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
+        int32_t OriginalFontSize = g_Font->LegacyFontSize();
+        g_Font->Set_LegacyFontSize(FontSize);
+        g_Canvas->K2_DrawText(g_Font, RenderText, ScreenPosition, {1.f, 1.f}, RenderColor, false,
+                              SDK::FLinearColor(0.f, 0.f, 0.f, 0.f), SDK::FVector2D(0.f, 0.f), CenteredX, CenteredY,
+                              Outlined, OutlineColor);
+        g_Font->Set_LegacyFontSize(OriginalFontSize);
+    }
 }
 
 void RectFilled(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize,
