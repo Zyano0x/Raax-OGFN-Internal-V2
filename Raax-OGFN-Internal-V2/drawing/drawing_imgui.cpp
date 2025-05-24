@@ -193,9 +193,27 @@ void CorneredRect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& Sc
     }
 }
 void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined,
-            float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
+            float OutlineThickness, const SDK::FLinearColor& OutlineColor, bool Filled,
+            const SDK::FLinearColor& FilledColor) {
     if (BoxCorners[0].X == -1.f && BoxCorners[0].Y == -1.f)
         return;
+
+    if (Filled) {
+        auto DrawQuad = [&](int a, int b, int c, int d) {
+            ImVec2 Points[4] = {ImVec2(BoxCorners[a].X, BoxCorners[a].Y), ImVec2(BoxCorners[b].X, BoxCorners[b].Y),
+                                ImVec2(BoxCorners[c].X, BoxCorners[c].Y), ImVec2(BoxCorners[d].X, BoxCorners[d].Y)};
+            if (Points[0].x != -1.f && Points[1].x != -1.f && Points[2].x != -1.f && Points[3].x != -1.f)
+                g_DrawList->AddConvexPolyFilled(Points, 4,
+                                                ImColor(FilledColor.R, FilledColor.G, FilledColor.B, FilledColor.A));
+        };
+
+        DrawQuad(0, 1, 3, 2); // Bottom
+        DrawQuad(4, 5, 7, 6); // Top
+        DrawQuad(0, 1, 5, 4); // Side
+        DrawQuad(1, 3, 7, 5); // Side
+        DrawQuad(3, 2, 6, 7); // Side
+        DrawQuad(2, 0, 4, 6); // Side
+    }
 
     BeginBatchedLines(Outlined ? 24 : 12);
 

@@ -79,7 +79,7 @@ void TickRenderThread() {
                                       PlayerConfig.BoxThickness);
                 break;
             case Config::ConfigData::BoxType::Full3D:
-                Drawing::Rect3D(Info.BoundCorners2D, PrimaryColor, PlayerConfig.BoxThickness);
+                Drawing::Rect3D(Info.BoundCorners2D, PrimaryColor, PlayerConfig.BoxThickness, true, 1.f, SDK::FLinearColor::Black, PlayerConfig.FilledBox, PlayerConfig.FilledBoxColor);
                 break;
             }
         }

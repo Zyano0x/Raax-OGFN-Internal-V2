@@ -25,8 +25,8 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition,
           bool CenteredY = true, bool Outlined = true, float OutlineThickness = 1.f,
           const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black);
 void Text(const wchar_t* RenderText, const SDK::FVector2D& ScreenPosition,
-          const SDK::FLinearColor& RenderColor = SDK::FLinearColor::White, float FontSize = 12.f,
-          bool CenteredX = true, bool CenteredY = true, bool Outlined = true, float OutlineThickness = 1.f,
+          const SDK::FLinearColor& RenderColor = SDK::FLinearColor::White, float FontSize = 12.f, bool CenteredX = true,
+          bool CenteredY = true, bool Outlined = true, float OutlineThickness = 1.f,
           const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black);
 
 void RectFilled(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize,
@@ -40,7 +40,8 @@ void CorneredRect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& Sc
                   const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black);
 void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& RenderColor = SDK::FLinearColor::White,
             float Thickness = 1.f, bool Outlined = true, float OutlineThickness = 1.f,
-            const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black);
+            const SDK::FLinearColor& OutlineColor = SDK::FLinearColor::Black, bool Filled = false,
+            const SDK::FLinearColor& FilledColor = SDK::FLinearColor::Black);
 
 void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments,
             const SDK::FLinearColor& RenderColor = SDK::FLinearColor::White, float Thickness = 1.f,

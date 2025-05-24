@@ -196,7 +196,8 @@ void CorneredRect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& Sc
     }
 }
 void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& RenderColor, float Thickness, bool Outlined,
-            float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
+            float OutlineThickness, const SDK::FLinearColor& OutlineColor, bool Filled,
+            const SDK::FLinearColor& FilledColor) {
     if (BoxCorners[0].X == -1.f && BoxCorners[0].Y == -1.f)
         return;
 
