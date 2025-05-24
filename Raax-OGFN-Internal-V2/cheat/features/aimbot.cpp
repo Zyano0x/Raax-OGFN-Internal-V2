@@ -62,9 +62,9 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
 
     int BoneIdx = static_cast<int>(s.CurrentBone);
 
-    auto  TargetWorldPos = Info.BoneWorldPos[BoneIdx];
-    auto  TargetScreenPos = Info.BoneScreenPos[BoneIdx];
-    float DistanceM = Info.DistanceM;
+    SDK::FVector   TargetWorldPos = Info.BoneWorldPos[BoneIdx];
+    SDK::FVector2D TargetScreenPos = Info.BoneScreenPos[BoneIdx];
+    float          DistanceM = Info.DistanceM;
 
     if (s.UseProjectile && s.ProjectileTemp && Config::g_Config.Aimbot.BulletPrediction) {
         float GravityZ = WorldGravityZ * s.GravityScales[s.ProjectileTemp->Class];
@@ -73,10 +73,10 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
                                                         s.ProjectileTemp->GetDefaultSpeed(1.f), GravityZ);
     }
 
-    auto  AimRot = Math::FindLookAtRotation(Core::g_CameraLocation, TargetWorldPos);
-    float DistDeg = Math::GetDegreeDistance(Core::g_CameraRotation, AimRot);
-    float DistPix = TargetScreenPos.Dist({(float)Core::g_ScreenCenterX, (float)Core::g_ScreenCenterY});
-    float DistCombined = DistDeg + DistanceM * 0.25f;
+    SDK::FRotator AimRot = Math::FindLookAtRotation(Core::g_CameraLocation, TargetWorldPos);
+    float         DistDeg = Math::GetDegreeDistance(Core::g_CameraRotation, AimRot);
+    float         DistPix = TargetScreenPos.Dist({(float)Core::g_ScreenCenterX, (float)Core::g_ScreenCenterY});
+    float         DistCombined = DistDeg + DistanceM * 0.25f;
 
     bool InDeadZone = false;
     if (Math::IsOnScreen(TargetScreenPos)) {
@@ -163,7 +163,8 @@ void TickRenderThread() {
 
 #ifndef _ENGINE
     s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
-    SDK::FVector2D Center = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
+    SDK::FVector2D Center =
+        SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::White);
     if (s.Config.UseDeadzone && s.Config.ShowDeadzoneFOV)

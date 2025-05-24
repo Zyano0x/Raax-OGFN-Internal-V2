@@ -154,7 +154,7 @@ void UpdateSmoothness() {
     if (s.Config.Smoothness <= 1.f)
         s.EffectiveSmooth = s.Config.Smoothness;
     else
-        s.EffectiveSmooth = s.Config.Smoothness * ((1.f / 120.f) / Elapsed);
+        s.EffectiveSmooth = std::clamp(s.Config.Smoothness * ((1.f / 120.f) / Elapsed), 1.f, FLT_MAX);
 }
 
 // --- Public Tick Functions -----------------------------------------
