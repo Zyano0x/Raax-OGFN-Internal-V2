@@ -68,7 +68,7 @@ void UpdateGravityScales() {
     SDK::GetAllActorsOfClass<SDK::AFortProjectileBase>(Projectiles);
     for (auto& Proj : Projectiles) {
         if (Proj->IsA(SDK::AFortProjectileBase::StaticClass())) {
-            s.GravityScales[Proj->Class] = Proj->GravityScale();
+            s.GravityScales[Proj->Class] = Proj->GravityScale;
         }
     }
 }
@@ -80,7 +80,7 @@ void DetectAmmoType() {
         return;
     }
 
-    auto* Weapon = Pawn->CurrentWeapon();
+    SDK::AFortWeapon* Weapon = Pawn->CurrentWeapon;
     if (!Weapon) {
         s.CurrentAmmo = AmmoType::Unknown;
         return;
@@ -92,14 +92,14 @@ void DetectAmmoType() {
     LastWeapon = Weapon;
 
     s.UseProjectile = false;
-    auto* WeaponData = Weapon->WeaponData();
+    SDK::UFortWeaponItemDefinition* WeaponData = Weapon->WeaponData;
     if (!WeaponData) {
         s.CurrentAmmo = AmmoType::Unknown;
         return;
     }
 
     if (auto* RangedWeaponData = SDK::Cast<SDK::UFortWeaponRangedItemDefinition>(WeaponData)) {
-        if (auto* ProjTemp = RangedWeaponData->ProjectileTemplate()) {
+        if (auto* ProjTemp = RangedWeaponData->ProjectileTemplate.Get()) {
             if (auto* DefaultProjTemp = SDK::Cast<SDK::AFortProjectileBase>(ProjTemp->ClassDefaultObject())) {
                 s.UseProjectile = true;
                 s.ProjectileTemp = DefaultProjTemp;
@@ -107,13 +107,13 @@ void DetectAmmoType() {
         }
     }
 
-    auto* AmmoData = WeaponData->AmmoData();
+    SDK::UFortItemDefinition* AmmoData = WeaponData->AmmoData.Get();
     if (!AmmoData) {
         s.CurrentAmmo = AmmoType::Unknown;
         return;
     }
 
-    auto AmmoName = AmmoData->DisplayName()->ToString();
+    auto AmmoName = AmmoData->DisplayName.ToString();
     if (AmmoName == "Ammo: Shells")
         s.CurrentAmmo = AmmoType::Shells;
     else if (AmmoName == "Ammo: Light Bullets")

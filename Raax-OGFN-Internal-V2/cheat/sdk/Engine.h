@@ -288,9 +288,8 @@ FVector   Project3D(const FVector& Location);
 FVector2D Project(const FVector& Location);
 
 template <typename UEType = AActor, bool ClearVector = true>
+    requires std::is_base_of_v<AActor, UEType>
 inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level = GetWorld()->PersistentLevel()) {
-    static_assert(std::is_base_of_v<AActor, UEType>,
-                  "Cannot call GetAllActorsOfClass with class that doesn't inherit from AActor!");
     if constexpr (ClearVector)
         OutVector.clear();
 

@@ -22,132 +22,130 @@ enum class EFortItemTier : uint8_t {
     EFortItemTier_MAX = 12,
 };
 
+struct FFortItemEntry : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry)
+
+  public:
+    UPROPERTY(class UFortItemDefinition*, ItemDefinition);
+};
+
+
 class AFortPlayerController : public APlayerController {
   public:
+    STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController);
+
+public:
     static void (*pFire_Press)(void*);
     static void (*pFire_Release)(void*);
 
   public:
     void Fire_Press();
     void Fire_Release();
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController)
 };
 
 class AFortPawn : public ACharacter {
   public:
-    class AFortWeapon* CurrentWeapon();
+    STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn);
 
-  public:
-    STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn)
+public:
+    UPROPERTY(class AFortWeapon*, CurrentWeapon);
 };
 
-class AFortPlayerPawn : public AFortPawn
-{
-  public:
-
+class AFortPlayerPawn : public AFortPawn {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerPawn", AFortPlayerPawn);
 };
 
-class AFortPlayerPawnAthena : public AFortPlayerPawn
-{
-  public:
-    void Set_ReviveFromDBNOTime(float Value);
+class AFortPlayerPawnAthena : public AFortPlayerPawn {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerPawnAthena", AFortPlayerPawnAthena);
+
+  public:
+    UPROPERTY(float, ReviveFromDBNOTime);
 };
 
 class AFortPlayerState : public APlayerState {
   public:
-    FString Platform();
+    STATICCLASS_DEFAULTOBJECT("FortPlayerState", AFortPlayerState);
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortPlayerState", AFortPlayerState)
+    UPROPERTY(FString, Platform);
 };
 
 class ABuildingContainer : public AActor {
   public:
-    bool bAlreadySearched();
+    STATICCLASS_DEFAULTOBJECT("BuildingContainer", ABuildingContainer);
 
   public:
-    STATICCLASS_DEFAULTOBJECT("BuildingContainer", ABuildingContainer)
+    UPROPERTY_BITFIELD(bool, bAlreadySearched);
 };
 
 class ATiered_Chest_Athena_C : public ABuildingContainer {
   public:
-    STATICCLASS_DEFAULTOBJECT("Tiered_Chest_Athena_C", ATiered_Chest_Athena_C)
+    STATICCLASS_DEFAULTOBJECT("Tiered_Chest_Athena_C", ATiered_Chest_Athena_C);
 };
 
 class ATiered_Ammo_Athena_C : public ABuildingContainer {
   public:
-    STATICCLASS_DEFAULTOBJECT("Tiered_Ammo_Athena_C", ATiered_Ammo_Athena_C)
+    STATICCLASS_DEFAULTOBJECT("Tiered_Ammo_Athena_C", ATiered_Ammo_Athena_C);
 };
 
 class AFortAthenaSupplyDrop : public AActor {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortAthenaSupplyDrop", AFortAthenaSupplyDrop)
+    STATICCLASS_DEFAULTOBJECT("FortAthenaSupplyDrop", AFortAthenaSupplyDrop);
 };
 
 class AAthenaSupplyDrop_C : public AFortAthenaSupplyDrop {
   public:
-    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_C", AAthenaSupplyDrop_C)
+    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_C", AAthenaSupplyDrop_C);
 };
 
 class AAthenaSupplyDrop_Llama_C : public AFortAthenaSupplyDrop {
   public:
-    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_Llama_C", AAthenaSupplyDrop_Llama_C)
+    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_Llama_C", AAthenaSupplyDrop_Llama_C);
 };
 
 class AFortPickup : public AActor {
   public:
-    class FFortItemEntry* PrimaryPickupItemEntry();
+    STATICCLASS_DEFAULTOBJECT("FortPickup", AFortPickup);
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortPickup", AFortPickup)
+    UPROPERTY(struct FFortItemEntry, PrimaryPickupItemEntry);
 };
 
 class AFortWeapon : public AActor {
   public:
-    uint8_t                          WeaponCoreAnimation();
-    class UFortWeaponItemDefinition* WeaponData();
-    int32_t                          AmmoCount();
-    int32_t                          GetBulletsPerClip();
-    float                            LastFireTime();
-    float                            LastFireTimeVerified();
-    void                             Set_LastFireTime(float NewLastFireTime);
-    void                             Set_CustomTimeDilation(float Value);
+    STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon)
+    UPROPERTY(class UFortWeaponItemDefinition*, WeaponData);
+    UPROPERTY(int32_t, AmmoCount);
+    UPROPERTY(float, LastFireTime);
+
+  public:
+    int32_t GetBulletsPerClip();
 };
 
 class AFortProjectileBase : public AActor {
   public:
-    float GravityScale();
+    STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase)
+
+  public:
+    UPROPERTY(float, GravityScale);
+
+  public:
     float GetDefaultGravityScale();
     float GetDefaultSpeed(float InChargePercent);
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase)
-};
-
-class FFortItemEntry : public UObject {
-  public:
-    class UFortItemDefinition* ItemDefinition();
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry)
 };
 
 class UFortItemDefinition : public UObject {
   public:
-    FText*        DisplayName();
-    EFortItemTier Tier();
+    STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition)
+    UPROPERTY(FText, DisplayName);
+    UPROPERTY(EFortItemTier, Tier);
 };
 
 enum class EFortWeaponTriggerType : uint8_t {
@@ -160,19 +158,19 @@ enum class EFortWeaponTriggerType : uint8_t {
 
 class UFortWeaponItemDefinition : public UFortItemDefinition {
   public:
-    UFortWeaponItemDefinition* AmmoData();
-    void                       SetTriggerType(EFortWeaponTriggerType TriggerType);
+    STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition)
+    UPROPERTY(TSoftObjectPtr<UFortWeaponItemDefinition>, AmmoData);
+    UPROPERTY(EFortWeaponTriggerType, TriggerType);
 };
 
 class UFortWeaponRangedItemDefinition : public UFortWeaponItemDefinition {
   public:
-    UClass* ProjectileTemplate();
+    STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition)
+    UPROPERTY(TSoftClassPtr<UClass>, ProjectileTemplate);
 };
 
 } // namespace SDK
