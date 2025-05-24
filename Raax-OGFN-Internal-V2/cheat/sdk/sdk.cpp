@@ -1,6 +1,7 @@
 #include "sdk.h"
 #include <sstream>
 
+#include <cheat/core.h>
 #include <utils/error.h>
 #include <utils/memory.h>
 #include <utils/log.h>
@@ -400,14 +401,20 @@ bool SetupViewProjectionMatrix() {
     return false;
 }
 bool SetupLevelActors() {
-    PropertyInfo Info = UObject::GetPropertyInfo("Level", "OwningWorld");
-    ULevel*      Level = GetWorld()->PersistentLevel();
+    UWorld* World = Core::GetNewWorld();
+    if (!World) {
+        Error::ThrowError("Failed to get World to find ULevel::Actors offset!");
+        return false;
+    }
+
+    ULevel* Level = World->PersistentLevel;
     if (!Level) {
         Error::ThrowError(
             "Failed to get PersistentLevel to find ULevel::Actors offset! Injected DLL before game loaded?");
         return false;
     }
 
+    PropertyInfo Info = UObject::GetPropertyInfo("Level", "OwningWorld");
     if (Info.Found) {
         for (int i = 0x70; i < Info.Offset; i += 8) {
             // We will check if the address is a valid TArray<AActor*> by checking if the Max() is greater than Num()
@@ -546,8 +553,8 @@ void FindComponentToWorldOffset() {
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
                   SetupLevelActors() && SetupComponentSpaceTransformsArray();
-     if (Result)
-       FindComponentToWorldOffset();
+    if (Result)
+        FindComponentToWorldOffset();
 
     uint64_t EditModeInputComponent0 = 0;
     if (SetupEditModeInputComponent0Offset(EditModeInputComponent0)) {

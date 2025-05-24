@@ -78,7 +78,7 @@ class ABuildingContainer : public AActor {
     STATICCLASS_DEFAULTOBJECT("BuildingContainer", ABuildingContainer);
 
   public:
-    UPROPERTY_BITFIELD(bool, bAlreadySearched);
+    UPROPERTY_BITFIELD(bAlreadySearched);
 };
 
 class ATiered_Chest_Athena_C : public ABuildingContainer {

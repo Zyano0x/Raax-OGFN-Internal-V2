@@ -27,7 +27,15 @@ void                    h_DrawTransition(SDK::UGameViewportClient* _this, SDK::U
 // --- Initialization ------------------------------------------------
 
 bool Init() {
-    DrawTransitionAddress = SDK::GetEngine()->GameViewport()->VTable[SDK::UGameViewportClient::DrawTransition_Idx];
+    SDK::UEngine* Engine = SDK::GetEngine();
+    if (!Engine)
+        return false;
+
+    SDK::UGameViewportClient* GameViewport = Engine->GameViewport;
+    if (!GameViewport || !GameViewport->VTable)
+        return false;
+
+    DrawTransitionAddress = GameViewport->VTable[SDK::UGameViewportClient::DrawTransition_Idx];
     return Hooks::CreateHook(DrawTransitionAddress, &h_DrawTransition, reinterpret_cast<void**>(&o_DrawTransition)) &&
         Hooks::EnableHook(DrawTransitionAddress);
 }

@@ -8,19 +8,19 @@
 #include "FProperty.h"
 
 /* @brief Sets up StaticClass() and GetDefaultObj() functions. */
-#define STATICCLASS_DEFAULTOBJECT(ClassNameStr, Type)                                                                 \
-    static constexpr const char* ClassName = ClassNameStr;                                                            \
-    static UClass* StaticClass() {                                                                                    \
-        static UClass* Clss = nullptr;                                                                                \
-        if (!Clss)                                                                                                    \
-            Clss = UObject::FindObjectFast<UClass>(ClassNameStr, SDK::EClassCastFlags::Class);                        \
-        return Clss;                                                                                                  \
-    }                                                                                                                 \
-    static Type* GetDefaultObj() {                                                                                    \
-        static Type* Default = nullptr;                                                                               \
-        if (!Default)                                                                                                 \
-            Default = static_cast<Type*>(StaticClass()->ClassDefaultObject());                                        \
-        return Default;                                                                                               \
+#define STATICCLASS_DEFAULTOBJECT(ClassNameStr, Type)                                                                  \
+    static constexpr const char* ClassName = ClassNameStr;                                                             \
+    static UClass*               StaticClass() {                                                                       \
+        static UClass* Clss = nullptr;                                                                   \
+        if (!Clss)                                                                                       \
+            Clss = UObject::FindObjectFast<UClass>(ClassNameStr, SDK::EClassCastFlags::Class);           \
+        return Clss;                                                                                     \
+    }                                                                                                                  \
+    static Type* GetDefaultObj() {                                                                                     \
+        static Type* Default = nullptr;                                                                                \
+        if (!Default)                                                                                                  \
+            Default = static_cast<Type*>(StaticClass()->ClassDefaultObject());                                         \
+        return Default;                                                                                                \
     }
 
 namespace SDK {
@@ -37,31 +37,29 @@ struct PropertyInfo {
 };
 
 #define UPROPERTY(type, name)                                                                                          \
-    static const PropertyInfo& getpropinfo##name(bool SuppressFailure = false) {                                       \
+    static const PropertyInfo& getpropinfo_##name(bool SuppressFailure = false) {                                      \
         static PropertyInfo Prop =                                                                                     \
             GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #name, SuppressFailure);         \
         return Prop;                                                                                                   \
     }                                                                                                                  \
     void putprop_##name(const type& v) {                                                                               \
-        const PropertyInfo& Prop = getpropinfo##name();                                                                \
+        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
         *reinterpret_cast<type*>((uint8_t*)this + Prop.Offset) = const_cast<type&>(v);                                 \
     }                                                                                                                  \
     type& getprop_##name() const {                                                                                     \
-        const PropertyInfo& Prop = getpropinfo##name();                                                                \
+        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
         return *reinterpret_cast<type*>((uint8_t*)this + Prop.Offset);                                                 \
     }                                                                                                                  \
     __declspec(property(get = getprop_##name, put = putprop_##name)) type name
 
-
-#define UPROPERTY_BITFIELD(type, name)                                                                                 \
-    static_assert(std::is_same_v<type, bool>);                                                                         \
-    static const PropertyInfo& getpropinfo##name(bool SuppressFailure = false) {                                       \
+#define UPROPERTY_BITFIELD(name)                                                                                       \
+    static const PropertyInfo& getpropinfo_##name(bool SuppressFailure = false) {                                      \
         static PropertyInfo Prop =                                                                                     \
             GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #name, SuppressFailure);         \
         return Prop;                                                                                                   \
     }                                                                                                                  \
-    void putprop_##name(const type& v) {                                                                               \
-        const PropertyInfo& Prop = getpropinfo##name();                                                                \
+    void putprop_##name(const bool& v) {                                                                               \
+        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
         if (Prop.ByteMask) {                                                                                           \
             auto& ByteValue = *reinterpret_cast<uint8_t*>((uint8_t*)this + Prop.Offset);                               \
             ByteValue &= ~Prop.ByteMask;                                                                               \
@@ -70,17 +68,16 @@ struct PropertyInfo {
             }                                                                                                          \
             return;                                                                                                    \
         }                                                                                                              \
-        *reinterpret_cast<type*>((uint8_t*)this + Prop.Offset) = const_cast<type&>(v);                                 \
+        *reinterpret_cast<bool*>((uint8_t*)this + Prop.Offset) = const_cast<bool&>(v);                                 \
     }                                                                                                                  \
     bool getprop_##name() const {                                                                                      \
-        const PropertyInfo& Prop = getpropinfo##name();                                                                \
-        auto Value = *reinterpret_cast<uint8_t*>((uint8_t*)this + Prop.Offset);                                        \
+        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
+        auto                Value = *reinterpret_cast<uint8_t*>((uint8_t*)this + Prop.Offset);                         \
         if (Prop.ByteMask)                                                                                             \
             return Value & Prop.ByteMask;                                                                              \
         return Value;                                                                                                  \
     }                                                                                                                  \
-    __declspec(property(get = getprop_##name, put = putprop_##name)) type name
-
+    __declspec(property(get = getprop_##name, put = putprop_##name)) bool name
 
 class UObject {
   public:

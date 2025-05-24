@@ -173,7 +173,8 @@ void SharedInfoUpdate(PlayerInfo& Info) {
     }
     Info.CurrentWeapon = NewWeapon;
 
-    Info.RootWorldLocation = Info.Pawn->RootComponent()->RelativeLocation();
+    Info.RootWorldLocation = Info.RootComponent->RelativeLocation;
+    Info.RootComponentVelocity = Info.RootComponent->ComponentVelocity;
     Info.DistanceM = Core::g_CameraLocation.Dist(Info.RootWorldLocation) / 100.f;
     Info.SeenThisFrame = true;
 
@@ -201,12 +202,16 @@ std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     PlayerInfo Info;
 
     Info.Pawn = Pawn;
-    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState());
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState);
     if (!Info.PlayerState)
         return std::nullopt;
 
-    Info.Mesh = Info.Pawn->Mesh();
+    Info.Mesh = Info.Pawn->Mesh;
     if (!Info.Mesh)
+        return std::nullopt;
+
+    Info.RootComponent = Info.Pawn->RootComponent;
+    if (!Info.RootComponent)
         return std::nullopt;
 
     Info.PlayerName = Info.PlayerState->GetPlayerName().ToString();
@@ -223,14 +228,17 @@ std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     return Info;
 }
 
-bool UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
-    Info.Pawn = Pawn;
-    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState());
+bool UpdateExistingPlayerInfo(PlayerInfo& Info) {
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState);
     if (!Info.PlayerState)
         return false;
 
-    Info.Mesh = Info.Pawn->Mesh();
+    Info.Mesh = Info.Pawn->Mesh;
     if (!Info.Mesh)
+        return false;
+
+    Info.RootComponent = Info.Pawn->RootComponent;
+    if (!Info.RootComponent)
         return false;
 
     SharedInfoUpdate(Info);
@@ -263,12 +271,11 @@ void UpdateCache() {
     for (const auto& Player : PlayerList) {
         if (!CachedPlayers.contains(Player)) {
             std::optional<PlayerInfo> Info = CreateNewPlayerInfo(Player);
-
             if (Info.has_value())
                 CachedPlayers[Player] = Info.value();
         } else {
             PlayerInfo& Info = CachedPlayers.at(Player);
-            if (!UpdateExistingPlayerInfo(Info, Player))
+            if (!UpdateExistingPlayerInfo(Info))
                 CachedPlayers.erase(Player);
         }
     }

@@ -15,7 +15,7 @@
 namespace Features {
 namespace Aimbot {
 
-// --- Target --------------------------------------------------------
+// --- Target & Global Data ------------------------------------------
 
 struct TargetInfo {
     SDK::AFortPawn* Pawn = nullptr;
@@ -28,7 +28,27 @@ struct TargetInfo {
     void reset() { Pawn = nullptr; }
 } target;
 
-// --- Target Acquisition --------------------------------------------
+float WorldGravityZ = 0.f;
+
+// --- Global Data Functions -----------------------------------------
+
+void UpdateWorldGravityZ() {
+    SDK::UWorld* World = SDK::GetWorld();
+    if (!World)
+        return;
+
+    SDK::ULevel* PersistentLevel = World->PersistentLevel;
+    if (!PersistentLevel)
+        return;
+
+    SDK::AWorldSettings* WorldSettings = PersistentLevel->WorldSettings;
+    if (!WorldSettings)
+        return;
+
+    WorldGravityZ = WorldSettings->WorldGravityZ;
+}
+
+// --- Target Functions ----------------------------------------------
 
 bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
     auto& s = WeaponUtils::GetState();
@@ -47,10 +67,9 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
     float DistanceM = Info.DistanceM;
 
     if (s.UseProjectile && s.ProjectileTemp && Config::g_Config.Aimbot.BulletPrediction) {
-        float GravityZ = SDK::GetWorld()->PersistentLevel()->WorldSettings()->WorldGravityZ() *
-                         s.GravityScales[s.ProjectileTemp->Class];
+        float GravityZ = WorldGravityZ * s.GravityScales[s.ProjectileTemp->Class];
         TargetWorldPos = WeaponUtils::PredictProjectile(Core::g_CameraLocation, TargetWorldPos,
-                                                        Info.Pawn->RootComponent()->ComponentVelocity(),
+                                                        Info.Pawn->RootComponent->ComponentVelocity,
                                                         s.ProjectileTemp->GetDefaultSpeed(1.f), GravityZ);
     }
 
@@ -129,8 +148,10 @@ void TickGameThread() {
     if (s.Config.Enabled && s.CurrentAmmo != WeaponUtils::AmmoType::Unknown && target.Pawn && s.IsTargeting) {
         if (!s.Config.UseDeadzone || !target.InDeadZone) {
             SDK::APlayerController* Controller = SDK::GetLocalController();
-            Controller->AddPitchInput(target.RotationDelta.Pitch / Controller->InputPitchScale());
-            Controller->AddYawInput(target.RotationDelta.Yaw / Controller->InputYawScale());
+            if (Controller) {
+                Controller->AddPitchInput(target.RotationDelta.Pitch / Controller->InputPitchScale);
+                Controller->AddYawInput(target.RotationDelta.Yaw / Controller->InputYawScale);
+            }
         }
     }
 }
@@ -142,7 +163,7 @@ void TickRenderThread() {
 
 #ifndef _ENGINE
     s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
-    SDK::FVector2D Center = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenCenterY);
+    SDK::FVector2D Center = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::White);
     if (s.Config.UseDeadzone && s.Config.ShowDeadzoneFOV)

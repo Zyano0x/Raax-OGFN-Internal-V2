@@ -11,28 +11,38 @@ std::unordered_map<void*, PickupInfo> CachedPickups;
 
 // --- Cache Utility Functions ---------------------------------------
 
-PickupInfo CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
+std::optional<PickupInfo> CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
     PickupInfo Info;
     Info.Pickup = Pickup;
-    Info.RootWorldLocation = Pickup->RootComponent()->RelativeLocation();
+    Info.RootComponent = Info.Pickup->RootComponent;
+    if (!Info.RootComponent)
+        return std::nullopt;
+
+    Info.RootWorldLocation = Info.RootComponent->RelativeLocation;
     Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
 
-    SDK::FFortItemEntry ItemEntry = Pickup->PrimaryPickupItemEntry;
-
+    SDK::FFortItemEntry       ItemEntry = Pickup->PrimaryPickupItemEntry;
     SDK::UFortItemDefinition* ItemDefinition = ItemEntry.ItemDefinition;
     if (!ItemDefinition)
-        return {};
+        return std::nullopt;
 
     Info.WeaponName = ItemDefinition->DisplayName.ToString();
     Info.Tier = ItemDefinition->Tier;
+
     Info.SeenThisFrame = true;
     return Info;
 }
 
-void UpdateExistingPickupInfo(PickupInfo& Info, SDK::AFortPickup* Pickup) {
-    Info.RootWorldLocation = Pickup->RootComponent()->RelativeLocation();
+bool UpdateExistingPickupInfo(PickupInfo& Info) {
+    Info.RootComponent = Info.Pickup->RootComponent;
+    if (!Info.RootComponent)
+        return false;
+
+    Info.RootWorldLocation = Info.RootComponent->RelativeLocation;
     Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
+
     Info.SeenThisFrame = true;
+    return true;
 }
 
 void ResetPickupSeenFlags() {
@@ -42,9 +52,7 @@ void ResetPickupSeenFlags() {
 }
 
 void RemoveUnseenPickups() {
-    std::erase_if(CachedPickups, [](const auto& Cache) {
-        return !Cache.second.SeenThisFrame;
-        });
+    std::erase_if(CachedPickups, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
 }
 
 // --- Public Cache Functions ----------------------------------------
@@ -61,11 +69,14 @@ void UpdateCache() {
         static std::vector<SDK::AFortPickup*> PickupList;
         SDK::GetAllActorsOfClass<SDK::AFortPickup>(PickupList);
         for (const auto& Pickup : PickupList) {
-            auto It = CachedPickups.find(Pickup);
-            if (It == CachedPickups.end()) {
-                CachedPickups[Pickup] = CreateNewPickupInfo(Pickup);
+            if (!CachedPickups.contains(Pickup)) {
+                std::optional<PickupInfo> Info = CreateNewPickupInfo(Pickup);
+                if (Info.has_value())
+                    CachedPickups[Pickup] = Info.value();
             } else {
-                UpdateExistingPickupInfo(It->second, Pickup);
+                PickupInfo& Info = CachedPickups.at(Pickup);
+                if (!UpdateExistingPickupInfo(Info))
+                    CachedPickups.erase(Pickup);
             }
         }
     }

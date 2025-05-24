@@ -63,6 +63,9 @@ struct FHitResult {
 
 class UKismetSystemLibrary : public UObject {
   public:
+    STATICCLASS_DEFAULTOBJECT("KismetSystemLibrary", UKismetSystemLibrary)
+
+  public:
     static bool (*KismetSystemLibraryLineTraceSingle)(UObject*, const FVector&, const FVector&, ETraceTypeQuery, bool,
                                                       TArray<class AActor*>&, EDrawDebugTrace, FHitResult&, bool,
                                                       const FLinearColor&, const FLinearColor&, float);
@@ -73,77 +76,78 @@ class UKismetSystemLibrary : public UObject {
                                    ETraceTypeQuery TraceChannel, bool bTraceComplex, TArray<AActor*>& ActorsToIgnore,
                                    EDrawDebugTrace DrawDebugType, FHitResult& OutHit, bool bIgnoreSelf,
                                    const FLinearColor& TraceColor, const FLinearColor& TraceHitColor, float DrawTime);
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("KismetSystemLibrary", UKismetSystemLibrary)
 };
 
 class UEngine : public UObject {
   public:
-    class UGameViewportClient* GameViewport();
+    STATICCLASS_DEFAULTOBJECT("Engine", UEngine)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("Engine", UEngine)
+    UPROPERTY(class UGameViewportClient*, GameViewport);
 };
 
 class UWorld : public UObject {
   public:
-    class ULevel*    PersistentLevel();
-    TArray<ULevel*>* Levels();
+    STATICCLASS_DEFAULTOBJECT("World", UWorld)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("World", UWorld)
+    UPROPERTY(class ULevel*, PersistentLevel);
+    UPROPERTY(TArray<class ULevel*>, Levels);
 };
 
 class ULevel : public UObject {
   public:
+    STATICCLASS_DEFAULTOBJECT("Level", ULevel)
+
+  public:
     static uint32_t Actors_Offset;
 
   public:
-    TArray<AActor*>*      Actors();
-    class AWorldSettings* WorldSettings();
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("Level", ULevel)
+    TArray<class AActor*>&                     getprop_Actors();
+    __declspec(property(get = getprop_Actors)) TArray<class AActor*> Actors;
+    UPROPERTY(class AWorldSettings*, WorldSettings);
 };
 
 class UGameInstance : public UObject {
   public:
-    TArray<class ULocalPlayer*>* LocalPlayers();
+    STATICCLASS_DEFAULTOBJECT("GameInstance", UGameInstance)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("GameInstance", UGameInstance)
+    UPROPERTY(TArray<class ULocalPlayer*>, LocalPlayers);
 };
 
 class UGameViewportClient : public UObject {
   public:
+    STATICCLASS_DEFAULTOBJECT("GameViewportClient", UGameViewportClient)
+
+  public:
     static inline int DrawTransition_Idx;
 
   public:
-    UWorld*        World();
-    UGameInstance* GameInstance();
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("GameViewportClient", UGameViewportClient)
+    UPROPERTY(class UWorld*, World);
+    UPROPERTY(class UGameInstance*, GameInstance);
 };
 
 class UFont : public UObject {
   public:
-    int32_t LegacyFontSize();
-    void    Set_LegacyFontSize(int32_t Value);
+    STATICCLASS_DEFAULTOBJECT("Font", UFont)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("Font", UFont)
+    UPROPERTY(int32_t, LegacyFontSize);
 };
 
 class UCanvas : public UObject {
   public:
+    STATICCLASS_DEFAULTOBJECT("Canvas", UCanvas)
+
+  public:
     static uint32_t ViewProjectionMatrix_Offset;
 
   public:
-    int32_t  SizeX();
-    int32_t  SizeY();
-    FMatrix* ViewProjectionMatrix();
+    FMatrix&                                                         getprop_ViewProjectionMatrix();
+    __declspec(property(get = getprop_ViewProjectionMatrix)) FMatrix ViewProjectionMatrix;
+    UPROPERTY(int32_t, SizeX);
+    UPROPERTY(int32_t, SizeY);
 
   public:
     void K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
@@ -152,17 +156,14 @@ class UCanvas : public UObject {
                      const FVector2D& Scale, const FLinearColor& RenderColor, float Kerning,
                      const FLinearColor& ShadowColor, const FVector2D& ShadowOffset, bool bCentreX, bool bCentreY,
                      bool bOutlined, const FLinearColor& OutlineColor);
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("Canvas", UCanvas)
 };
 
 class UPlayer : public UObject {
   public:
-    class APlayerController* PlayerController();
+    STATICCLASS_DEFAULTOBJECT("Player", UPlayer)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("Player", UPlayer)
+    UPROPERTY(class APlayerController*, PlayerController);
 };
 
 class ULocalPlayer : public UPlayer {
@@ -172,101 +173,110 @@ class ULocalPlayer : public UPlayer {
 
 class USceneComponent : public UObject {
   public:
+    STATICCLASS_DEFAULTOBJECT("SceneComponent", USceneComponent)
+
+  public:
     static uint32_t ComponentToWorld_Offset;
 
   public:
-    FVector    RelativeLocation();
-    FVector    ComponentVelocity();
-    FTransform ComponentToWorld();
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("SceneComponent", USceneComponent)
+    UPROPERTY(FVector, RelativeLocation);
+    UPROPERTY(FVector, ComponentVelocity);
+    FTransform&                                                     getprop_ComponentToWorld();
+    __declspec(property(get = getprop_ComponentToWorld)) FTransform ComponentToWorld;
 };
 
 class USkinnedMeshComponent : public USceneComponent {
   public:
+    STATICCLASS_DEFAULTOBJECT("SkinnedMeshComponent", USkinnedMeshComponent)
+
+  public:
     static uint32_t ComponentSpaceTransformsArray_Offset;
 
   public:
-    TArray<FTransform>* ComponentSpaceTransformsArray();
-    int32_t             GetBoneIndex(FName BoneName);
+    TArray<FTransform>&                                               getprop_ComponentSpaceTransformsArray();
+    __declspec(property(get = getprop_ComponentSpaceTransformsArray)) TArray<FTransform> ComponentSpaceTransformsArray;
 
   public:
-    STATICCLASS_DEFAULTOBJECT("SkinnedMeshComponent", USkinnedMeshComponent)
+    int32_t GetBoneIndex(FName BoneName);
 };
 
 class USkeletalMeshComponent : public USkinnedMeshComponent {
   public:
-    FTransform GetBoneMatrix(int32_t BoneIndex);
-    FVector    GetBoneLocation(int32_t BoneIndex);
-    void       Set_LastPoseTickFrame(uint32_t Value);
+    STATICCLASS_DEFAULTOBJECT("SkeletalMeshComponent", USkeletalMeshComponent)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("SkeletalMeshComponent", USkeletalMeshComponent)
+    FTransform GetBoneMatrix(int32_t BoneIndex);
+    FVector    GetBoneLocation(int32_t BoneIndex);
 };
 
 class AActor : public UObject {
   public:
-    USceneComponent* RootComponent();
-    float            WasRecentlyRendered(float Tolerence);
+    STATICCLASS_DEFAULTOBJECT("Actor", AActor)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("Actor", AActor)
+    UPROPERTY(class USceneComponent*, RootComponent);
+
+  public:
+    float WasRecentlyRendered(float Tolerence);
 };
 
 class AWorldSettings : AActor {
   public:
-    float WorldGravityZ();
+    STATICCLASS_DEFAULTOBJECT("WorldSettings", AWorldSettings)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("WorldSettings", AWorldSettings)
+    UPROPERTY(float, WorldGravityZ);
 };
 
 class APlayerCameraManager : public AActor {
   public:
+    STATICCLASS_DEFAULTOBJECT("PlayerCameraManager", APlayerCameraManager)
+
+  public:
     FVector  GetCameraLocation();
     FRotator GetCameraRotation();
     float    GetFOVAngle();
-
-  public:
-    STATICCLASS_DEFAULTOBJECT("PlayerCameraManager", APlayerCameraManager)
 };
 
 class APlayerController : public AActor {
   public:
-    class APawn*          AcknowledgedPawn();
-    APlayerCameraManager* PlayerCameraManager();
-    float                 InputYawScale();
-    float                 InputPitchScale();
-    void                  AddYawInput(float Val);
-    void                  AddPitchInput(float Val);
+    STATICCLASS_DEFAULTOBJECT("PlayerController", APlayerController)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("PlayerController", APlayerController)
+    UPROPERTY(class APawn*, AcknowledgedPawn);
+    UPROPERTY(class APlayerCameraManager*, PlayerCameraManager);
+    UPROPERTY(float, InputYawScale);
+    UPROPERTY(float, InputPitchScale);
+
+  public:
+    void AddYawInput(float Val);
+    void AddPitchInput(float Val);
 };
 
 class APawn : public AActor {
   public:
-    class APlayerState* PlayerState();
+    STATICCLASS_DEFAULTOBJECT("Pawn", APawn)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("Pawn", APawn)
+    // class APlayerState* PlayerState();
+    UPROPERTY(class APlayerState*, PlayerState);
 };
 
 class ACharacter : public APawn {
   public:
-    USkeletalMeshComponent* Mesh();
+    STATICCLASS_DEFAULTOBJECT("Character", ACharacter)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("Character", ACharacter)
+    // USkeletalMeshComponent* Mesh();
+    UPROPERTY(class USkeletalMeshComponent*, Mesh);
 };
 
 class APlayerState : public AActor {
   public:
-    FString GetPlayerName();
+    STATICCLASS_DEFAULTOBJECT("PlayerState", APlayerState)
 
   public:
-    STATICCLASS_DEFAULTOBJECT("PlayerState", APlayerState)
+    FString GetPlayerName();
 };
 
 // --- Public Functions ----------------------------------------------
@@ -275,12 +285,13 @@ ULocalPlayer*      GetLocalPlayer();
 APlayerController* GetLocalController();
 APawn*             GetLocalPawn();
 
+FVector  GetCameraLocation();
+FRotator GetCameraRotation();
+float    GetFOV();
+
 UEngine* GetEngine();
 UWorld*  GetWorld();
 UCanvas* GetCanvas();
-
-FVector  GetCameraLocation();
-FRotator GetCameraRotation();
 
 bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor = nullptr, AActor* IgnoredActor2 = nullptr);
 
@@ -289,19 +300,19 @@ FVector2D Project(const FVector& Location);
 
 template <typename UEType = AActor, bool ClearVector = true>
     requires std::is_base_of_v<AActor, UEType>
-inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level = GetWorld()->PersistentLevel()) {
+inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level = GetWorld()->PersistentLevel) {
     if constexpr (ClearVector)
         OutVector.clear();
 
     if (!Level)
         return;
 
-    TArray<AActor*>* Actors = Level->Actors();
-    if (!Actors || !Actors->IsValid() || Actors->Num() <= 0)
+    TArray<AActor*>& Actors = Level->Actors;
+    if (!Actors.IsValid() || Actors.Num() <= 0)
         return;
 
-    for (int i = 0; i < Actors->Num(); i++) {
-        AActor* Actor = Actors->GetByIndex(i);
+    for (int i = 0; i < Actors.Num(); i++) {
+        AActor* Actor = Actors.GetByIndex(i);
         if (!Actor)
             continue;
 
@@ -315,12 +326,12 @@ inline void GetAllActorsOfClassAllLevels(std::vector<UEType*>& OutVector) {
     if constexpr (ClearVector)
         OutVector.clear();
 
-    TArray<ULevel*>* Levels = GetWorld()->Levels();
-    if (!Levels || !Levels->IsValid() || Levels->Num() <= 0)
+    TArray<ULevel*>& Levels = GetWorld()->Levels;
+    if (!Levels.IsValid() || Levels.Num() <= 0)
         return;
 
-    for (int i = 0; i < Levels->Num(); i++) {
-        GetAllActorsOfClass<UEType, false>(OutVector, Levels->GetByIndex(i));
+    for (int i = 0; i < Levels.Num(); i++) {
+        GetAllActorsOfClass<UEType, false>(OutVector, Levels.GetByIndex(i));
     }
 }
 

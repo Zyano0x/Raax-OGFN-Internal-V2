@@ -99,13 +99,13 @@ void TickRenderThread() {
 
             switch (PlayerConfig.TracerStart) {
             case Config::ConfigData::TracerPos::Bottom:
-                TracerStart = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenSizeY);
+                TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenSizeY));
                 break;
             case Config::ConfigData::TracerPos::Middle:
-                TracerStart = SDK::FVector2D(Core::g_ScreenCenterX, Core::g_ScreenCenterY);
+                TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
                 break;
             case Config::ConfigData::TracerPos::Top:
-                TracerStart = SDK::FVector2D(Core::g_ScreenCenterX, 0.f);
+                TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), 0.f);
                 break;
             }
 

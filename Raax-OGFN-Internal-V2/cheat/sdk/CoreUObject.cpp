@@ -76,7 +76,7 @@ UFunction* UObject::GetFunction(const FName& ClassName, const FName& FunctionNam
     UFunction* const Function = FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindFunction(FunctionName);
 
     if (!SuppressFailure && !Function)
-        Error::ThrowError(std::format("Failed to find function.\nClass: {}\Function: {}", ClassName.ToString(),
+        Error::ThrowError(std::format("Failed to find function.\nClass: {}\nFunction: {}", ClassName.ToString(),
                                       FunctionName.ToString()));
 
     return Function;

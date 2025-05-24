@@ -33,88 +33,14 @@ bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FV
                                               SDK::FLinearColor::White, SDK::FLinearColor::White, 0.f);
 }
 
-UGameViewportClient* UEngine::GameViewport() {
-    static PropertyInfo Prop = GetPropertyInfo("Engine", "GameViewport");
-    if (this && Prop.Found)
-        return *(UGameViewportClient**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
-ULevel* UWorld::PersistentLevel() {
-    static PropertyInfo Prop = GetPropertyInfo("World", "PersistentLevel");
-    if (this && Prop.Found)
-        return *(ULevel**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-TArray<ULevel*>* UWorld::Levels() {
-    static PropertyInfo Prop = GetPropertyInfo("World", "Levels");
-    if (this && Prop.Found)
-        return (TArray<ULevel*>*)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
 uint32_t         ULevel::Actors_Offset;
-TArray<AActor*>* ULevel::Actors() {
-    if (this)
-        return (TArray<AActor*>*)((uintptr_t)this + Actors_Offset);
-    return nullptr;
-}
-AWorldSettings* ULevel::WorldSettings() {
-    static PropertyInfo Prop = GetPropertyInfo("Level", "WorldSettings");
-    if (this && Prop.Found)
-        return *(AWorldSettings**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
-TArray<ULocalPlayer*>* UGameInstance::LocalPlayers() {
-    static PropertyInfo Prop = GetPropertyInfo("GameInstance", "LocalPlayers");
-    if (this && Prop.Found)
-        return (TArray<ULocalPlayer*>*)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
-UWorld* UGameViewportClient::World() {
-    static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "World");
-    if (this && Prop.Found)
-        return *(UWorld**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-UGameInstance* UGameViewportClient::GameInstance() {
-    static PropertyInfo Prop = GetPropertyInfo("GameViewportClient", "GameInstance");
-    if (this && Prop.Found)
-        return *(UGameInstance**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
-int32_t UFont::LegacyFontSize() {
-    static PropertyInfo Prop = GetPropertyInfo("Font", "LegacyFontSize");
-    if (this && Prop.Found)
-        return *(int32_t*)((uintptr_t)this + Prop.Offset);
-    return {};
-}
-void UFont::Set_LegacyFontSize(int32_t Value) {
-    static PropertyInfo Prop = GetPropertyInfo("Font", "LegacyFontSize");
-    if (this && Prop.Found)
-        *(int32_t*)((uintptr_t)this + Prop.Offset) = Value;
+TArray<AActor*>& ULevel::getprop_Actors() {
+    return *(TArray<AActor*>*)((uintptr_t)this + Actors_Offset);
 }
 
 uint32_t UCanvas::ViewProjectionMatrix_Offset;
-int32_t  UCanvas::SizeX() {
-    static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeX");
-    if (this && Prop.Found)
-        return *(int32_t*)((uintptr_t)this + Prop.Offset);
-    return {};
-}
-int32_t UCanvas::SizeY() {
-    static PropertyInfo Prop = GetPropertyInfo("Canvas", "SizeY");
-    if (this && Prop.Found)
-        return *(int32_t*)((uintptr_t)this + Prop.Offset);
-    return {};
-}
-FMatrix* UCanvas::ViewProjectionMatrix() {
-    if (this)
-        return (FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
-    return nullptr;
+FMatrix& UCanvas::getprop_ViewProjectionMatrix() {
+    return *(FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
 }
 void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
                           const FLinearColor& RenderColor) {
@@ -131,7 +57,7 @@ void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& Scr
     params_K2_DrawLine.Thickness = Thickness;
     params_K2_DrawLine.RenderColor = RenderColor;
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_K2_DrawLine);
 }
 void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FVector2D& ScreenPosition,
@@ -168,7 +94,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         params_K2_DrawText_1.bOutlined = bOutlined;
         params_K2_DrawText_1.OutlineColor = OutlineColor;
 
-        if (this && Func)
+        if (Func)
             ProcessEvent(Func, &params_K2_DrawText_1);
     } else {
         struct {
@@ -197,66 +123,40 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         params_K2_DrawText_2.bOutlined = bOutlined;
         params_K2_DrawText_2.OutlineColor = OutlineColor;
 
-        if (this && Func)
+        if (Func)
             ProcessEvent(Func, &params_K2_DrawText_2);
     }
 }
 
-APlayerController* UPlayer::PlayerController() {
-    static PropertyInfo Prop = GetPropertyInfo("Player", "PlayerController");
-    if (this && Prop.Found)
-        return *(APlayerController**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
 uint32_t USceneComponent::ComponentToWorld_Offset;
-FVector  USceneComponent::RelativeLocation() {
-    static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "RelativeLocation");
-    if (this && Prop.Found)
-        return *(FVector*)((uintptr_t)this + Prop.Offset);
-    return {};
-}
-FVector USceneComponent::ComponentVelocity() {
-    static PropertyInfo Prop = GetPropertyInfo("SceneComponent", "ComponentVelocity");
-    if (this && Prop.Found)
-        return *(FVector*)((uintptr_t)this + Prop.Offset);
-    return {};
-}
-FTransform USceneComponent::ComponentToWorld() {
-    if (this) {
-        if (ComponentToWorld_Offset) {
-            return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
-        } else {
-            static UFunction* Func = GetFunction("SceneComponent", "K2_GetComponentToWorld");
-            struct {
-                FTransform ReturnValue;
-            } params_ComponentToWorld{};
+FTransform& USceneComponent::getprop_ComponentToWorld() {
+    if (ComponentToWorld_Offset) {
+        return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
+    } else {
+        static UFunction* Func = GetFunction("SceneComponent", "K2_GetComponentToWorld");
+        struct {
+            FTransform ReturnValue;
+        } params_ComponentToWorld{};
 
-            if (Func)
-                ProcessEvent(Func, &params_ComponentToWorld);
-            else
-                LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld!");
+        if (Func)
+            ProcessEvent(Func, &params_ComponentToWorld);
+        else
+            LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld!");
 
-            return params_ComponentToWorld.ReturnValue;
-        }
+        return params_ComponentToWorld.ReturnValue;
     }
-
-    return {};
 }
 
 uint32_t            USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset;
-TArray<FTransform>* USkinnedMeshComponent::ComponentSpaceTransformsArray() {
-    if (this) {
-        TArray<FTransform>* FirstArray = (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
-        if (FirstArray && FirstArray->IsValid())
-            return FirstArray;
+TArray<FTransform>& USkinnedMeshComponent::getprop_ComponentSpaceTransformsArray() {
+    TArray<FTransform>& FirstArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
+    if (FirstArray.IsValid())
+        return FirstArray;
 
-        TArray<FTransform>* SecondArray =
-            (TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
-        if (SecondArray && SecondArray->IsValid())
-            return SecondArray;
-    }
-    return nullptr;
+    TArray<FTransform>& SecondArray =
+        *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
+    if (SecondArray.IsValid())
+        return SecondArray;
 }
 int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) {
     static UFunction* Func = GetFunction("SkinnedMeshComponent", "GetBoneIndex");
@@ -267,44 +167,25 @@ int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) {
 
     params_GetBoneIndex.BoneName = BoneName;
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetBoneIndex);
 
     return params_GetBoneIndex.ReturnValue;
 }
 
 FTransform USkeletalMeshComponent::GetBoneMatrix(int32_t BoneIndex) {
-    if (this) {
-        TArray<FTransform>* Array = ComponentSpaceTransformsArray();
-        if (Array && Array->IsValid())
-            return Array->GetByIndex(BoneIndex);
-    }
-    return {};
+    TArray<FTransform>& Array = ComponentSpaceTransformsArray;
+    if (Array.IsValid())
+        return Array.GetByIndex(BoneIndex);
 }
 FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) {
-    if (this) {
-        FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
-        FTransform ComponentToWrld = ComponentToWorld();
+    FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
+    FTransform ComponentToWrld = ComponentToWorld;
 
-        FMatrix Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
-        return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
-    }
-    return {};
+    FMatrix Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
+    return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
 }
 
-void USkeletalMeshComponent::Set_LastPoseTickFrame(uint32_t Value) {
-    static PropertyInfo Prop = GetPropertyInfo("SkeletalMeshComponent", "LastPoseTickFrame");
-    if (this && Prop.Found)
-        *(uint32_t*)((uintptr_t)this + Prop.Offset) = Value;
-    return;
-}
-
-USceneComponent* AActor::RootComponent() {
-    static PropertyInfo Prop = GetPropertyInfo("Actor", "RootComponent");
-    if (this && Prop.Found)
-        return *(USceneComponent**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
 float AActor::WasRecentlyRendered(float Tolerence) {
     static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
     struct {
@@ -314,17 +195,10 @@ float AActor::WasRecentlyRendered(float Tolerence) {
 
     params_WasRecentlyRendered.Tolerence = Tolerence;
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_WasRecentlyRendered);
 
     return params_WasRecentlyRendered.ReturnValue;
-}
-
-float AWorldSettings::WorldGravityZ() {
-    static PropertyInfo Prop = GetPropertyInfo("WorldSettings", "WorldGravityZ");
-    if (this && Prop.Found)
-        return *(float*)((uintptr_t)this + Prop.Offset);
-    return 0.f;
 }
 
 FVector APlayerCameraManager::GetCameraLocation() {
@@ -333,7 +207,7 @@ FVector APlayerCameraManager::GetCameraLocation() {
         FVector ReturnValue;
     } params_GetCameraLocation{};
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetCameraLocation);
 
     return params_GetCameraLocation.ReturnValue;
@@ -344,7 +218,7 @@ FRotator APlayerCameraManager::GetCameraRotation() {
         FRotator ReturnValue;
     } params_GetCameraRotation{};
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetCameraRotation);
 
     return params_GetCameraRotation.ReturnValue;
@@ -355,36 +229,12 @@ float APlayerCameraManager::GetFOVAngle() {
         float ReturnValue;
     } params_GetFOVAngle{};
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetFOVAngle);
 
     return params_GetFOVAngle.ReturnValue;
 }
 
-APawn* APlayerController::AcknowledgedPawn() {
-    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "AcknowledgedPawn");
-    if (this && Prop.Found)
-        return *(APawn**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-APlayerCameraManager* APlayerController::PlayerCameraManager() {
-    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "PlayerCameraManager");
-    if (this && Prop.Found)
-        return *(APlayerCameraManager**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-float APlayerController::InputYawScale() {
-    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "InputYawScale");
-    if (this && Prop.Found)
-        return *(float*)((uintptr_t)this + Prop.Offset);
-    return 0.f;
-}
-float APlayerController::InputPitchScale() {
-    static PropertyInfo Prop = GetPropertyInfo("PlayerController", "InputPitchScale");
-    if (this && Prop.Found)
-        return *(float*)((uintptr_t)this + Prop.Offset);
-    return 0.f;
-}
 void APlayerController::AddYawInput(float Val) {
     static UFunction* Func = GetFunction("PlayerController", "AddYawInput");
     struct {
@@ -393,7 +243,7 @@ void APlayerController::AddYawInput(float Val) {
 
     params_AddYawInput.Val = Val;
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_AddYawInput);
 }
 void APlayerController::AddPitchInput(float Val) {
@@ -404,22 +254,8 @@ void APlayerController::AddPitchInput(float Val) {
 
     params_AddPitchInput.Val = Val;
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_AddPitchInput);
-}
-
-APlayerState* APawn::PlayerState() {
-    static PropertyInfo Prop = GetPropertyInfo("Pawn", "PlayerState");
-    if (this && Prop.Found)
-        return *(APlayerState**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
-}
-
-USkeletalMeshComponent* ACharacter::Mesh() {
-    static PropertyInfo Prop = GetPropertyInfo("Character", "Mesh");
-    if (this && Prop.Found)
-        return *(USkeletalMeshComponent**)((uintptr_t)this + Prop.Offset);
-    return nullptr;
 }
 
 FString APlayerState::GetPlayerName() {
@@ -428,7 +264,7 @@ FString APlayerState::GetPlayerName() {
         FString return_value;
     } params_GetPlayerName{};
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetPlayerName);
 
     return params_GetPlayerName.return_value;
@@ -437,13 +273,23 @@ FString APlayerState::GetPlayerName() {
 // --- Public Functions ----------------------------------------------
 
 ULocalPlayer* GetLocalPlayer() {
-    return GetEngine()->GameViewport()->GameInstance()->LocalPlayers()->GetByIndex(0);
+    return Core::g_LocalPlayer;
 }
 APlayerController* GetLocalController() {
-    return GetLocalPlayer()->PlayerController();
+    return Core::g_LocalPlayerController;
 }
 APawn* GetLocalPawn() {
-    return GetLocalController()->AcknowledgedPawn();
+    return Core::g_LocalPawn;
+}
+
+FVector GetCameraLocation() {
+    return Core::g_CameraLocation;
+}
+FRotator GetCameraRotation() {
+    return Core::g_CameraRotation;
+}
+float GetFOV() {
+    return Core::g_FOV;
 }
 
 UEngine* GetEngine() {
@@ -464,7 +310,7 @@ UEngine* GetEngine() {
     return GEngine;
 }
 UWorld* GetWorld() {
-    return GetEngine()->GameViewport()->World();
+    return Core::g_World;
 }
 UCanvas* GetCanvas() {
     static UCanvas* GCanvas = nullptr;
@@ -482,13 +328,6 @@ UCanvas* GetCanvas() {
     }
 
     return GCanvas;
-}
-
-SDK::FVector GetCameraLocation() {
-    return SDK::GetLocalController()->PlayerCameraManager()->GetCameraLocation();
-}
-SDK::FRotator GetCameraRotation() {
-    return SDK::GetLocalController()->PlayerCameraManager()->GetCameraRotation();
 }
 
 bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* IgnoredActor2) {
@@ -510,28 +349,26 @@ bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* Ig
 }
 
 FVector Project3D(const FVector& Location) {
-    int32_t ScreenWidth = GetCanvas()->SizeX();
-    int32_t ScreenHeight = GetCanvas()->SizeY();
+    SDK::UCanvas* Canvas = GetCanvas();
+    if (!Canvas)
+        return {};
 
-    FMatrix* ViewProjectionMatrix = GetCanvas()->ViewProjectionMatrix();
-    if (!ViewProjectionMatrix)
-        return FVector();
-
-    float X = Location.X * ViewProjectionMatrix->M[0][0] + Location.Y * ViewProjectionMatrix->M[1][0] +
-              Location.Z * ViewProjectionMatrix->M[2][0] + ViewProjectionMatrix->M[3][0];
-    float Y = Location.X * ViewProjectionMatrix->M[0][1] + Location.Y * ViewProjectionMatrix->M[1][1] +
-              Location.Z * ViewProjectionMatrix->M[2][1] + ViewProjectionMatrix->M[3][1];
-    float Z = Location.X * ViewProjectionMatrix->M[0][2] + Location.Y * ViewProjectionMatrix->M[1][2] +
-              Location.Z * ViewProjectionMatrix->M[2][2] + ViewProjectionMatrix->M[3][2];
-    float W = Location.X * ViewProjectionMatrix->M[0][3] + Location.Y * ViewProjectionMatrix->M[1][3] +
-              Location.Z * ViewProjectionMatrix->M[2][3] + ViewProjectionMatrix->M[3][3];
+    FMatrix& ViewProjectionMatrix = Canvas->ViewProjectionMatrix;
+    float    X = Location.X * ViewProjectionMatrix.M[0][0] + Location.Y * ViewProjectionMatrix.M[1][0] +
+              Location.Z * ViewProjectionMatrix.M[2][0] + ViewProjectionMatrix.M[3][0];
+    float Y = Location.X * ViewProjectionMatrix.M[0][1] + Location.Y * ViewProjectionMatrix.M[1][1] +
+              Location.Z * ViewProjectionMatrix.M[2][1] + ViewProjectionMatrix.M[3][1];
+    float Z = Location.X * ViewProjectionMatrix.M[0][2] + Location.Y * ViewProjectionMatrix.M[1][2] +
+              Location.Z * ViewProjectionMatrix.M[2][2] + ViewProjectionMatrix.M[3][2];
+    float W = Location.X * ViewProjectionMatrix.M[0][3] + Location.Y * ViewProjectionMatrix.M[1][3] +
+              Location.Z * ViewProjectionMatrix.M[2][3] + ViewProjectionMatrix.M[3][3];
 
     X /= W;
     Y /= W;
     Z /= W;
 
-    float ScreenX = (X + 1.f) * (ScreenWidth / 2.f);
-    float ScreenY = (1.f - Y) * (ScreenHeight / 2.f);
+    float ScreenX = (X + 1.f) * Core::g_ScreenCenterX;
+    float ScreenY = (1.f - Y) * Core::g_ScreenCenterY;
     float ScreenZ = Z;
 
     return FVector(ScreenX, ScreenY, ScreenZ);

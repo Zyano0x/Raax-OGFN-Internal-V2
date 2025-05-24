@@ -1,9 +1,12 @@
 #pragma once
 
 #include <mutex>
-#include <cheat/sdk/Basic.h>
+#include <cheat/sdk/Engine.h>
 
 namespace Core {
+
+// TEMP
+SDK::UWorld* GetNewWorld();
 
 // --- Initialization ------------------------------------------------
 
@@ -17,15 +20,24 @@ void TickRenderThread();
 
 // --- Global Variables ----------------------------------------------
 
-extern int32_t       g_ScreenSizeX;
-extern int32_t       g_ScreenSizeY;
-extern int32_t       g_ScreenCenterX;
-extern int32_t       g_ScreenCenterY;
-extern float         g_PixelsPerDegree;
-extern float         g_FOV;
+extern SDK::UWorld*               g_World;
+extern SDK::ULocalPlayer*         g_LocalPlayer;
+extern SDK::APlayerController*    g_LocalPlayerController;
+extern SDK::APlayerCameraManager* g_LocalPlayerCameraManager;
+extern SDK::APawn*                g_LocalPawn;
+
+extern int32_t g_ScreenSizeX;
+extern int32_t g_ScreenSizeY;
+extern int32_t g_ScreenCenterX;
+extern int32_t g_ScreenCenterY;
+extern float   g_PixelsPerDegree;
+
 extern SDK::FVector  g_CameraLocation;
 extern SDK::FRotator g_CameraRotation;
-extern SDK::FVector  g_LocalPlayerPos;
-extern std::mutex    g_GameRenderThreadLock;
+extern float         g_FOV;
+
+extern SDK::FVector g_LocalPlayerPos;
+
+extern std::mutex g_GameRenderThreadLock;
 
 } // namespace Core

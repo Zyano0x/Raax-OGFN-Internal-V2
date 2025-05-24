@@ -52,8 +52,7 @@ void TickRenderThread() {
     float FadeStartLlama = LootConfig.LlamaFadeOff ? MaxDistLlama * 0.2f : FLT_MAX;
 
     for (const auto& [_, Info] : Cache::Container::GetCachedContainers()) {
-        Info.Container->bAlreadySearched = false;
-        if (Info.Container->bAlreadySearched)
+        if (Info.Actor->bAlreadySearched)
             continue;
 
         float DistM = Info.RootWorldLocation.Dist(Core::g_CameraLocation) / 100.f;

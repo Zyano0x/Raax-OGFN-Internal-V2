@@ -9,12 +9,16 @@ namespace Pickup {
 // --- Cache Structures ----------------------------------------------
 
 struct PickupInfo {
-    SDK::AFortPickup*  Pickup = nullptr;
-    SDK::FVector       RootWorldLocation;
-    SDK::FVector2D     RootScreenLocation;
+    SDK::AFortPickup*     Pickup = nullptr;
+    SDK::USceneComponent* RootComponent = nullptr;
+
+    SDK::FVector   RootWorldLocation;
+    SDK::FVector2D RootScreenLocation;
+
     std::string        WeaponName;
-    SDK::EFortItemTier Tier;
-    bool               SeenThisFrame = false;
+    SDK::EFortItemTier Tier = SDK::EFortItemTier::No_Tier;
+
+    bool SeenThisFrame = false;
 };
 
 // --- Public Cache Functions ----------------------------------------

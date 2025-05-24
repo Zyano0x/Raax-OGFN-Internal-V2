@@ -7,12 +7,12 @@ namespace SDK {
 void (*AFortPlayerController::pFire_Press)(void*);
 void (*AFortPlayerController::pFire_Release)(void*);
 void AFortPlayerController::Fire_Press() {
-    if (this && pFire_Press) {
+    if (pFire_Press) {
         pFire_Press(this);
     }
 }
 void AFortPlayerController::Fire_Release() {
-    if (this && pFire_Release) {
+    if (pFire_Release) {
         pFire_Release(this);
     }
 }
@@ -23,7 +23,7 @@ int32_t AFortWeapon::GetBulletsPerClip() {
         int32_t ReturnValue;
     } params_GetBulletsPerClip{};
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetBulletsPerClip);
 
     return params_GetBulletsPerClip.ReturnValue;
@@ -35,7 +35,7 @@ float AFortProjectileBase::GetDefaultGravityScale() {
         float ReturnValue;
     } params_GetDefaultGravityScale{};
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetDefaultGravityScale);
 
     return params_GetDefaultGravityScale.ReturnValue;
@@ -50,7 +50,7 @@ float AFortProjectileBase::GetDefaultSpeed(float InChargePercent) {
 
     params_GetDefaultSpeed.InChargePercent = InChargePercent;
 
-    if (this && Func)
+    if (Func)
         ProcessEvent(Func, &params_GetDefaultSpeed);
 
     return params_GetDefaultSpeed.ReturnValue;
