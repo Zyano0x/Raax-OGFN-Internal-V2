@@ -17,16 +17,14 @@ PickupInfo CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
     Info.RootWorldLocation = Pickup->RootComponent()->RelativeLocation();
     Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
 
-    auto* ItemEntry = Pickup->PrimaryPickupItemEntry();
-    if (!ItemEntry)
-        return {};
+    SDK::FFortItemEntry ItemEntry = Pickup->PrimaryPickupItemEntry;
 
-    auto* ItemDefinition = ItemEntry->ItemDefinition();
+    SDK::UFortItemDefinition* ItemDefinition = ItemEntry.ItemDefinition;
     if (!ItemDefinition)
         return {};
 
-    Info.WeaponName = ItemDefinition->DisplayName()->ToString();
-    Info.Tier = ItemDefinition->Tier();
+    Info.WeaponName = ItemDefinition->DisplayName.ToString();
+    Info.Tier = ItemDefinition->Tier;
     Info.SeenThisFrame = true;
     return Info;
 }

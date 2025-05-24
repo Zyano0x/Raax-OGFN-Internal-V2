@@ -158,14 +158,14 @@ void ForceRefreshIfNeeded() {
 }
 
 void SharedInfoUpdate(PlayerInfo& Info) {
-    SDK::AFortWeapon* NewWeapon = Info.Pawn->CurrentWeapon();
+    SDK::AFortWeapon* NewWeapon = Info.Pawn->CurrentWeapon;
     if (NewWeapon) {
         if (NewWeapon != Info.CurrentWeapon) {
-            Info.WeaponName = NewWeapon->WeaponData()->DisplayName()->ToString();
-            Info.WeaponTier = NewWeapon->WeaponData()->Tier();
+            Info.WeaponName = NewWeapon->WeaponData->DisplayName.ToString();
+            Info.WeaponTier = NewWeapon->WeaponData->Tier;
             Info.BulletsPerClip = NewWeapon->GetBulletsPerClip();
         }
-        Info.AmmoCount = NewWeapon->AmmoCount();
+        Info.AmmoCount = NewWeapon->AmmoCount;
     } else {
         Info.WeaponName = "";
         Info.AmmoCount = 0;
@@ -197,14 +197,20 @@ void SharedInfoUpdate(PlayerInfo& Info) {
     }
 }
 
-PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
+std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     PlayerInfo Info;
+
     Info.Pawn = Pawn;
     Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState());
+    if (!Info.PlayerState)
+        return std::nullopt;
+
     Info.Mesh = Info.Pawn->Mesh();
+    if (!Info.Mesh)
+        return std::nullopt;
 
     Info.PlayerName = Info.PlayerState->GetPlayerName().ToString();
-    Info.Platform = Info.PlayerState->Platform().ToString();
+    Info.Platform = Info.PlayerState->Platform.ToString();
     for (int i = 0; i < static_cast<int>(BoneIdx::NUM); i++) {
         if (i == static_cast<int>(BoneIdx::Chest))
             continue;
@@ -217,11 +223,18 @@ PlayerInfo CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     return Info;
 }
 
-void UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
+bool UpdateExistingPlayerInfo(PlayerInfo& Info, SDK::AFortPawn* Pawn) {
     Info.Pawn = Pawn;
     Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState());
+    if (!Info.PlayerState)
+        return false;
+
     Info.Mesh = Info.Pawn->Mesh();
+    if (!Info.Mesh)
+        return false;
+
     SharedInfoUpdate(Info);
+    return true;
 }
 
 void ResetPlayerSeenFlags() {
@@ -246,12 +259,17 @@ void UpdateCache() {
 
     static std::vector<SDK::AFortPawn*> PlayerList;
     SDK::GetAllActorsOfClass<SDK::AFortPawn>(PlayerList);
+
     for (const auto& Player : PlayerList) {
-        auto It = CachedPlayers.find(Player);
-        if (It == CachedPlayers.end()) {
-            CachedPlayers[Player] = CreateNewPlayerInfo(Player);
+        if (!CachedPlayers.contains(Player)) {
+            std::optional<PlayerInfo> Info = CreateNewPlayerInfo(Player);
+
+            if (Info.has_value())
+                CachedPlayers[Player] = Info.value();
         } else {
-            UpdateExistingPlayerInfo(It->second, Player);
+            PlayerInfo& Info = CachedPlayers.at(Player);
+            if (!UpdateExistingPlayerInfo(Info, Player))
+                CachedPlayers.erase(Player);
         }
     }
 

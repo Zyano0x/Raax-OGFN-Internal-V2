@@ -4,6 +4,6 @@
 
 namespace Error {
 
-void ThrowError(const std::string& Msg);
+[[noreturn]] void ThrowError(const std::string& Msg);
 
 } // namespace Error

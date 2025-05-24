@@ -78,7 +78,8 @@ LRESULT __stdcall h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         // dead lock issues on some older seasons (tested on 7.40)
         {
             std::lock_guard<std::recursive_mutex> lock(g_WndProcMutex);
-            ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam);
+            if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam))
+                return true;
         }
 #endif
 

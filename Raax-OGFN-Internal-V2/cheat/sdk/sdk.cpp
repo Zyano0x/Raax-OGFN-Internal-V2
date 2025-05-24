@@ -430,7 +430,7 @@ bool SetupLevelActors() {
     return false;
 }
 bool SetupComponentSpaceTransformsArray() {
-    PropertyInfo Info = UObject::GetPropertyInfo("SkinnedMeshComponent", "VertexOffsetUsage");
+    PropertyInfo Info = UObject::GetPropertyInfo("SkinnedMeshComponent", "VertexOffsetUsage", true);
     int32_t      Offset = Info.Offset + 0x10;
     if (!Info.Found) {
         Info = UObject::GetPropertyInfo("SkinnedMeshComponent", "MasterPoseComponent");
@@ -546,8 +546,8 @@ void FindComponentToWorldOffset() {
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
                   SetupLevelActors() && SetupComponentSpaceTransformsArray();
-    /* if (Result)
-       FindComponentToWorldOffset();*/
+     if (Result)
+       FindComponentToWorldOffset();
 
     uint64_t EditModeInputComponent0 = 0;
     if (SetupEditModeInputComponent0Offset(EditModeInputComponent0)) {

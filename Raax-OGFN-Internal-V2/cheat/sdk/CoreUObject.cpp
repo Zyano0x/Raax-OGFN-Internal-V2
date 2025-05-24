@@ -1,7 +1,10 @@
 #include "CoreUObject.h"
 #include "sdk.h"
 
+#include <format>
+
 #include <utils/log.h>
+#include <utils/error.h>
 
 namespace SDK {
 
@@ -58,11 +61,25 @@ std::wstring UObject::GetFullWName() const {
     return L"None";
 }
 
-PropertyInfo UObject::GetPropertyInfo(const FName& ClassName, const FName& PropertyName) {
-    return FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindProperty(PropertyName);
+PropertyInfo UObject::GetPropertyInfo(const FName& ClassName, const FName& PropertyName, bool SuppressFailure) {
+    const PropertyInfo Info = FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindProperty(PropertyName);
+
+    if (!SuppressFailure && !Info.Found)
+        Error::ThrowError(std::format("Failed to find property.\nClass: {}\nProperty: {}", ClassName.ToString(),
+                                      PropertyName.ToString()));
+
+    return Info;
 }
-UFunction* UObject::GetFunction(const FName& ClassName, const FName& FunctionName) {
+UFunction* UObject::GetFunction(const FName& ClassName, const FName& FunctionName, bool SuppressFailure) {
     return FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindFunction(FunctionName);
+
+    UFunction* const Function = FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindFunction(FunctionName);
+
+    if (!SuppressFailure && !Function)
+        Error::ThrowError(std::format("Failed to find function.\nClass: {}\Function: {}", ClassName.ToString(),
+                                      FunctionName.ToString()));
+
+    return Function;
 }
 
 class UStruct* UStruct::SuperStruct() const {

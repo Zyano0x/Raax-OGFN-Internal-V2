@@ -5,9 +5,12 @@
 
 namespace Error {
 
-void ThrowError(const std::string& Msg) {
+[[noreturn]] void ThrowError(const std::string& Msg) {
     LOG(LOG_ERROR, "Error thrown: %s", Msg.c_str());
     MessageBoxA(0, Msg.c_str(), "Error", MB_ICONERROR);
+
+    // TODO: Unload the cheat instead of exiting.
+    exit(1); // This will exit the game as well
 }
 
 } // namespace Error
