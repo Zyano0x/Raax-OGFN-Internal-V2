@@ -214,8 +214,12 @@ struct ConfigData {
         bool  DamageMultiplier = false;
         float DamageMultiplierAmount = 1.f;
 
+        bool AutomaticWeapons = false;
+
         bool  FastPickaxe = false;
         float FastPickaxeSpeed = 1.f;
+
+        bool ZiplineFly = false;
 
         bool InstantRevive = false;
     } Exploit;

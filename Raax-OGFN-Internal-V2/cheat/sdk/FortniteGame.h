@@ -69,6 +69,14 @@ struct FFortRangedWeaponStats : public FFortBaseWeaponStats {
     UPROPERTY(float, FiringRate);
 };
 
+class FZiplinePawnState : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("ZiplinePawnState", FZiplinePawnState);
+
+  public:
+    UPROPERTY_BITFIELD(bIsZiplining);
+};
+
 class AFortPlayerController : public APlayerController {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController);
@@ -93,6 +101,9 @@ class AFortPawn : public ACharacter {
 class AFortPlayerPawn : public AFortPawn {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerPawn", AFortPlayerPawn);
+
+  public:
+    UPROPERTY(FZiplinePawnState, ZiplineState);
 };
 
 class AFortPlayerPawnAthena : public AFortPlayerPawn {

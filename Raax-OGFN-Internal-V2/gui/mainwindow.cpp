@@ -396,10 +396,14 @@ void ExploitsTab() {
         ImGui::SliderFloat("Damange Multiplier Amount", &Config.DamageMultiplierAmount, 1.f, 50.f);
         Config.DamageMultiplierAmount /= 50.f;
 
+        ImGui::Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
+
         ImGui::Checkbox("Fast Pickaxe", &Config.FastPickaxe);
         Config.FastPickaxeSpeed *= 50.f; // scuffed fix for now
         ImGui::SliderFloat("Fast Pickaxe Speed", &Config.FastPickaxeSpeed, 1.f, 50.f);
         Config.FastPickaxeSpeed /= 50.f;
+
+        ImGui::Checkbox("Zipline Fly", &Config.ZiplineFly);
 
         ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
 
