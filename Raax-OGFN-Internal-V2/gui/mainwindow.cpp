@@ -386,12 +386,20 @@ void ExploitsTab() {
         ImGui::Checkbox("No Reload", &Config.NoReload);
         ImGui::SliderFloat("No Reload Amount", &Config.NoReloadAmount, 0.f, 1.f);
 
+        ImGui::Checkbox("Rapid Fire", &Config.RapidFire);
+        Config.RapidFireAmount *= 50.f; // scuffed fix for now
+        ImGui::SliderFloat("Rapid Fire Amount", &Config.RapidFireAmount, 1.f, 50.f);
+        Config.RapidFireAmount /= 50.f;
+
         ImGui::Checkbox("Damange Multiplier", &Config.DamageMultiplier);
-        ImGui::SliderInt("Damange Multiplier Amount", &Config.DamageMultiplierAmount, 1.f, 50.f);
+        Config.DamageMultiplierAmount *= 50.f; // scuffed fix for now
+        ImGui::SliderFloat("Damange Multiplier Amount", &Config.DamageMultiplierAmount, 1.f, 50.f);
+        Config.DamageMultiplierAmount /= 50.f;
 
         ImGui::Checkbox("Fast Pickaxe", &Config.FastPickaxe);
-        ImGui::SliderFloat("Fast Pickaxe Speed", &Config.FastPickaxeSpeed, 1.f, 50.f, "%.3f",
-                           ImGuiSliderFlags_Logarithmic);
+        Config.FastPickaxeSpeed *= 50.f; // scuffed fix for now
+        ImGui::SliderFloat("Fast Pickaxe Speed", &Config.FastPickaxeSpeed, 1.f, 50.f);
+        Config.FastPickaxeSpeed /= 50.f;
 
         ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
 

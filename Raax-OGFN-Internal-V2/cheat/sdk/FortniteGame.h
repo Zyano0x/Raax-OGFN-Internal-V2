@@ -38,6 +38,7 @@ struct FFortBaseWeaponStats : public UObject {
 
   public:
     UPROPERTY(float, ReloadTime);
+    UPROPERTY(int32_t, AmmoCostPerFire);
 };
 
 struct FFortMeleeWeaponStats : public FFortBaseWeaponStats {
@@ -64,7 +65,8 @@ struct FFortRangedWeaponStats : public FFortBaseWeaponStats {
     UPROPERTY(float, RecoilVert);
     UPROPERTY(float, RecoilVertScaleGamepad);
     UPROPERTY(float, RecoilHoriz);
-    UPROPERTY(float, BulletsPerCartridge);
+    UPROPERTY(int32_t, BulletsPerCartridge);
+    UPROPERTY(float, FiringRate);
 };
 
 class AFortPlayerController : public APlayerController {

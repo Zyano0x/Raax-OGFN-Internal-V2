@@ -202,14 +202,17 @@ struct ConfigData {
 
     struct ExploitConfig {
         bool  NoSpread = false;
-        float NoSpreadAmount = 0.f;
+        float NoSpreadAmount = 0.5f;
         bool  NoRecoil = false;
-        float NoRecoilAmount = 0.f;
+        float NoRecoilAmount = 0.5f;
         bool  NoReload = false;
-        float NoReloadAmount = 0.f;
+        float NoReloadAmount = 0.5f;
 
-        bool DamageMultiplier = false;
-        int  DamageMultiplierAmount = 0.f;
+        bool  RapidFire = false;
+        float RapidFireAmount = 1.f;
+
+        bool  DamageMultiplier = false;
+        float DamageMultiplierAmount = 1.f;
 
         bool  FastPickaxe = false;
         float FastPickaxeSpeed = 1.f;

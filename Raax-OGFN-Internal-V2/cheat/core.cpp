@@ -147,10 +147,10 @@ bool Init() {
 }
 
 void Destroy() {
-    AutoRevertFeature::Destroy();
     GUI::Destroy();
     DrawTransition::Destroy();
     Hooks::Destroy();
+    AutoRevertFeature::Destroy();
 
 #if CFG_SHOWCONSOLE
     Log::DestroyConsole();

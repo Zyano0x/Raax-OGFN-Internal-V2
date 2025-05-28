@@ -124,8 +124,10 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::ExploitConfig>() 
                            MemberDescriptor<T, float>{"NoRecoilAmount", &T::NoRecoilAmount, {}},
                            MemberDescriptor<T, bool>{"NoReload", &T::NoReload, {}},
                            MemberDescriptor<T, float>{"NoReloadAmount", &T::NoReloadAmount, {}},
+                           MemberDescriptor<T, bool>{"RapidFire", &T::RapidFire, {}},
+                           MemberDescriptor<T, float>{"RapidFireAmount", &T::RapidFireAmount, {}},
                            MemberDescriptor<T, bool>{"DamageMultiplier", &T::DamageMultiplier, {}},
-                           MemberDescriptor<T, int>{"DamageMultiplierAmount", &T::DamageMultiplierAmount, {}},
+                           MemberDescriptor<T, float>{"DamageMultiplierAmount", &T::DamageMultiplierAmount, {}},
                            MemberDescriptor<T, bool>{"FastPickaxe", &T::FastPickaxe, {}},
                            MemberDescriptor<T, float>{"FastPickaxeSpeed", &T::FastPickaxeSpeed, {}},
                            MemberDescriptor<T, bool>{"InstantRevive", &T::InstantRevive, {}});
