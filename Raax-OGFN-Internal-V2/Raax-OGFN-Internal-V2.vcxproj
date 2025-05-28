@@ -276,6 +276,7 @@
     <ClCompile Include="utils\log.cpp" />
     <ClCompile Include="utils\math.cpp" />
     <ClCompile Include="utils\memory.cpp" />
+    <ClCompile Include="utils\string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\autorevertfeature.h" />
@@ -390,6 +391,7 @@
     <ClInclude Include="utils\log.h" />
     <ClInclude Include="utils\math.h" />
     <ClInclude Include="utils\memory.h" />
+    <ClInclude Include="utils\string.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cheat\autorevertfeature.inl" />

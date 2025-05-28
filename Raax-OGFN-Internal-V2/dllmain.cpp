@@ -14,7 +14,7 @@ DWORD Main(LPVOID) {
 
 DWORD Unload(LPVOID hModule) {
     while (true) {
-        if (GetAsyncKeyState(VK_F5) & 1) {
+        if (GetAsyncKeyState(VK_F6) & 1) {
             LOG(LOG_INFO, "Unloading...");
             Core::Destroy();
             break;
