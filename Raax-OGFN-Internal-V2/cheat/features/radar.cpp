@@ -52,7 +52,7 @@ void DrawPlayerIcons(const Config::ConfigData::VisualsConfig::RadarConfig& Radar
     float SinCameraYaw = std::sin(CameraYaw - Math::DegreesToRadians(90.f));
 
     for (const auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
-        if (Info.Pawn == SDK::GetLocalPawn()) {
+        if (Info.Pawn == SDK::GetLocalPawn() || Info.TeamIndex == Core::g_LocalTeamIndex) {
             continue;
         }
 

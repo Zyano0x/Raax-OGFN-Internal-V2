@@ -179,6 +179,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cheat\autorevertfeature.cpp" />
     <ClCompile Include="cheat\cache\containercache.cpp" />
     <ClCompile Include="cheat\cache\pickupcache.cpp" />
     <ClCompile Include="cheat\cache\playercache.cpp" />
@@ -250,6 +251,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="extern\raaxgui\raaxgui.cpp" />
     <ClCompile Include="gui\dx11\dx11.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">false</ExcludedFromBuild>
@@ -276,6 +278,7 @@
     <ClCompile Include="utils\memory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cheat\autorevertfeature.h" />
     <ClInclude Include="cheat\cache\containercache.h" />
     <ClInclude Include="cheat\cache\pickupcache.h" />
     <ClInclude Include="cheat\cache\playercache.h" />
@@ -389,6 +392,7 @@
     <ClInclude Include="utils\memory.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="cheat\autorevertfeature.inl" />
     <None Include="utils\memory.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

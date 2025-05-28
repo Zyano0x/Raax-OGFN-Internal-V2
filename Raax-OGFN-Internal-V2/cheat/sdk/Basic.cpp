@@ -5,8 +5,6 @@
 #include "sdk.h"
 #include <utils/math.h>
 
-
-
 namespace SDK {
 
 class UObject* FWeakObjectPtr::Get() const {

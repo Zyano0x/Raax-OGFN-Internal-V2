@@ -36,7 +36,7 @@ struct PlayerInfo {
     // Required for cache to be valid
 
     SDK::AFortPawn*              Pawn = nullptr;
-    SDK::AFortPlayerState*       PlayerState = nullptr;
+    SDK::AFortPlayerStateAthena* PlayerState = nullptr;
     SDK::USkeletalMeshComponent* Mesh = nullptr;
     SDK::USceneComponent*        RootComponent = nullptr;
 
@@ -52,6 +52,7 @@ struct PlayerInfo {
 
     std::string PlayerName;
     std::string Platform;
+    uint8_t     TeamIndex = 0;
     float       DistanceM = 0.f;
     bool        HeadVisible = false;
     bool        IsOnScreen = false;

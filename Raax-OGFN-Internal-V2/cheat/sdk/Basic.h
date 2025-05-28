@@ -308,8 +308,8 @@ struct FVector2D {
     float Y;
 
   public:
-    inline FVector2D() : X(0.0f), Y(0.0f) {}
-    inline FVector2D(float X, float Y) : X(X), Y(Y) {}
+    inline constexpr FVector2D() : X(0.0f), Y(0.0f) {}
+    inline constexpr FVector2D(float X, float Y) : X(X), Y(Y) {}
 
   public:
     FVector2D operator+(const FVector2D& Other) const { return FVector2D(X + Other.X, Y + Other.Y); }

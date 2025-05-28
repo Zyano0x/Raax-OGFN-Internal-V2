@@ -22,20 +22,56 @@ enum class EFortItemTier : uint8_t {
     EFortItemTier_MAX = 12,
 };
 
+// TODO - Make these not inherit from UObject, as that is wrong
+
 struct FFortItemEntry : public UObject {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry)
+    STATICCLASS_DEFAULTOBJECT("FortItemEntry", FFortItemEntry);
 
   public:
     UPROPERTY(class UFortItemDefinition*, ItemDefinition);
 };
 
+struct FFortBaseWeaponStats : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortBaseWeaponStats", FFortBaseWeaponStats);
+
+  public:
+    UPROPERTY(float, ReloadTime);
+};
+
+struct FFortMeleeWeaponStats : public FFortBaseWeaponStats {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortMeleeWeaponStats", FFortMeleeWeaponStats);
+
+  public:
+    UPROPERTY(float, SwingPlaySpeed);
+};
+
+struct FFortRangedWeaponStats : public FFortBaseWeaponStats {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortRangedWeaponStats", FFortRangedWeaponStats);
+
+  public:
+    UPROPERTY(float, Spread);
+    UPROPERTY(float, SpreadDownsights);
+    UPROPERTY(float, StandingStillSpreadMultiplier);
+    UPROPERTY(float, AthenaCrouchingSpreadMultiplier);
+    UPROPERTY(float, AthenaJumpingFallingSpreadMultiplier);
+    UPROPERTY(float, AthenaSprintingSpreadMultiplier);
+    UPROPERTY(float, MinSpeedForSpreadMultiplier);
+    UPROPERTY(float, MaxSpeedForSpreadMultiplier);
+    UPROPERTY(float, RecoilVert);
+    UPROPERTY(float, RecoilVertScaleGamepad);
+    UPROPERTY(float, RecoilHoriz);
+    UPROPERTY(float, BulletsPerCartridge);
+};
 
 class AFortPlayerController : public APlayerController {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController);
 
-public:
+  public:
     static void (*pFire_Press)(void*);
     static void (*pFire_Release)(void*);
 
@@ -48,7 +84,7 @@ class AFortPawn : public ACharacter {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn);
 
-public:
+  public:
     UPROPERTY(class AFortWeapon*, CurrentWeapon);
 };
 
@@ -71,6 +107,14 @@ class AFortPlayerState : public APlayerState {
 
   public:
     UPROPERTY(FString, Platform);
+};
+
+class AFortPlayerStateAthena : public AFortPlayerState {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortPlayerStateAthena", AFortPlayerStateAthena);
+
+  public:
+    UPROPERTY(uint8_t, TeamIndex);
 };
 
 class ABuildingContainer : public AActor {
@@ -116,7 +160,10 @@ class AFortPickup : public AActor {
 
 class AFortWeapon : public AActor {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon)
+    STATICCLASS_DEFAULTOBJECT("FortWeapon", AFortWeapon);
+
+  public:
+    static inline int GetWeaponStats_Idx;
 
   public:
     UPROPERTY(class UFortWeaponItemDefinition*, WeaponData);
@@ -125,11 +172,24 @@ class AFortWeapon : public AActor {
 
   public:
     int32_t GetBulletsPerClip();
+
+  public:
+    FFortBaseWeaponStats* GetWeaponStats();
+};
+
+class AFortWeaponRanged : public AFortWeapon {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortWeaponRanged", AFortWeaponRanged);
+};
+
+class AB_Melee_Generic_C : public AFortWeapon {
+  public:
+    STATICCLASS_DEFAULTOBJECT("B_Melee_Generic_C", AB_Melee_Generic_C);
 };
 
 class AFortProjectileBase : public AActor {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase)
+    STATICCLASS_DEFAULTOBJECT("FortProjectileBase", AFortProjectileBase);
 
   public:
     UPROPERTY(float, GravityScale);
@@ -141,7 +201,7 @@ class AFortProjectileBase : public AActor {
 
 class UFortItemDefinition : public UObject {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition)
+    STATICCLASS_DEFAULTOBJECT("FortItemDefinition", UFortItemDefinition);
 
   public:
     UPROPERTY(FText, DisplayName);
@@ -158,7 +218,7 @@ enum class EFortWeaponTriggerType : uint8_t {
 
 class UFortWeaponItemDefinition : public UFortItemDefinition {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition)
+    STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition);
 
   public:
     UPROPERTY(TSoftObjectPtr<UFortWeaponItemDefinition>, AmmoData);
@@ -167,7 +227,7 @@ class UFortWeaponItemDefinition : public UFortItemDefinition {
 
 class UFortWeaponRangedItemDefinition : public UFortWeaponItemDefinition {
   public:
-    STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition)
+    STATICCLASS_DEFAULTOBJECT("FortWeaponRangedItemDefinition", UFortWeaponRangedItemDefinition);
 
   public:
     UPROPERTY(TSoftClassPtr<UClass>, ProjectileTemplate);

@@ -6,6 +6,11 @@
 #include <config/keybind.h>
 #include <config/config_reflection.h>
 #include <gui/gui.h>
+#include <cheat/sdk/Engine.h>
+
+#ifdef _ENGINE
+#include <extern/raaxgui/raaxgui.h>
+#endif
 
 namespace GUI {
 namespace MainWindow {
@@ -189,6 +194,7 @@ void AimbotTab() {
 
     ImGui::Checkbox("Split By Ammo Type", &AimbotConfig.SplitAimbotByAmmo);
     ImGui::Checkbox("Bullet Prediction", &AimbotConfig.BulletPrediction);
+    ImGui::Checkbox("Show Target Line", &AimbotConfig.ShowTargetLine);
     static bool WaitingForKeybind = false;
     GUI::Keybind("Aim Keybind", WaitingForKeybind, (ImGuiKey&)AimbotConfig.AimbotKeybind);
 
@@ -373,10 +379,31 @@ void ExploitsTab() {
     auto& Config = Config::g_Config.Exploit;
 
     if (ImGui::BeginChild("ConfigRegion")) {
-        ImGui::Checkbox("Rapid Fire", &Config.RapidFire);
         ImGui::Checkbox("No Spread", &Config.NoSpread);
-        ImGui::Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
+        ImGui::SliderFloat("No Spread Amount", &Config.NoSpreadAmount, 0.f, 1.f);
+        ImGui::Checkbox("No Recoil", &Config.NoRecoil);
+        ImGui::SliderFloat("No Recoil Amount", &Config.NoRecoilAmount, 0.f, 1.f);
+        ImGui::Checkbox("No Reload", &Config.NoReload);
+        ImGui::SliderFloat("No Reload Amount", &Config.NoReloadAmount, 0.f, 1.f);
+
+        ImGui::Checkbox("Damange Multiplier", &Config.DamageMultiplier);
+        ImGui::SliderInt("Damange Multiplier Amount", &Config.DamageMultiplierAmount, 1.f, 50.f);
+
+        ImGui::Checkbox("Fast Pickaxe", &Config.FastPickaxe);
+        ImGui::SliderFloat("Fast Pickaxe Speed", &Config.FastPickaxeSpeed, 1.f, 50.f, "%.3f",
+                           ImGuiSliderFlags_Logarithmic);
+
         ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
+
+        static char InputName[1024];
+        ImGui::InputText("New Name", InputName, sizeof(InputName));
+        if (ImGui::Button("Server Change Name")) {
+            std::string             InputNameStr = InputName;
+            std::wstring            InputNameWStr = std::wstring(InputNameStr.begin(), InputNameStr.end());
+            SDK::APlayerController* Controller = SDK::GetLocalController();
+            if (Controller)
+                Controller->ServerChangeName(SDK::FString(InputNameWStr.c_str()));
+        }
     }
     ImGui::EndChild();
 }
@@ -532,7 +559,20 @@ void Tick() {
     }
 }
 #else
-void Tick() {}
+void Tick() {
+    if (GetAsyncKeyState(VK_INSERT) & 1)
+        GUI::MainWindow::g_WindowOpen = !GUI::MainWindow::g_WindowOpen;
+
+    static bool test = false;
+
+    RaaxGUI::NewFrame();
+    RaaxGUI::SetNextWindowSize(SDK::FVector2D(400.f, 600.f));
+    if (RaaxGUI::Begin("test", &GUI::MainWindow::g_WindowOpen)) {
+        RaaxGUI::Checkbox("Rapid Fire", &test);
+    }
+    RaaxGUI::End();
+    RaaxGUI::EndFrame();
+}
 #endif
 
 // --- Global Variables ----------------------------------------------

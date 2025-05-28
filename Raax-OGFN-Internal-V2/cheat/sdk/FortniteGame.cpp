@@ -28,6 +28,11 @@ int32_t AFortWeapon::GetBulletsPerClip() {
 
     return params_GetBulletsPerClip.ReturnValue;
 }
+FFortBaseWeaponStats* AFortWeapon::GetWeaponStats() {
+    FFortBaseWeaponStats* (*GetWeaponStatsFunc)(class AFortWeapon* Object) =
+        (decltype(GetWeaponStatsFunc))this->VTable[GetWeaponStats_Idx];
+    return GetWeaponStatsFunc(this);
+}
 
 float AFortProjectileBase::GetDefaultGravityScale() {
     static UFunction* Func = GetFunction("FortProjectileBase", "GetDefaultGravityScale");

@@ -9,19 +9,19 @@
 
 /* @brief Sets up StaticClass() and GetDefaultObj() functions. */
 #define STATICCLASS_DEFAULTOBJECT(ClassNameStr, Type)                                                                  \
-    static constexpr const char* ClassName = ClassNameStr;                                                             \
-    static UClass*               StaticClass() {                                                                       \
-        static UClass* Clss = nullptr;                                                                   \
-        if (!Clss)                                                                                       \
-            Clss = UObject::FindObjectFast<UClass>(ClassNameStr, SDK::EClassCastFlags::Class);           \
-        return Clss;                                                                                     \
+    static UClass* StaticClass() {                                                                                     \
+        static UClass* Clss = nullptr;                                                                                 \
+        if (!Clss)                                                                                                     \
+            Clss = UObject::FindObjectFast<UClass>(ClassNameStr, SDK::EClassCastFlags::Class);                         \
+        return Clss;                                                                                                   \
     }                                                                                                                  \
     static Type* GetDefaultObj() {                                                                                     \
         static Type* Default = nullptr;                                                                                \
         if (!Default)                                                                                                  \
-            Default = static_cast<Type*>(StaticClass()->ClassDefaultObject());                                         \
+            Default = static_cast<Type*>(StaticClass()->ClassDefaultObject);                                           \
         return Default;                                                                                                \
-    }
+    }                                                                                                                  \
+    static constexpr const char* ClassName = ClassNameStr
 
 namespace SDK {
 
@@ -49,6 +49,15 @@ struct PropertyInfo {
     type& getprop_##name() const {                                                                                     \
         const PropertyInfo& Prop = getpropinfo_##name();                                                               \
         return *reinterpret_cast<type*>((uint8_t*)this + Prop.Offset);                                                 \
+    }                                                                                                                  \
+    __declspec(property(get = getprop_##name, put = putprop_##name)) type name
+
+#define UPROPERTY_OFFSET(type, name, offset)                                                                           \
+    void putprop_##name(const type& v) {                                                                               \
+        *reinterpret_cast<type*>((uint8_t*)this + offset) = const_cast<type&>(v);                                      \
+    }                                                                                                                  \
+    type& getprop_##name() const {                                                                                     \
+        return *reinterpret_cast<type*>((uint8_t*)this + offset);                                                      \
     }                                                                                                                  \
     __declspec(property(get = getprop_##name, put = putprop_##name)) type name
 
@@ -162,9 +171,9 @@ class UStruct : public UObject {
     static inline uint32_t ChildProperties_Offset;
 
   public:
-    class UStruct* SuperStruct() const;
-    class UField*  Children() const;
-    class FField*  ChildProperties() const;
+    UPROPERTY_OFFSET(class UStruct*, SuperStruct, SuperStruct_Offset);
+    UPROPERTY_OFFSET(class UField*, Children, Children_Offset);
+    UPROPERTY_OFFSET(class FField*, ChildProperties, ChildProperties_Offset);
 
   public:
     PropertyInfo     FindProperty(const FName& Name) const;
@@ -177,8 +186,8 @@ class UClass : public UStruct {
     static inline uint32_t ClassDefaultObject_Offset;
 
   public:
-    EClassCastFlags ClassCastFlags() const;
-    UObject*        ClassDefaultObject() const;
+    UPROPERTY_OFFSET(EClassCastFlags, ClassCastFlags, ClassCastFlags_Offset);
+    UPROPERTY_OFFSET(class UObject*, ClassDefaultObject, ClassDefaultObject_Offset);
 };
 
 class UField : public UObject {
@@ -186,7 +195,7 @@ class UField : public UObject {
     static inline uint32_t Next_Offset;
 
   public:
-    class UField* Next() const;
+    UPROPERTY_OFFSET(class UField*, Next, Next_Offset);
 };
 
 class UProperty : public UField {
@@ -194,7 +203,7 @@ class UProperty : public UField {
     static inline uint32_t Offset_Internal_Offset;
 
   public:
-    int32_t Offset_Internal() const;
+    UPROPERTY_OFFSET(int32_t, Offset_Internal, Offset_Internal_Offset);
 };
 
 class UBoolProperty : public UProperty {
@@ -202,8 +211,10 @@ class UBoolProperty : public UProperty {
     static inline uint32_t ByteMask_Offset;
 
   public:
-    uint8_t ByteMask() const;
-    bool    IsNativeBool() const;
+    UPROPERTY_OFFSET(uint8_t, ByteMask, ByteMask_Offset);
+
+  public:
+    bool IsNativeBool() const;
 };
 
 class UFunction : public UField {
@@ -212,8 +223,8 @@ class UFunction : public UField {
     static inline uint32_t FuncPtr_Offset;
 
   public:
-    EFunctionFlags FunctionFlags() const;
-    void*          FuncPtr() const;
+    UPROPERTY_OFFSET(EFunctionFlags, FunctionFlags, FunctionFlags_Offset);
+    UPROPERTY_OFFSET(void*, FuncPtr, FuncPtr_Offset);
 };
 
 template <typename T, bool ForceCast = false> inline T* Cast(UObject* Object) {

@@ -5,7 +5,7 @@
 
 namespace Core {
 
-// TEMP
+// TODO - Make it so we don't need to expose this
 SDK::UWorld* GetNewWorld();
 
 // --- Initialization ------------------------------------------------
@@ -25,6 +25,7 @@ extern SDK::ULocalPlayer*         g_LocalPlayer;
 extern SDK::APlayerController*    g_LocalPlayerController;
 extern SDK::APlayerCameraManager* g_LocalPlayerCameraManager;
 extern SDK::APawn*                g_LocalPawn;
+extern uint8_t                    g_LocalTeamIndex;
 
 extern int32_t g_ScreenSizeX;
 extern int32_t g_ScreenSizeY;

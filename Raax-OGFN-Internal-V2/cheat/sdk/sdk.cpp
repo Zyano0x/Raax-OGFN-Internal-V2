@@ -215,7 +215,7 @@ bool Setup_UStruct_ChildProperties() {
 }
 bool Setup_UField_Next() {
     std::vector<std::pair<void*, void*>> Pairs = {
-        {UObject::FindObjectFast<UClass>("KismetArrayLibrary", EClassCastFlags::Class)->Children(),
+        {UObject::FindObjectFast<UClass>("KismetArrayLibrary", EClassCastFlags::Class)->Children,
          UObject::FindObjectFast<UClass>("FilterArray", EClassCastFlags::Function)}};
 
     UField::Next_Offset = Memory::FindMatchingValueOffset(Pairs, 0x10, 0x40);
@@ -529,8 +529,33 @@ bool SetupFireOffset(uint64_t EditModeInputComponent0) {
 
     return true;
 }
+void FindGetWeaponStats() {
+    void** VTable = UObject::FindObjectFast("Default__FortWeapon")->VTable;
+
+    for (int i = 0x30; i < 0x100; i++) {
+        if (!VTable[i] || !Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VTable[i])))
+            break;
+
+        if (Memory::PatternScanRangeBytes<int32_t>(
+                (uintptr_t)VTable[i], 0x35,
+                {0x48, 0x83, 0xEC, 0x58, 0x48, 0x8B, -0x01, -0x01, -0x01, -0x01, -0x01, 0x48, 0x85}) ||
+            Memory::PatternScanRangeBytes<int32_t>(
+                (uintptr_t)VTable[i], 0x35,
+                {0x48, 0x8B, 0x89, -0x01, -0x01, 0x00, 0x00, 0x48, -0x01, -0x01, 0x74, 0x13}) ||
+            Memory::PatternScanRangeBytes<int32_t>(
+                (uintptr_t)VTable[i], 0x35,
+                {0x48, 0x8B, 0x60, -0x01, -0x01, 0x00, 0x00, 0x48, -0x01, -0x01, 0x8B, 0xFA})) {
+            AFortWeapon::GetWeaponStats_Idx = i;
+            LOG(LOG_INFO, "Found AFortWeapon::GetWeaponStats VFT index: 0x%X", UGameViewportClient::DrawTransition_Idx);
+            return;
+        }
+    }
+
+    LOG(LOG_WARN,
+        "Failed to find AFortWeapon::GetWeaponStats VFT index! WeaponStats based exploits will no longer work.");
+}
 void FindComponentToWorldOffset() {
-    void* execK2_GetComponentToWorld = UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr();
+    void* execK2_GetComponentToWorld = UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr;
     if (execK2_GetComponentToWorld) {
         uintptr_t K2_GetComponentToWorld =
             Memory::PatternScanRange<int32_t>((uintptr_t)execK2_GetComponentToWorld, 0x50, "E8", false, 1, true);
@@ -553,8 +578,10 @@ void FindComponentToWorldOffset() {
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
                   SetupLevelActors() && SetupComponentSpaceTransformsArray();
-    if (Result)
+    if (Result) {
+        FindGetWeaponStats();
         FindComponentToWorldOffset();
+    }
 
     uint64_t EditModeInputComponent0 = 0;
     if (SetupEditModeInputComponent0Offset(EditModeInputComponent0)) {

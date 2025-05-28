@@ -20,12 +20,14 @@ namespace Aimbot {
 struct TargetInfo {
     SDK::AFortPawn* Pawn = nullptr;
     SDK::FRotator   RotationDelta;
+    SDK::FVector2D  ScreenPos;
     float           DistDeg = 0.f;
     float           DistanceM = 0.f;
     float           DistCombined = 0.f;
     bool            InDeadZone = false;
+    bool            Visible = false;
 
-    void reset() { Pawn = nullptr; }
+    void Reset() { Pawn = nullptr; }
 } target;
 
 float WorldGravityZ = 0.f;
@@ -98,10 +100,12 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
 
     // accept this target
     target.Pawn = Info.Pawn;
+    target.ScreenPos = TargetScreenPos;
     target.DistDeg = DistDeg;
     target.DistanceM = DistanceM;
     target.DistCombined = DistCombined;
     target.InDeadZone = InDeadZone;
+    target.Visible = Info.HeadVisible;
 
     SDK::FRotator RotationDelta(AimRot.Pitch - Core::g_CameraRotation.Pitch, AimRot.Yaw - Core::g_CameraRotation.Yaw,
                                 0.f);
@@ -128,12 +132,13 @@ void AcquireTarget() {
         }
     }
     if (!Found)
-        target.reset();
+        target.Reset();
     else if (s.IsTargeting && s.Config.StickyTarget)
         return;
 
     for (auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
-        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance)
+        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance ||
+            Info.TeamIndex == Core::g_LocalTeamIndex)
             continue;
         EvaluateTarget(Info);
     }
@@ -163,13 +168,20 @@ void TickRenderThread() {
 
 #ifndef _ENGINE
     s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
+#endif
     SDK::FVector2D Center =
         SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
+    SDK::FLinearColor TargetColor =
+        target.Visible ? Config::g_Config.Color.PrimaryColorVisible : Config::g_Config.Color.PrimaryColorHidden;
+
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::White);
+
     if (s.Config.UseDeadzone && s.Config.ShowDeadzoneFOV)
         Drawing::Circle(Center, s.Config.DeadzoneFOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::Red);
-#endif
+
+    if (Config::g_Config.Aimbot.ShowTargetLine && target.Pawn)
+        Drawing::Line(Center, target.ScreenPos, TargetColor);
 }
 
 } // namespace Aimbot

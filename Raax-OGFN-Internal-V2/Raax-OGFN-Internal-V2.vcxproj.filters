@@ -46,6 +46,8 @@
     <ClCompile Include="extern\imgui\imgui_draw.cpp" />
     <ClCompile Include="extern\imgui\imgui_demo.cpp" />
     <ClCompile Include="extern\imgui\imgui.cpp" />
+    <ClCompile Include="extern\raaxgui\raaxgui.cpp" />
+    <ClCompile Include="cheat\autorevertfeature.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />
@@ -104,8 +106,10 @@
     <ClInclude Include="extern\imgui\imstb_textedit.h" />
     <ClInclude Include="extern\imgui\imgui.h" />
     <ClInclude Include="extern\imgui\imconfig.h" />
+    <ClInclude Include="cheat\autorevertfeature.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />
+    <None Include="cheat\autorevertfeature.inl" />
   </ItemGroup>
 </Project>

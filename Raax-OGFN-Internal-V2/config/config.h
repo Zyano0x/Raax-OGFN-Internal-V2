@@ -186,6 +186,7 @@ struct ConfigData {
 
         bool SplitAimbotByAmmo = true;
         bool BulletPrediction = true;
+        bool ShowTargetLine = true;
         int  AimbotKeybind = ImGuiKey_MouseRight;
     } Aimbot;
 
@@ -200,9 +201,19 @@ struct ConfigData {
     } TriggerBot;
 
     struct ExploitConfig {
-        bool RapidFire = false;
-        bool NoSpread = false;
-        bool AutomaticWeapons = false;
+        bool  NoSpread = false;
+        float NoSpreadAmount = 0.f;
+        bool  NoRecoil = false;
+        float NoRecoilAmount = 0.f;
+        bool  NoReload = false;
+        float NoReloadAmount = 0.f;
+
+        bool DamageMultiplier = false;
+        int  DamageMultiplierAmount = 0.f;
+
+        bool  FastPickaxe = false;
+        float FastPickaxeSpeed = 1.f;
+
         bool InstantRevive = false;
     } Exploit;
 

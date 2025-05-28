@@ -1,6 +1,7 @@
 #include "core.h"
 #include <algorithm>
 
+#include <cheat/autorevertfeature.h>
 #include <cheat/sdk/sdk.h>
 #include <cheat/hooks.h>
 #include <cheat/drawtransition.h>
@@ -108,8 +109,8 @@ void UpdateGlobalVariables() {
     if (Canvas) {
         g_ScreenSizeX = SDK::GetCanvas()->SizeX;
         g_ScreenSizeY = SDK::GetCanvas()->SizeY;
-        g_ScreenCenterX = static_cast<float>(g_ScreenSizeX) / 2.f;
-        g_ScreenCenterY = static_cast<float>(g_ScreenSizeY) / 2.f;
+        g_ScreenCenterX = static_cast<int32_t>(static_cast<float>(g_ScreenSizeX) / 2.f);
+        g_ScreenCenterY = static_cast<int32_t>(static_cast<float>(g_ScreenSizeY) / 2.f);
     }
 
     g_CameraLocation = GetNewCameraLocation();
@@ -123,6 +124,11 @@ void UpdateGlobalVariables() {
         SDK::USceneComponent* RootComponent = g_LocalPawn->RootComponent;
         if (RootComponent) {
             g_LocalPlayerPos = RootComponent->RelativeLocation;
+        }
+
+        SDK::AFortPlayerStateAthena* PlayerState = SDK::Cast<SDK::AFortPlayerStateAthena>(g_LocalPawn->PlayerState);
+        if (PlayerState) {
+            g_LocalTeamIndex = PlayerState->TeamIndex;
         }
     }
 }
@@ -141,6 +147,7 @@ bool Init() {
 }
 
 void Destroy() {
+    AutoRevertFeature::Destroy();
     GUI::Destroy();
     DrawTransition::Destroy();
     Hooks::Destroy();
@@ -154,6 +161,8 @@ void Destroy() {
 
 void TickGameThread() {
     UpdateGlobalVariables();
+
+    AutoRevertFeature::Tick();
 
     Tick::Container::TickGameThread();
     Tick::Pickup::TickGameThread();
@@ -203,6 +212,7 @@ SDK::ULocalPlayer*         g_LocalPlayer = nullptr;
 SDK::APlayerController*    g_LocalPlayerController = nullptr;
 SDK::APlayerCameraManager* g_LocalPlayerCameraManager = nullptr;
 SDK::APawn*                g_LocalPawn = nullptr;
+uint8_t                    g_LocalTeamIndex = 0;
 
 int32_t g_ScreenSizeX = 0;
 int32_t g_ScreenSizeY = 0;

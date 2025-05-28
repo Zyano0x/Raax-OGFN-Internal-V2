@@ -26,7 +26,8 @@ bool ShouldRun() {
 
 bool IsCandidate(const Cache::Player::PlayerInfo& Info) {
     const auto& Config = Config::g_Config.TriggerBot;
-    if (!Info.HeadVisible || Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM > Config.MaxDistance) {
+    if (!Info.HeadVisible || Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM > Config.MaxDistance ||
+        Info.TeamIndex == Core::g_LocalTeamIndex) {
         return false;
     }
 
@@ -92,7 +93,8 @@ void TickRenderThread() {
     const auto& Config = Config::g_Config.TriggerBot;
     PressingKey = ImGui::IsKeyDown((ImGuiKey)Config.Keybind);
 
-    SDK::FVector2D Center = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
+    SDK::FVector2D Center =
+        SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
     Drawing::Circle(Center, Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::Green);
 #endif
 }

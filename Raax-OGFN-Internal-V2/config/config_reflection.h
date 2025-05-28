@@ -102,6 +102,7 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::AimbotConfig>() {
                            MemberDescriptor<T, T::AimbotAmmoConfig>{"AllAimbot", &T::AllAimbot, {}},
                            MemberDescriptor<T, bool>{"SplitAimbotByAmmo", &T::SplitAimbotByAmmo, {}},
                            MemberDescriptor<T, bool>{"BulletPrediction", &T::BulletPrediction, {}},
+                           MemberDescriptor<T, bool>{"ShowTargetLine", &T::ShowTargetLine, {}},
                            MemberDescriptor<T, int>{"AimbotKeybind", &T::AimbotKeybind, {}});
 }
 
@@ -117,9 +118,16 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::TriggerBotConfig>
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::ExploitConfig>() {
     using T = Config::ConfigData::ExploitConfig;
-    return std::make_tuple(MemberDescriptor<T, bool>{"RapidFire", &T::RapidFire, {}},
-                           MemberDescriptor<T, bool>{"NoSpread", &T::NoSpread, {}},
-                           MemberDescriptor<T, bool>{"AutomaticWeapons", &T::AutomaticWeapons, {}},
+    return std::make_tuple(MemberDescriptor<T, bool>{"NoSpread", &T::NoSpread, {}},
+                           MemberDescriptor<T, float>{"NoSpreadAmount", &T::NoSpreadAmount, {}},
+                           MemberDescriptor<T, bool>{"NoRecoil", &T::NoRecoil, {}},
+                           MemberDescriptor<T, float>{"NoRecoilAmount", &T::NoRecoilAmount, {}},
+                           MemberDescriptor<T, bool>{"NoReload", &T::NoReload, {}},
+                           MemberDescriptor<T, float>{"NoReloadAmount", &T::NoReloadAmount, {}},
+                           MemberDescriptor<T, bool>{"DamageMultiplier", &T::DamageMultiplier, {}},
+                           MemberDescriptor<T, int>{"DamageMultiplierAmount", &T::DamageMultiplierAmount, {}},
+                           MemberDescriptor<T, bool>{"FastPickaxe", &T::FastPickaxe, {}},
+                           MemberDescriptor<T, float>{"FastPickaxeSpeed", &T::FastPickaxeSpeed, {}},
                            MemberDescriptor<T, bool>{"InstantRevive", &T::InstantRevive, {}});
 }
 

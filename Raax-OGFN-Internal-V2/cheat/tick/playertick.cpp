@@ -54,7 +54,7 @@ void TickRenderThread() {
     float FontSize = 16.f;
 
     for (const auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
-        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance)
+        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance || Info.TeamIndex == Core::g_LocalTeamIndex)
             continue;
 
         SDK::FLinearColor PrimaryColor =
@@ -79,7 +79,8 @@ void TickRenderThread() {
                                       PlayerConfig.BoxThickness);
                 break;
             case Config::ConfigData::BoxType::Full3D:
-                Drawing::Rect3D(Info.BoundCorners2D, PrimaryColor, PlayerConfig.BoxThickness, true, 1.f, SDK::FLinearColor::Black, PlayerConfig.FilledBox, PlayerConfig.FilledBoxColor);
+                Drawing::Rect3D(Info.BoundCorners2D, PrimaryColor, PlayerConfig.BoxThickness, true, 1.f,
+                                SDK::FLinearColor::Black, PlayerConfig.FilledBox, PlayerConfig.FilledBoxColor);
                 break;
             }
         }
@@ -99,10 +100,12 @@ void TickRenderThread() {
 
             switch (PlayerConfig.TracerStart) {
             case Config::ConfigData::TracerPos::Bottom:
-                TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenSizeY));
+                TracerStart =
+                    SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenSizeY));
                 break;
             case Config::ConfigData::TracerPos::Middle:
-                TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
+                TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX),
+                                             static_cast<float>(Core::g_ScreenCenterY));
                 break;
             case Config::ConfigData::TracerPos::Top:
                 TracerStart = SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), 0.f);

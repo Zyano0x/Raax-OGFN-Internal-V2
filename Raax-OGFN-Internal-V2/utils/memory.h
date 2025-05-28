@@ -6,6 +6,11 @@
 namespace Memory {
 
 /*
+ * @brief Checks if an address is accessible and writable.
+ */
+bool IsValidAndWritable(void* Address);
+
+/*
  * @brief Returns valid DosHeader from ModuleBase.
  * Logs a warning on failure.
  */
@@ -46,7 +51,8 @@ bool IsAddressInsideImage(uintptr_t Address);
  * StartAddress instead of forwards.
  * @param Offset - The offset to apply when computing the final address.
  * @param RelativeAddress - If true, computes a relative address based on OperandSize.
- * @param WarnIfNotFound - Log a warning message if the pattern is not found, only functional if CFG_DEBUGMEMORYOUTPUT is true.
+ * @param WarnIfNotFound - Log a warning message if the pattern is not found, only functional if CFG_DEBUGMEMORYOUTPUT
+ * is true.
  * @return The address of the first match found, or 0 if no match is found.
  */
 template <typename OperandSize = int32_t>

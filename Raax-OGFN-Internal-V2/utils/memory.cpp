@@ -3,6 +3,19 @@
 
 namespace Memory {
 
+bool IsValidAndWritable(void* Address) {
+    MEMORY_BASIC_INFORMATION mbi = {};
+    if (VirtualQuery(Address, &mbi, sizeof(mbi))) {
+        constexpr DWORD Mask = (PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY);
+        bool            b = mbi.Protect & Mask;
+        if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS))
+            b = false;
+        return b;
+    }
+
+    return true;
+};
+
 PIMAGE_DOS_HEADER GetDosHeader(uintptr_t ModuleBase) {
     const PIMAGE_DOS_HEADER DosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(ModuleBase);
     if (DosHeader->e_magic == IMAGE_DOS_SIGNATURE)

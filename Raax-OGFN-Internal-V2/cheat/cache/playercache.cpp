@@ -175,6 +175,8 @@ void SharedInfoUpdate(PlayerInfo& Info) {
 
     Info.RootWorldLocation = Info.RootComponent->RelativeLocation;
     Info.RootComponentVelocity = Info.RootComponent->ComponentVelocity;
+
+    Info.TeamIndex = Info.PlayerState->TeamIndex;
     Info.DistanceM = Core::g_CameraLocation.Dist(Info.RootWorldLocation) / 100.f;
     Info.SeenThisFrame = true;
 
@@ -202,7 +204,7 @@ std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     PlayerInfo Info;
 
     Info.Pawn = Pawn;
-    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState);
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerStateAthena, true>(Info.Pawn->PlayerState);
     if (!Info.PlayerState)
         return std::nullopt;
 
@@ -229,7 +231,7 @@ std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
 }
 
 bool UpdateExistingPlayerInfo(PlayerInfo& Info) {
-    Info.PlayerState = SDK::Cast<SDK::AFortPlayerState, true>(Info.Pawn->PlayerState);
+    Info.PlayerState = SDK::Cast<SDK::AFortPlayerStateAthena, true>(Info.Pawn->PlayerState);
     if (!Info.PlayerState)
         return false;
 

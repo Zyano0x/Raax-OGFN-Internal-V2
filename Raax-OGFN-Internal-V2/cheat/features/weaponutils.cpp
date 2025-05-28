@@ -100,7 +100,7 @@ void DetectAmmoType() {
 
     if (auto* RangedWeaponData = SDK::Cast<SDK::UFortWeaponRangedItemDefinition>(WeaponData)) {
         if (auto* ProjTemp = RangedWeaponData->ProjectileTemplate.Get()) {
-            if (auto* DefaultProjTemp = SDK::Cast<SDK::AFortProjectileBase>(ProjTemp->ClassDefaultObject())) {
+            if (auto* DefaultProjTemp = SDK::Cast<SDK::AFortProjectileBase>(ProjTemp->ClassDefaultObject)) {
                 s.UseProjectile = true;
                 s.ProjectileTemp = DefaultProjTemp;
             }

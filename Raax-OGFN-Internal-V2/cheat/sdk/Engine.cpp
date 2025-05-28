@@ -7,11 +7,6 @@ namespace SDK {
 
 // --- Classes & Structs ---------------------------------------------
 
-bool (*UKismetSystemLibrary::KismetSystemLibraryLineTraceSingle)(UObject*, const FVector&, const FVector&,
-                                                                 ETraceTypeQuery, bool, TArray<class AActor*>&,
-                                                                 EDrawDebugTrace, FHitResult&, bool,
-                                                                 const FLinearColor&, const FLinearColor&,
-                                                                 float) = nullptr;
 FString UKismetSystemLibrary::GetEngineVersion() {
     static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
     struct {
@@ -33,15 +28,6 @@ bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FV
                                               SDK::FLinearColor::White, SDK::FLinearColor::White, 0.f);
 }
 
-uint32_t         ULevel::Actors_Offset;
-TArray<AActor*>& ULevel::getprop_Actors() {
-    return *(TArray<AActor*>*)((uintptr_t)this + Actors_Offset);
-}
-
-uint32_t UCanvas::ViewProjectionMatrix_Offset;
-FMatrix& UCanvas::getprop_ViewProjectionMatrix() {
-    return *(FMatrix*)((uintptr_t)this + ViewProjectionMatrix_Offset);
-}
 void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
                           const FLinearColor& RenderColor) {
     static UFunction* Func = GetFunction("Canvas", "K2_DrawLine");
@@ -128,7 +114,6 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
     }
 }
 
-uint32_t USceneComponent::ComponentToWorld_Offset;
 FTransform& USceneComponent::getprop_ComponentToWorld() {
     if (ComponentToWorld_Offset) {
         return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
@@ -147,7 +132,6 @@ FTransform& USceneComponent::getprop_ComponentToWorld() {
     }
 }
 
-uint32_t            USkinnedMeshComponent::ComponentSpaceTransformsArray_Offset;
 TArray<FTransform>& USkinnedMeshComponent::getprop_ComponentSpaceTransformsArray() {
     TArray<FTransform>& FirstArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
     if (FirstArray.IsValid())
@@ -256,6 +240,77 @@ void APlayerController::AddPitchInput(float Val) {
 
     if (Func)
         ProcessEvent(Func, &params_AddPitchInput);
+}
+bool APlayerController::WasInputKeyJustReleased(FKey& Key) {
+    static UFunction* Func = GetFunction("PlayerController", "WasInputKeyJustReleased");
+    struct {
+        FKey    Key;
+        bool    ReturnValue;
+        uint8_t Pad[7];
+    } params_WasInputKeyJustReleased{};
+
+    params_WasInputKeyJustReleased.Key = Key;
+
+    if (Func)
+        ProcessEvent(Func, &params_WasInputKeyJustReleased);
+
+    return params_WasInputKeyJustReleased.ReturnValue;
+}
+bool APlayerController::WasInputKeyJustPressed(FKey& Key) {
+    static UFunction* Func = GetFunction("PlayerController", "WasInputKeyJustPressed");
+    struct {
+        FKey    Key;
+        bool    ReturnValue;
+        uint8_t Pad[7];
+    } params_WasInputKeyJustPressed{};
+
+    params_WasInputKeyJustPressed.Key = Key;
+
+    if (Func)
+        ProcessEvent(Func, &params_WasInputKeyJustPressed);
+
+    return params_WasInputKeyJustPressed.ReturnValue;
+}
+bool APlayerController::IsInputKeyDown(FKey& Key) {
+    static UFunction* Func = GetFunction("PlayerController", "IsInputKeyDown");
+    struct {
+        FKey    Key;
+        bool    ReturnValue;
+        uint8_t Pad[7];
+    } params_IsInputKeyDown{};
+
+    params_IsInputKeyDown.Key = Key;
+
+    if (Func)
+        ProcessEvent(Func, &params_IsInputKeyDown);
+
+    return params_IsInputKeyDown.ReturnValue;
+}
+bool APlayerController::GetMousePosition(float& LocationX, float& LocationY) {
+    static UFunction* Func = GetFunction("PlayerController", "GetMousePosition");
+    struct {
+        float   LocationX;
+        float   LocationY;
+        bool    ReturnValue;
+        uint8_t Pad[3];
+    } params_GetMousePosition{};
+
+    if (Func)
+        ProcessEvent(Func, &params_GetMousePosition);
+
+    LocationX = params_GetMousePosition.LocationX;
+    LocationY = params_GetMousePosition.LocationY;
+
+    return params_GetMousePosition.ReturnValue;
+}
+void APlayerController::ServerChangeName(const FString& S) {
+    static UFunction* Func = GetFunction("PlayerController", "ServerChangeName");
+    struct {
+        FString S;
+    } params_ServerChangeName{};
+
+    if (Func)
+        ProcessEvent(Func, &params_ServerChangeName);
 }
 
 FString APlayerState::GetPlayerName() {
