@@ -209,6 +209,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="extern\cpp-base64\base64.cpp" />
     <ClCompile Include="extern\imgui\imgui.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">true</ExcludedFromBuild>
@@ -276,7 +277,6 @@
     <ClCompile Include="utils\log.cpp" />
     <ClCompile Include="utils\math.cpp" />
     <ClCompile Include="utils\memory.cpp" />
-    <ClCompile Include="utils\string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\autorevertfeature.h" />
@@ -302,6 +302,7 @@
     <ClInclude Include="config\keybind.h" />
     <ClInclude Include="drawing\drawing.h" />
     <ClInclude Include="drawing\fontdata.h" />
+    <ClInclude Include="extern\cpp-base64\base64.h" />
     <ClInclude Include="extern\imgui\imconfig.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">true</ExcludedFromBuild>
@@ -350,6 +351,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="extern\inifile-cpp\inicpp.h" />
     <ClInclude Include="extern\raaxgui\raaxgui.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
@@ -391,7 +393,6 @@
     <ClInclude Include="utils\log.h" />
     <ClInclude Include="utils\math.h" />
     <ClInclude Include="utils\memory.h" />
-    <ClInclude Include="utils\string.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cheat\autorevertfeature.inl" />

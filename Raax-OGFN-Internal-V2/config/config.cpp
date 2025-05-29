@@ -3,6 +3,8 @@
 #include <sstream>
 #include <charconv>
 
+#include <extern/inifile-cpp/inicpp.h>
+#include <extern/cpp-base64/base64.h>
 #include <utils/error.h>
 #include <utils/log.h>
 #include "keybind.h"
@@ -10,16 +12,6 @@
 namespace Config {
 
 // --- Serialization Utility Functions -------------------------------
-
-bool TryParseBool(const std::string& Str, bool& Out) {
-    bool StrIsTrue = Str == "true";
-    bool StrIsFalse = Str == "false";
-    if (!StrIsTrue && !StrIsFalse)
-        return false;
-
-    Out = StrIsTrue;
-    return true;
-}
 
 bool TryParseInt(const std::string& Str, int& Out) {
     auto Result = std::from_chars(Str.data(), Str.data() + Str.size(), Out);
@@ -29,6 +21,17 @@ bool TryParseInt(const std::string& Str, int& Out) {
 bool TryParseFloat(const std::string& Str, float& Out) {
     auto Result = std::from_chars(Str.data(), Str.data() + Str.size(), Out);
     return Result.ec == std::errc();
+}
+
+bool TryParseBool(const std::string& Str, bool& Out) {
+    if (Str == "true") {
+        Out = true;
+        return true;
+    } else if (Str == "false") {
+        Out = false;
+        return true;
+    }
+    return false;
 }
 
 bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
@@ -53,10 +56,8 @@ bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
 template <typename T> bool TryParseEnum(const std::string& Str, T& Out) {
     int IntValue;
     if (TryParseInt(Str, IntValue)) {
-        if (IntValue >= static_cast<int>(T::MIN) && IntValue <= static_cast<int>(T::MAX)) {
-            Out = static_cast<T>(IntValue);
-            return true;
-        }
+        Out = static_cast<T>(IntValue);
+        return true;
     }
     return false;
 }
@@ -72,7 +73,6 @@ template <typename T> bool ShouldSerializeValue(const T& Value, const T& MergeVa
     if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
         const auto Members = ConfigReflection::DescribeMembers<T>();
         bool       AnyDifference = false;
-
         std::apply(
             [&](const auto&... Member) {
                 auto CompareMember = [&](const auto& m) {
@@ -83,84 +83,165 @@ template <typename T> bool ShouldSerializeValue(const T& Value, const T& MergeVa
                 (CompareMember(Member), ...);
             },
             Members);
-
         return AnyDifference;
     } else {
         return Value != MergeValue;
     }
 }
 
-template <typename T> std::string SerializeValue(const T& Value, const T& MergeValue, bool IgnoreMergeConfig) {
+template <typename T>
+void StructureToIni(ini::IniFile& Ini, const T& Value, const T& MergeValue, bool IgnoreMergeConfig,
+                    const std::string& Section = "", const std::string& ValueName = "") {
     if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
         if (!IgnoreMergeConfig && !ShouldSerializeValue(Value, MergeValue)) {
-            return "";
+            return;
         }
 
-        std::string Result = "{";
-        const auto  Members = ConfigReflection::DescribeMembers<T>();
-        bool        FirstMember = true;
+        const auto Members = ConfigReflection::DescribeMembers<T>();
+        std::apply(
+            [&](const auto&... member) {
+                auto process = [&](const auto& m) {
+                    std::string NewSection;
+                    std::string NewValueName;
+
+                    if (Section.empty()) {
+                        NewSection = std::string(m.Name);
+                    } else {
+                        NewSection = Section + "." + std::string(m.Name);
+                    }
+                    NewValueName = "";
+
+                    StructureToIni(Ini, Value.*(m.Ptr), MergeValue.*(m.Ptr), IgnoreMergeConfig, NewSection,
+                                   NewValueName);
+                };
+                (process(member), ...);
+            },
+            Members);
+    } else {
+        std::string ValStr;
+        if (IgnoreMergeConfig || Value != MergeValue) {
+            if constexpr (std::is_same_v<T, bool>) {
+                ValStr = Value ? "true" : "false";
+            } else if constexpr (std::is_enum_v<T>) {
+                ValStr = std::to_string(static_cast<int>(Value));
+            } else if constexpr (std::is_arithmetic_v<T>) {
+                ValStr = std::to_string(Value);
+            } else if constexpr (std::is_same_v<T, SDK::FLinearColor>) {
+                ValStr = std::format("{}/{}/{}/{}", (int)(Value.R * 255.f), (int)(Value.G * 255.f),
+                                     (int)(Value.B * 255.f), (int)(Value.A * 255.f));
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                ValStr = Value;
+            }
+        }
+
+        if (!Section.empty() && !ValStr.empty()) {
+            size_t      LastDot = Section.find_last_of('.');
+            std::string ActualSection;
+            std::string ActualValueName;
+
+            if (LastDot != std::string::npos) {
+                ActualSection = Section.substr(0, LastDot);
+                ActualValueName = Section.substr(LastDot + 1);
+            } else {
+                ActualSection = Section;
+                ActualValueName = ValueName.empty() ? "Value" : ValueName;
+            }
+
+            Ini[ActualSection][ActualValueName] = ValStr;
+        }
+    }
+}
+
+template <typename T> bool IniToStructure(ini::IniFile& Ini, const std::string& Section, T& OutValue) {
+    if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
+        const auto Members = ConfigReflection::DescribeMembers<T>();
+        bool       AllSuccess = true;
 
         std::apply(
-            [&](const auto&... Member) {
-                auto ProcessMember = [&](const auto& m) {
-                    std::string MemberValue = SerializeValue(Value.*(m.Ptr), MergeValue.*(m.Ptr), IgnoreMergeConfig);
-                    if (MemberValue.empty()) {
-                        return;
+            [&](const auto&... member) {
+                auto process = [&](const auto& m) {
+                    std::string NewSection;
+                    if (Section.empty()) {
+                        NewSection = std::string(m.Name);
+                    } else {
+                        NewSection = Section + "." + std::string(m.Name);
                     }
-
-                    if (!FirstMember) {
-                        Result += ",";
+                    if (!IniToStructure(Ini, NewSection, OutValue.*(m.Ptr))) {
+                        AllSuccess |= false;
                     }
-                    FirstMember = false;
-
-                    Result += "\"" + std::string(m.Name) + "\":" + MemberValue;
                 };
-                (ProcessMember(Member), ...);
+                (process(member), ...);
             },
             Members);
 
-        if (Result.size() == 1) {
-            return "";
+        return AllSuccess;
+    } else {
+        if (Section.empty())
+            return false;
+
+        size_t      LastDot = Section.find_last_of('.');
+        std::string ActualSection;
+        std::string ActualValueName;
+
+        if (LastDot != std::string::npos) {
+            ActualSection = Section.substr(0, LastDot);
+            ActualValueName = Section.substr(LastDot + 1);
+        } else {
+            ActualSection = Section;
+            ActualValueName = "Value";
         }
 
-        Result += "}";
-        return Result;
-    } else if constexpr (std::is_enum_v<T>) {
-        if (IgnoreMergeConfig || (Value != MergeValue)) {
-            return std::to_string(static_cast<int>(Value));
+        if (!Ini.contains(ActualSection) || !Ini[ActualSection].contains(ActualValueName)) {
+            return false;
         }
-        return "";
-    } else if constexpr (std::is_same_v<T, bool>) {
-        if (IgnoreMergeConfig || (Value != MergeValue)) {
-            return Value ? "true" : "false";
+
+        const std::string& ValStr = Ini[ActualSection][ActualValueName].as<std::string>();
+
+        if constexpr (std::is_same_v<T, bool>) {
+            return TryParseBool(ValStr, OutValue);
+        } else if constexpr (std::is_enum_v<T>) {
+            return TryParseEnum(ValStr, OutValue);
+        } else if constexpr (std::is_arithmetic_v<T>) {
+            if constexpr (std::is_integral_v<T>) {
+                int temp;
+                if (TryParseInt(ValStr, temp)) {
+                    OutValue = static_cast<T>(temp);
+                    return true;
+                }
+                return false;
+            } else {
+                float temp;
+                if (TryParseFloat(ValStr, temp)) {
+                    OutValue = static_cast<T>(temp);
+                    return true;
+                }
+                return false;
+            }
+        } else if constexpr (std::is_same_v<T, SDK::FLinearColor>) {
+            return TryParseColor(ValStr, OutValue);
+        } else if constexpr (std::is_same_v<T, std::string>) {
+            OutValue = ValStr;
+            return true;
         }
-        return "";
-    } else if constexpr (std::is_arithmetic_v<T>) {
-        if (IgnoreMergeConfig || (Value != MergeValue)) {
-            return std::to_string(Value);
-        }
-        return "";
-    } else if constexpr (std::is_same_v<T, std::string>) {
-        if (IgnoreMergeConfig || (Value != MergeValue)) {
-            return Value;
-        }
-        return "";
-    } else if constexpr (std::is_same_v<T, SDK::FLinearColor>) {
-        if (IgnoreMergeConfig || (Value != MergeValue)) {
-            return std::format("{}/{}/{}/{}", (int)(Value.R * 255.f), (int)(Value.G * 255.f), (int)(Value.B * 255.f),
-                               (int)(Value.A * 255.f));
-        }
-        return "";
-    } else {
-        static_assert(false, "Unsupported type for serialization!");
+
+        return false;
     }
 }
 
 std::string ConfigData::SerializeConfig(bool FullConfig) {
     SerializeKeybinds(*this);
 
-    ConfigData DefaultConfig = {};
-    return SerializeValue(*this, DefaultConfig, FullConfig);
+    ini::IniFile Ini;
+    if (FullConfig) {
+        StructureToIni(Ini, *this, *this, true);
+    } else {
+        ConfigData Default = {};
+        StructureToIni(Ini, *this, Default, false);
+    }
+
+    std::ostringstream ss;
+    Ini.encode(ss);
+    return base64_encode(ss.str());
 }
 
 bool DeserializeKeybinds(ConfigData& Config) {
@@ -181,97 +262,22 @@ bool DeserializeKeybinds(ConfigData& Config) {
     return true;
 }
 
-template <typename T> bool DeserializeValue(T& Output, const std::string& Data) {
-    if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
-        size_t Start = Data.find('{');
-        size_t End = Data.rfind('}');
-
-        if (Start == std::string::npos || End == std::string::npos) {
-            return false;
-        }
-
-        std::string Content = Data.substr(Start + 1, End - Start - 1);
-        const auto  Members = ConfigReflection::DescribeMembers<T>();
-        bool        AllSuccess = true;
-        bool        FoundAnyContent = false;
-
-        std::apply(
-            [&](const auto&... Member) {
-                auto ProcessMember = [&](const auto& m) {
-                    std::string SearchStr = "\"" + std::string(m.Name) + "\":";
-                    size_t      Pos = Content.find(SearchStr);
-                    if (Pos == std::string::npos) {
-                        return;
-                    }
-
-                    size_t ValueStart = Pos + SearchStr.length();
-                    size_t ValueEnd = ValueStart;
-
-                    int  BraceCount = 0;
-                    int  BracketCount = 0;
-                    bool InString = false;
-
-                    while (ValueEnd < Content.length()) {
-                        char C = Content[ValueEnd];
-
-                        if (C == '"' && (ValueEnd == 0 || Content[ValueEnd - 1] != '\\')) {
-                            InString = !InString;
-                        } else if (!InString) {
-                            if (C == '{')
-                                BraceCount++;
-                            else if (C == '}')
-                                BraceCount--;
-                            else if (C == '[')
-                                BracketCount++;
-                            else if (C == ']')
-                                BracketCount--;
-                            else if (C == ',' && BraceCount == 0 && BracketCount == 0)
-                                break;
-                        }
-
-                        ValueEnd++;
-                    }
-
-                    std::string ValueStr = Content.substr(ValueStart, ValueEnd - ValueStart);
-                    if (ValueStr.empty()) {
-                        AllSuccess = false;
-                        return;
-                    }
-
-                    using MemberType = std::remove_reference_t<decltype(Output.*(m.Ptr))>;
-                    if (!DeserializeValue<MemberType>(Output.*(m.Ptr), ValueStr)) {
-                        AllSuccess = false;
-                    }
-                };
-                (ProcessMember(Member), ...);
-            },
-            Members);
-
-        return AllSuccess;
-    } else if constexpr (std::is_enum_v<T>) {
-        return TryParseEnum<T>(Data, Output);
-    } else if constexpr (std::is_same_v<T, bool>) {
-        return TryParseBool(Data, Output);
-    } else if constexpr (std::is_same_v<T, int>) {
-        return TryParseInt(Data, Output);
-    } else if constexpr (std::is_same_v<T, float>) {
-        return TryParseFloat(Data, Output);
-    } else if constexpr (std::is_same_v<T, SDK::FLinearColor>) {
-        return TryParseColor(Data, Output);
-    } else if constexpr (std::is_same_v<T, std::string>) {
-        Output = Data;
-        return true;
-    } else {
-        static_assert(false, "Unsupported type for deserialization!");
-    }
-}
-
 bool ConfigData::DeserializeConfig(const std::string& Data) {
-    bool Result = DeserializeValue<ConfigData>(*this, Data);
-    if (Result) {
-        Result = DeserializeKeybinds(*this);
+    try {
+        ini::IniFile Ini;
+        Ini.decode(base64_decode(Data));
+
+        ConfigData NewConfig = {};
+        if (IniToStructure(Ini, "", NewConfig) && DeserializeKeybinds(NewConfig)) {
+            LOG(LOG_INFO, "%s", NewConfig.Keybinds.KeybindData.c_str());
+            *this = NewConfig;
+            return true;
+        }
+        return false;
     }
-    return Result;
+    catch (...) {
+        return false;
+    }
 }
 
 } // namespace Config

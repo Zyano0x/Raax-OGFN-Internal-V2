@@ -48,6 +48,7 @@
     <ClCompile Include="extern\imgui\imgui.cpp" />
     <ClCompile Include="extern\raaxgui\raaxgui.cpp" />
     <ClCompile Include="cheat\autorevertfeature.cpp" />
+    <ClCompile Include="extern\cpp-base64\base64.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />
@@ -107,6 +108,8 @@
     <ClInclude Include="extern\imgui\imgui.h" />
     <ClInclude Include="extern\imgui\imconfig.h" />
     <ClInclude Include="cheat\autorevertfeature.h" />
+    <ClInclude Include="extern\inifile-cpp\inicpp.h" />
+    <ClInclude Include="extern\cpp-base64\base64.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

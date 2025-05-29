@@ -38,10 +38,12 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::Ra
     return std::make_tuple(MemberDescriptor<T, bool>{"Radar", &T::Radar, {}},
                            MemberDescriptor<T, bool>{"RotateWithCamera", &T::RotateWithCamera, {}},
                            MemberDescriptor<T, bool>{"ShowCameraFOV", &T::ShowCameraFOV, {}},
+                           MemberDescriptor<T, bool>{"ShowGuidelines", &T::ShowGuidelines, {}},
                            MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}},
                            MemberDescriptor<T, float>{"PosX", &T::PosX, {}},
                            MemberDescriptor<T, float>{"PosY", &T::PosY, {}},
                            MemberDescriptor<T, float>{"Size", &T::Size, {}},
+                           MemberDescriptor<T, SDK::FLinearColor>{"BackgroundColor", &T::BackgroundColor, {}},
                            MemberDescriptor<T, SDK::FLinearColor>{"ColorVisible", &T::ColorVisible, {}},
                            MemberDescriptor<T, SDK::FLinearColor>{"ColorHidden", &T::ColorHidden, {}});
 }

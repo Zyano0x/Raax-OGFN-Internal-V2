@@ -72,14 +72,18 @@ void Line(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPos
           const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (ScreenPositionA.X != -1.f && ScreenPositionA.Y != -1.f && ScreenPositionB.X != -1.f &&
         ScreenPositionB.Y != -1.f) {
+        SDK::FLinearColor AdjustedOutlineColor = OutlineColor;
+        AdjustedOutlineColor.A = RenderColor.A;
+
         if (g_BatchedLines)
-            g_BatchedLinesList.push_back(
-                {ScreenPositionA, ScreenPositionB, RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor});
+            g_BatchedLinesList.push_back({ScreenPositionA, ScreenPositionB, RenderColor, Thickness, Outlined,
+                                          OutlineThickness, AdjustedOutlineColor});
         else {
             if (Outlined)
                 g_DrawList->AddLine(ImVec2(ScreenPositionA.X, ScreenPositionA.Y),
                                     ImVec2(ScreenPositionB.X, ScreenPositionB.Y),
-                                    ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A),
+                                    ImColor(AdjustedOutlineColor.R, AdjustedOutlineColor.G, AdjustedOutlineColor.B,
+                                            AdjustedOutlineColor.A),
                                     OutlineThickness + Thickness);
 
             g_DrawList->AddLine(ImVec2(ScreenPositionA.X, ScreenPositionA.Y),

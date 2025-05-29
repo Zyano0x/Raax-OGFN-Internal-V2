@@ -12,8 +12,12 @@ namespace Radar {
 
 // --- Radar Utility Functions ---------------------------------------
 
-void DrawGuidelines(const SDK::FLinearColor& GuidelineColor, const SDK::FLinearColor& CrosshairColor,
+void DrawGuidelines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
+                    const SDK::FLinearColor& GuidelineColor, const SDK::FLinearColor& CrosshairColor,
                     const SDK::FVector2D& RadarPos, const SDK::FVector2D& RadarCenterPos, float Size) {
+    if (!RadarConfig.ShowGuidelines)
+        return;
+
     constexpr int StepCount = 6;
     float         Step = (Size / StepCount);
     // Vertical lines
@@ -79,24 +83,25 @@ void DrawPlayerIcons(const Config::ConfigData::VisualsConfig::RadarConfig& Radar
     }
 }
 
-void DrawFOVLines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
+void DrawFOVLines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig, const SDK::FLinearColor& LineColor,
                   const SDK::FVector2D& RadarCenterPos, float CameraYaw, float Size) {
-    if (RadarConfig.ShowCameraFOV) {
-        float FOVLength = Size * 0.5f;
+    if (!RadarConfig.ShowCameraFOV)
+        return;
 
-        float FOVAngleUp = RadarConfig.RotateWithCamera ? Math::DegreesToRadians(90.f) : CameraYaw;
-        float LeftAngle = -(FOVAngleUp - Math::DegreesToRadians(Core::g_FOV * 0.5f));
-        float RightAngle = -(FOVAngleUp + Math::DegreesToRadians(Core::g_FOV * 0.5f));
+    float FOVLength = Size * 0.5f;
 
-        SDK::FVector2D FOVLeftEnd = {RadarCenterPos.X + std::cos(LeftAngle) * FOVLength,
-                                     RadarCenterPos.Y + std::sin(LeftAngle) * FOVLength};
+    float FOVAngleUp = RadarConfig.RotateWithCamera ? Math::DegreesToRadians(90.f) : CameraYaw;
+    float LeftAngle = -(FOVAngleUp - Math::DegreesToRadians(Core::g_FOV * 0.5f));
+    float RightAngle = -(FOVAngleUp + Math::DegreesToRadians(Core::g_FOV * 0.5f));
 
-        SDK::FVector2D FOVRightEnd = {RadarCenterPos.X + std::cos(RightAngle) * FOVLength,
-                                      RadarCenterPos.Y + std::sin(RightAngle) * FOVLength};
+    SDK::FVector2D FOVLeftEnd = {RadarCenterPos.X + std::cos(LeftAngle) * FOVLength,
+                                 RadarCenterPos.Y + std::sin(LeftAngle) * FOVLength};
 
-        Drawing::Line(RadarCenterPos, FOVLeftEnd, SDK::FLinearColor::White, 1.5f);
-        Drawing::Line(RadarCenterPos, FOVRightEnd, SDK::FLinearColor::White, 1.5f);
-    }
+    SDK::FVector2D FOVRightEnd = {RadarCenterPos.X + std::cos(RightAngle) * FOVLength,
+                                  RadarCenterPos.Y + std::sin(RightAngle) * FOVLength};
+
+    Drawing::Line(RadarCenterPos, FOVLeftEnd, LineColor, 1.5f);
+    Drawing::Line(RadarCenterPos, FOVRightEnd, LineColor, 1.5f);
 }
 
 // --- Public Tick Functions -----------------------------------------
@@ -114,15 +119,17 @@ void TickRenderThread() {
     SDK::FVector2D RadarPos = SDK::FVector2D(PosX, PosY);
     SDK::FVector2D RadarCenterPos = SDK::FVector2D(RadarPos.X + Size / 2.f, RadarPos.Y + Size / 2.f);
 
-    Drawing::RectFilled(RadarPos, RadarSize, SDK::FLinearColor::Black);
+    Drawing::RectFilled(RadarPos, RadarSize, RadarConfig.BackgroundColor);
 
-    constexpr SDK::FLinearColor SoftGray = SDK::FLinearColor(0.25f, 0.25f, 0.25f, 1.f);
-    DrawGuidelines(SoftGray, SDK::FLinearColor::Gray, RadarPos, RadarCenterPos, Size);
+    SDK::FLinearColor GuidelineColor = SDK::FLinearColor(0.25f, 0.25f, 0.25f, RadarConfig.BackgroundColor.A);
+    SDK::FLinearColor CrosshairColor = SDK::FLinearColor(0.5f, 0.5f, 0.5f, RadarConfig.BackgroundColor.A);
+    DrawGuidelines(RadarConfig, GuidelineColor, CrosshairColor, RadarPos, RadarCenterPos, Size);
 
     float CameraYaw = Math::DegreesToRadians(-Core::g_CameraRotation.Yaw);
     DrawPlayerIcons(RadarConfig, RadarCenterPos, CameraYaw, Size);
 
-    DrawFOVLines(RadarConfig, RadarCenterPos, CameraYaw, Size);
+    SDK::FLinearColor LineColor = SDK::FLinearColor(1.f, 1.f, 1.f, RadarConfig.BackgroundColor.A);
+    DrawFOVLines(RadarConfig, LineColor, RadarCenterPos, CameraYaw, Size);
 }
 
 } // namespace Radar

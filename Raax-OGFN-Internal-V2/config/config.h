@@ -52,10 +52,12 @@ struct ConfigData {
             bool              Radar = true;
             bool              RotateWithCamera = true;
             bool              ShowCameraFOV = true;
+            bool              ShowGuidelines = true;
             float             MaxDistance = 150.f;
             float             PosX = 1.f;
             float             PosY = 1.f;
             float             Size = 10.f;
+            SDK::FLinearColor BackgroundColor = SDK::FLinearColor(0.f, 0.f, 0.f, 1.f);
             SDK::FLinearColor ColorVisible = SDK::FLinearColor(1.f, 0.f, 0.f, 1.f);
             SDK::FLinearColor ColorHidden = SDK::FLinearColor(0.43f, 0.f, 0.f, 1.f);
         } Radar;
