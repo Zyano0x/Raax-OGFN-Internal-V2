@@ -108,6 +108,8 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SD
         }
 
         if (Outlined) {
+            ImColor ImOutlineColor = ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, RenderColor.A);
+
             constexpr ImVec2 Offsets[] = {
                 ImVec2(-1.f, 0),
                 ImVec2(1.f, 0),
@@ -117,9 +119,7 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SD
 
             for (const ImVec2& Offset : Offsets) {
                 ImVec2 OutlinePos = ImVec2(TextPosition.x + Offset.x, TextPosition.y + Offset.y);
-                g_DrawList->AddText(g_MainFont, FontSize, OutlinePos,
-                                    ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A),
-                                    RenderText);
+                g_DrawList->AddText(g_MainFont, FontSize, OutlinePos, ImOutlineColor, RenderText);
             }
         }
 
@@ -149,10 +149,10 @@ void Rect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& ScreenSize
           float Thickness, bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
         if (Outlined) {
-            ImU32 OutlineColor = ImColor(0.f, 0.f, 0.f, RenderColor.A);
+            ImColor ImOutlineColor = ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, RenderColor.A);
             ImGui::GetBackgroundDrawList()->AddRect(
                 ImVec2(ScreenPosition.X, ScreenPosition.Y),
-                ImVec2(ScreenPosition.X + ScreenSize.X, ScreenPosition.Y + ScreenSize.Y), OutlineColor, 0, 0,
+                ImVec2(ScreenPosition.X + ScreenSize.X, ScreenPosition.Y + ScreenSize.Y), ImOutlineColor, 0, 0,
                 Thickness + 1.f);
         }
         ImGui::GetBackgroundDrawList()->AddRect(
@@ -189,9 +189,10 @@ void CorneredRect(const SDK::FVector2D& ScreenPosition, const SDK::FVector2D& Sc
             DrawCorner(ImVec2(d.x + LineW, d.y), d, ImVec2(d.x, d.y - LineH), ColorU32, LineThickness);
         };
 
-        if (Outlined)
-            DrawCorneredBox(ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A),
-                            Thickness + OutlineThickness);
+        if (Outlined) {
+            ImColor ImOutlineColor = ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, RenderColor.A);
+            DrawCorneredBox(ImOutlineColor, Thickness + OutlineThickness);
+        }
 
         DrawCorneredBox(ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Thickness);
     }
@@ -221,23 +222,26 @@ void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& Rend
 
     BeginBatchedLines(Outlined ? 24 : 12);
 
+    SDK::FLinearColor AdjustedOutlineColor = OutlineColor;
+    AdjustedOutlineColor.A = RenderColor.A;
+
     // Bottom
-    Line(BoxCorners[0], BoxCorners[1], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[1], BoxCorners[3], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[3], BoxCorners[2], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[2], BoxCorners[0], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
+    Line(BoxCorners[0], BoxCorners[1], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[1], BoxCorners[3], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[3], BoxCorners[2], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[2], BoxCorners[0], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
 
     // Top
-    Line(BoxCorners[4], BoxCorners[5], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[5], BoxCorners[7], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[7], BoxCorners[6], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[6], BoxCorners[4], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
+    Line(BoxCorners[4], BoxCorners[5], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[5], BoxCorners[7], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[7], BoxCorners[6], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[6], BoxCorners[4], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
 
     // Sides
-    Line(BoxCorners[0], BoxCorners[4], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[1], BoxCorners[5], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[2], BoxCorners[6], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
-    Line(BoxCorners[3], BoxCorners[7], RenderColor, Thickness, Outlined, OutlineThickness, OutlineColor);
+    Line(BoxCorners[0], BoxCorners[4], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[1], BoxCorners[5], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[2], BoxCorners[6], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
+    Line(BoxCorners[3], BoxCorners[7], RenderColor, Thickness, Outlined, OutlineThickness, AdjustedOutlineColor);
 
     EndBatchedLines();
 }
@@ -246,7 +250,7 @@ void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments, const
             float Thickness, bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
     if (Outlined)
         g_DrawList->AddCircle(ImVec2(ScreenPosition.X, ScreenPosition.Y), Radius,
-                              ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A), Segments,
+                              ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, RenderColor.A), Segments,
                               Thickness + OutlineThickness);
     g_DrawList->AddCircle(ImVec2(ScreenPosition.X, ScreenPosition.Y), Radius,
                           ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Segments, Thickness);
@@ -260,7 +264,7 @@ void Triangle(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& Scree
 
     if (Outlined) {
         ImGui::GetBackgroundDrawList()->AddTriangle(
-            Points[0], Points[1], Points[2], ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A),
+            Points[0], Points[1], Points[2], ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, RenderColor.A),
             Thickness + OutlineThickness);
     }
 

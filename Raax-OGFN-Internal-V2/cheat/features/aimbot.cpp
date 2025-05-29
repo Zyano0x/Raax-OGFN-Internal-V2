@@ -122,7 +122,7 @@ void AcquireTarget() {
     bool Found = false;
     if (target.Pawn) {
         for (auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
-            if (Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance)
+            if (Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance || Info.IsDBNO || Info.IsDead)
                 continue;
 
             if (Info.Pawn == target.Pawn) {
@@ -138,7 +138,7 @@ void AcquireTarget() {
 
     for (auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
         if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance ||
-            Info.TeamIndex == Core::g_LocalTeamIndex)
+            Info.TeamIndex == Core::g_LocalTeamIndex || Info.IsDBNO || Info.IsDead)
             continue;
         EvaluateTarget(Info);
     }

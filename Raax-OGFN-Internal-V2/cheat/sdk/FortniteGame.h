@@ -96,6 +96,8 @@ class AFortPawn : public ACharacter {
 
   public:
     UPROPERTY(class AFortWeapon*, CurrentWeapon);
+    UPROPERTY_BITFIELD(bIsDying);
+    UPROPERTY_BITFIELD(bIsDBNO);
 };
 
 class AFortPlayerPawn : public AFortPawn {

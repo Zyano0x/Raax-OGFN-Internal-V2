@@ -54,6 +54,8 @@ struct PlayerInfo {
     std::string Platform;
     uint8_t     TeamIndex = 0;
     float       DistanceM = 0.f;
+    bool        IsDBNO = false;
+    bool        IsDead = false;
     bool        HeadVisible = false;
     bool        IsOnScreen = false;
 

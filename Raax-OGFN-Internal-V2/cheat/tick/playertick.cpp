@@ -54,7 +54,8 @@ void TickRenderThread() {
     float FontSize = 16.f;
 
     for (const auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
-        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance || Info.TeamIndex == Core::g_LocalTeamIndex)
+        if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance ||
+            Info.TeamIndex == Core::g_LocalTeamIndex || Info.IsDead)
             continue;
 
         SDK::FLinearColor PrimaryColor =
