@@ -400,6 +400,35 @@ bool SetupViewProjectionMatrix() {
     Error::ThrowError("Failed to find UCanvas::ViewProjectionMatrix offset!");
     return false;
 }
+bool SetupCanvas() {
+    UCanvas::Canvas_Offset = UCanvas::ViewProjectionMatrix_Offset - (sizeof(void*) * 2);
+    LOG(LOG_INFO, "Using hardcoded UCanvas::Canvas offset: 0x%X", UCanvas::Canvas_Offset);
+    return true;
+}
+bool SetupFCanvasGetBatchedElements() {
+    uintptr_t StringRef = Memory::FindStringRef(L"STAT_Canvas_GetBatchElementsTime");
+    if (!StringRef) {
+        Error::ThrowError("Failed to find \"STAT_Canvas_GetBatchElementsTime\" for FCanvas::GetBatchedElements!");
+        return false;
+    }
+
+    uintptr_t Address = Memory::PatternScanRange<int32_t>(StringRef, 0x100, "48 8B C4", true);
+    if (Memory::IsAddressInsideImage(Address)) {
+        FCanvas::FCanvasGetBatchedElements = reinterpret_cast<decltype(FCanvas::FCanvasGetBatchedElements)>(Address);
+        LOG(LOG_INFO, "Found FCanvas::GetBatchedElements offset: 0x%p",
+            reinterpret_cast<void*>(Address - Memory::GetImageBase()));
+        return true;
+    }
+
+    Error::ThrowError("Failed to find FCanvas::GetBatchedElements!");
+    return false;
+}
+bool SetupBatchedThickLines() {
+    FBatchedElements::BatchedThickLines_Offset = 0x40;
+    LOG(LOG_INFO, "Using hardcoded FBatchedElements::BatchedThickLines offset: 0x%X",
+        FBatchedElements::BatchedThickLines_Offset);
+    return true;
+}
 bool SetupLevelActors() {
     UWorld* World = Core::GetNewWorld();
     if (!World) {
@@ -577,7 +606,8 @@ void FindComponentToWorldOffset() {
 
 bool SetupUnrealFortniteOffsets() {
     bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
-                  SetupLevelActors() && SetupComponentSpaceTransformsArray();
+                  SetupCanvas() && SetupFCanvasGetBatchedElements() && SetupBatchedThickLines() && SetupLevelActors() &&
+                  SetupComponentSpaceTransformsArray();
     if (Result) {
         FindGetWeaponStats();
         FindComponentToWorldOffset();

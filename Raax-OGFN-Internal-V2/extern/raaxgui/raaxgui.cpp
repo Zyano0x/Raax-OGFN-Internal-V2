@@ -21,9 +21,11 @@ struct RaaxStyle {
     Color WindowCol = Color(0.1f, 0.1f, 0.1f, 1.f);
 
     Color CheckboxCol = Color(0.2f, 0.2f, 0.2f, 1.f);
+    Color CheckboxTextCol = Color(1.f, 1.f, 1.f, 1.f);
     Color CheckboxBoxCol = Color(0.2f, 0.8f, 0.2f, 1.f);
     float CheckboxSize = 20.f;
     float CheckboxBoxSize = 10.f;
+    float CheckboxTextFontSize = 10.f;
 } g_Style;
 
 // --- Classes -------------------------------------------------------
@@ -54,12 +56,16 @@ class RaaxCheckbox final : public RaaxElement {
     void Render() override {
         Vec2 InWindowPos = m_Parent->GetPos() + m_Pos;
         DrawFilledRect(InWindowPos, m_Size, g_Style.CheckboxCol);
+
+        Vec2 BoxPos =
+            Vec2(InWindowPos.X + g_Style.CheckboxBoxSize / 2.f, InWindowPos.Y + g_Style.CheckboxBoxSize / 2.f);
+        Vec2 BoxSize = Vec2(g_Style.CheckboxBoxSize, g_Style.CheckboxBoxSize);
         if (*m_pValue) {
-            Vec2 BoxPos =
-                Vec2(InWindowPos.X + g_Style.CheckboxBoxSize / 2.f, InWindowPos.Y + g_Style.CheckboxBoxSize / 2.f);
-            Vec2 BoxSize = Vec2(g_Style.CheckboxBoxSize, g_Style.CheckboxBoxSize);
             DrawFilledRect(BoxPos, BoxSize, g_Style.CheckboxBoxCol);
         }
+
+        Vec2 TextPos = Vec2(BoxPos.X + m_Size.X, BoxPos.Y);
+        DrawText(m_Name.c_str(), TextPos, g_Style.CheckboxTextCol, g_Style.CheckboxTextFontSize, false, false, true);
     }
     bool CollidesWith(const Vec2& Pos) override {
         Vec2 InWindowPos = m_Parent->GetPos() + m_Pos;

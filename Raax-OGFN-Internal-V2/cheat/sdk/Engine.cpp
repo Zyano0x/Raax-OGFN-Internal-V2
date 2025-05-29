@@ -1,11 +1,17 @@
 #include "Engine.h"
 
+#include <utils/memory.h>
 #include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
 
 namespace SDK {
 
 // --- Classes & Structs ---------------------------------------------
+
+class FBatchedElements* FCanvas::GetBatchElements() {
+    return FCanvasGetBatchedElements(this, EElementType::ET_Line, nullptr, nullptr,
+                                     ESimpleElementBlendMode::SE_BLEND_MAX, FDepthFieldGlowInfo(), true);
+}
 
 FString UKismetSystemLibrary::GetEngineVersion() {
     static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
@@ -30,21 +36,25 @@ bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FV
 
 void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
                           const FLinearColor& RenderColor) {
-    static UFunction* Func = GetFunction("Canvas", "K2_DrawLine");
-    struct {
-        FVector2D    ScreenPositionA;
-        FVector2D    ScreenPositionB;
-        float        Thickness;
-        FLinearColor RenderColor;
-    } params_K2_DrawLine{};
+    FCanvas* CanvasPtr = Canvas;
+    if (!CanvasPtr)
+        return;
 
-    params_K2_DrawLine.ScreenPositionA = ScreenPositionA;
-    params_K2_DrawLine.ScreenPositionB = ScreenPositionB;
-    params_K2_DrawLine.Thickness = Thickness;
-    params_K2_DrawLine.RenderColor = RenderColor;
+    FBatchedElements* BatchElements = CanvasPtr->GetBatchElements();
+    if (!BatchElements)
+        return;
 
-    if (Func)
-        ProcessEvent(Func, &params_K2_DrawLine);
+    FBatchedThickLines ThickLine = {};
+    ThickLine.Start = SDK::FVector(ScreenPositionA.X, ScreenPositionA.Y, 0.f);
+    ThickLine.End = SDK::FVector(ScreenPositionB.X, ScreenPositionB.Y, 0.f);
+    ThickLine.Thickness = Thickness;
+    ThickLine.Color = RenderColor;
+    ThickLine.HitProxyColor = {};
+    ThickLine.DepthBias = Thickness;
+    ThickLine.bScreenSpace = 0;
+
+    TArray<FBatchedThickLines>& BatchedThickLines = BatchElements->BatchedThickLines;
+    BatchedThickLines.Add(ThickLine);
 }
 void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FVector2D& ScreenPosition,
                           const FVector2D& Scale, const FLinearColor& RenderColor, float Kerning,

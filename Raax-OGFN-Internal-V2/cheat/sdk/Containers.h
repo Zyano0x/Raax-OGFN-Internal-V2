@@ -72,12 +72,24 @@ template <typename ElementType> class TArray {
 
   public:
     inline bool Add(const ElementType& Element) {
-        if (GetSlack() <= 0)
-            return false;
+        if (GetSlack() <= 0) {
+            const int32_t NewCapacity = (MaxElements == 0) ? 4 : MaxElements * 2;
+
+            ElementType* NewData = static_cast<ElementType*>(FMemory::Malloc(NewCapacity * ElementSize, ElementAlign));
+            if (!NewData)
+                return false;
+
+            if (Data) {
+                memcpy(NewData, Data, NumElements * ElementSize);
+                FMemory::Free(Data);
+            }
+
+            Data = NewData;
+            MaxElements = NewCapacity;
+        }
 
         Data[NumElements] = Element;
         NumElements++;
-
         return true;
     }
 

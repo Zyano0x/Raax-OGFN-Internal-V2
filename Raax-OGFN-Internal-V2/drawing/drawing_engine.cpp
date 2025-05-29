@@ -94,9 +94,12 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SD
 void Text(const wchar_t* RenderText, const SDK::FVector2D& ScreenPosition, const SDK::FLinearColor& RenderColor,
           float FontSize, bool CenteredX, bool CenteredY, bool Outlined, float OutlineThickness,
           const SDK::FLinearColor& OutlineColor) {
+    // unreal engine engine font size is weird idk
+    float AdjustedFontSize = FontSize - (FontSize * 0.25f);
+
     if (ScreenPosition.X != -1.f && ScreenPosition.Y != -1.f) {
         int32_t OriginalFontSize = g_Font->LegacyFontSize;
-        g_Font->LegacyFontSize = FontSize;
+        g_Font->LegacyFontSize = AdjustedFontSize;
         g_Canvas->K2_DrawText(g_Font, RenderText, ScreenPosition, {1.f, 1.f}, RenderColor, false,
                               SDK::FLinearColor(0.f, 0.f, 0.f, 0.f), SDK::FVector2D(0.f, 0.f), CenteredX, CenteredY,
                               Outlined, OutlineColor);
@@ -251,7 +254,6 @@ void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments, const
 void Triangle(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPositionB,
               const SDK::FVector2D& ScreenPositionC, bool Filled, const SDK::FLinearColor& RenderColor, float Thickness,
               bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
-    // Helper function to sort vertices by Y coordinate
     auto SortVertices = [](SDK::FVector2D& a, SDK::FVector2D& b, SDK::FVector2D& c) {
         if (a.Y > b.Y)
             std::swap(a, b);
@@ -265,46 +267,39 @@ void Triangle(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& Scree
     SDK::FVector2D v2 = ScreenPositionB;
     SDK::FVector2D v3 = ScreenPositionC;
 
-    // Draw outline if requested
     if (Outlined) {
         Line(v1, v2, OutlineColor, Thickness + OutlineThickness, false);
         Line(v2, v3, OutlineColor, Thickness + OutlineThickness, false);
         Line(v3, v1, OutlineColor, Thickness + OutlineThickness, false);
     }
 
-    // Draw wireframe or filled triangle
     if (!Filled) {
         Line(v1, v2, RenderColor, Thickness, false);
         Line(v2, v3, RenderColor, Thickness, false);
         Line(v3, v1, RenderColor, Thickness, false);
     } else {
-        // Sort vertices by Y coordinate (v1 at top, v3 at bottom)
         SortVertices(v1, v2, v3);
 
-        // Calculate the inverse slopes for the triangle edges
-        float invslope1 = (v2.X - v1.X) / (v2.Y - v1.Y);
-        float invslope2 = (v3.X - v1.X) / (v3.Y - v1.Y);
+        float Invslope1 = (v2.X - v1.X) / (v2.Y - v1.Y);
+        float Invslope2 = (v3.X - v1.X) / (v3.Y - v1.Y);
 
-        float curx1 = v1.X;
-        float curx2 = v1.X;
+        float Curx1 = v1.X;
+        float Curx2 = v1.X;
 
-        // Draw the top part of the triangle (flat top)
         for (int y = v1.Y; y <= v2.Y; y++) {
-            Line(SDK::FVector2D(curx1, y), SDK::FVector2D(curx2, y), RenderColor, 1.0f, false);
-            curx1 += invslope1;
-            curx2 += invslope2;
+            Line(SDK::FVector2D(Curx1, y), SDK::FVector2D(Curx2, y), RenderColor, 1.0f, false);
+            Curx1 += Invslope1;
+            Curx2 += Invslope2;
         }
 
-        // Adjust slopes if there's a flat bottom
         if (v2.Y != v3.Y) {
-            float invslope3 = (v3.X - v2.X) / (v3.Y - v2.Y);
-            curx1 = v2.X;
+            float Invslope3 = (v3.X - v2.X) / (v3.Y - v2.Y);
+            Curx1 = v2.X;
 
-            // Draw the bottom part of the triangle (flat bottom)
             for (int y = v2.Y; y <= v3.Y; y++) {
-                Line(SDK::FVector2D(curx1, y), SDK::FVector2D(curx2, y), RenderColor, 1.0f, false);
-                curx1 += invslope3;
-                curx2 += invslope2;
+                Line(SDK::FVector2D(Curx1, y), SDK::FVector2D(Curx2, y), RenderColor, 1.0f, false);
+                Curx1 += Invslope3;
+                Curx2 += Invslope2;
             }
         }
     }

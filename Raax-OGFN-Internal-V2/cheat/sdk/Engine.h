@@ -67,6 +67,77 @@ struct FKey {
     uint8_t     Pad[16];
 };
 
+enum EElementType {
+    ET_Box,
+    ET_DebugQuad,
+    ET_Text,
+    ET_ShapedText,
+    ET_Spline,
+    ET_Line,
+    ET_Gradient,
+    ET_Viewport,
+    ET_Border,
+    ET_Custom,
+    ET_CustomVerts,
+    ET_PostProcessPass,
+    ET_Count,
+};
+enum ESimpleElementBlendMode {
+    SE_BLEND_Opaque = 0,
+    SE_BLEND_Masked,
+    SE_BLEND_Translucent,
+    SE_BLEND_Additive,
+    SE_BLEND_Modulate,
+    SE_BLEND_MaskedDistanceField,
+    SE_BLEND_MaskedDistanceFieldShadowed,
+    SE_BLEND_TranslucentDistanceField,
+    SE_BLEND_TranslucentDistanceFieldShadowed,
+    SE_BLEND_AlphaComposite,
+    SE_BLEND_AlphaHoldout,
+    SE_BLEND_AlphaBlend,
+    SE_BLEND_TranslucentAlphaOnly,
+    SE_BLEND_TranslucentAlphaOnlyWriteAlpha,
+    SE_BLEND_RGBA_MASK_START,
+    SE_BLEND_RGBA_MASK_END = SE_BLEND_RGBA_MASK_START + 31,
+    SE_BLEND_MAX,
+};
+struct FDepthFieldGlowInfo {
+    uint32_t     bEnableGlow : 1;
+    FLinearColor GlowColor;
+    FVector2D    GlowOuterRadius;
+    FVector2D    GlowInnerRadius;
+};
+struct FBatchedThickLines {
+    FVector      Start;
+    FVector      End;
+    float        Thickness;
+    FLinearColor Color;
+    FColor       HitProxyColor;
+    float        DepthBias;
+    uint32_t     bScreenSpace;
+};
+class FHitProxyId {
+    int32_t index;
+};
+
+class FCanvas {
+  public:
+    static inline class FBatchedElements* (*FCanvasGetBatchedElements)(FCanvas*, EElementType, void*, void*,
+                                                                       ESimpleElementBlendMode,
+                                                                       const FDepthFieldGlowInfo&, bool);
+
+  public:
+    class FBatchedElements* GetBatchElements();
+};
+
+class FBatchedElements {
+  public:
+    static inline uint32_t BatchedThickLines_Offset;
+
+  public:
+    UPROPERTY_OFFSET(TArray<FBatchedThickLines>, BatchedThickLines, BatchedThickLines_Offset);
+};
+
 class UKismetSystemLibrary : public UObject {
   public:
     STATICCLASS_DEFAULTOBJECT("KismetSystemLibrary", UKismetSystemLibrary);
@@ -147,8 +218,10 @@ class UCanvas : public UObject {
 
   public:
     static inline uint32_t ViewProjectionMatrix_Offset;
+    static inline uint32_t Canvas_Offset;
 
   public:
+    UPROPERTY_OFFSET(FCanvas*, Canvas, Canvas_Offset);
     UPROPERTY_OFFSET(FMatrix, ViewProjectionMatrix, ViewProjectionMatrix_Offset);
     UPROPERTY(int32_t, SizeX);
     UPROPERTY(int32_t, SizeY);

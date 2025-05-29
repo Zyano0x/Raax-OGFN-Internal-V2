@@ -2,8 +2,8 @@
 #include "raaxgui_input.h"
 
 /*
- * This header is designed so you can add your own implementation for core concepts like drawing, input & error handling.
- * You are expected to set the correct structs and fill in the empty functions.
+ * This header is designed so you can add your own implementation for core concepts like drawing, input & error
+ * handling. You are expected to set the correct structs and fill in the empty functions.
  */
 
 // Add your required includes here
@@ -23,6 +23,11 @@ using Color = SDK::FLinearColor;
 
 inline void DrawFilledRect(const Vec2& Pos, const Vec2& Size, const Color& Col) {
     Drawing::RectFilled(Pos, Size, Col);
+}
+
+inline void DrawText(const char* Text, const Vec2& Pos, const Color& Col, float FontSize, bool CenteredX,
+                     bool CenteredY, bool Outlined) {
+    Drawing::Text(Text, Pos, Col, FontSize, CenteredX, CenteredY, Outlined);
 }
 
 // --- Input Impl ----------------------------------------------------
