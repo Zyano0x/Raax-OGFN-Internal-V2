@@ -38,29 +38,29 @@ void Destroy() {
 // --- ImGui Utility Functions ---------------------------------------
 
 #ifndef _ENGINE
-ImGuiKey GetLastReleasedKey() {
-    for (int i = ImGuiKey_NamedKey_BEGIN; i < ImGuiKey_NamedKey_END; i++) {
-        if (ImGui::IsKeyReleased((ImGuiKey)i))
-            return (ImGuiKey)i;
+Input::KeyID GetLastReleasedKey() {
+    for (int i = (int)Input::KeyID::START; i < (int)Input::KeyID::COUNT; i++) {
+        if (Input::WasKeyJustReleased((Input::KeyID)i))
+            return (Input::KeyID)i;
     }
 
-    return ImGuiKey_None;
+    return Input::KeyID::NONE;
 }
 #endif
 
-void Keybind(const char* Str, bool& WaitingForKeybind, ImGuiKey& OutKeybind) {
+void Keybind(const char* Str, bool& WaitingForKeybind, Input::KeyID& OutKeybind) {
 #ifndef _ENGINE
     std::string KeybindStr = Str;
     KeybindStr += ": ";
-    KeybindStr += ImGui::GetKeyName(OutKeybind);
+    KeybindStr += Input::GetKeyName(OutKeybind);
 
     ImGui::BeginDisabled(WaitingForKeybind);
     bool Result = ImGui::Button(KeybindStr.c_str());
     ImGui::EndDisabled();
 
     if (WaitingForKeybind) {
-        ImGuiKey ReleasedKey = GUI::GetLastReleasedKey();
-        if (ReleasedKey != ImGuiKey_None) {
+        Input::KeyID ReleasedKey = GUI::GetLastReleasedKey();
+        if (ReleasedKey != Input::KeyID::NONE) {
             WaitingForKeybind = false;
             OutKeybind = ReleasedKey;
         }

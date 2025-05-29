@@ -188,6 +188,7 @@
     <ClCompile Include="cheat\features\radar.cpp" />
     <ClCompile Include="cheat\features\triggerbot.cpp" />
     <ClCompile Include="cheat\features\weaponutils.cpp" />
+    <ClCompile Include="cheat\input.cpp" />
     <ClCompile Include="cheat\sdk\FortniteGame.cpp" />
     <ClCompile Include="cheat\tick\containertick.cpp" />
     <ClCompile Include="cheat\features\exploits.cpp" />
@@ -252,7 +253,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="extern\raaxgui\raaxgui.cpp" />
+    <ClCompile Include="extern\raaxgui\raaxgui.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="gui\dx11\dx11.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">false</ExcludedFromBuild>
@@ -288,6 +294,7 @@
     <ClInclude Include="cheat\features\radar.h" />
     <ClInclude Include="cheat\features\triggerbot.h" />
     <ClInclude Include="cheat\features\weaponutils.h" />
+    <ClInclude Include="cheat\input.h" />
     <ClInclude Include="cheat\tick\containertick.h" />
     <ClInclude Include="cheat\features\exploits.h" />
     <ClInclude Include="cheat\tick\pickuptick.h" />
@@ -363,6 +370,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="extern\raaxgui\raaxgui_input.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">
+      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">
+      </ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="gui\dx11\dx11.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>

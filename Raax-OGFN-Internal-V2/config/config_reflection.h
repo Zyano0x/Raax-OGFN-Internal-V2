@@ -105,17 +105,18 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::AimbotConfig>() {
                            MemberDescriptor<T, bool>{"SplitAimbotByAmmo", &T::SplitAimbotByAmmo, {}},
                            MemberDescriptor<T, bool>{"BulletPrediction", &T::BulletPrediction, {}},
                            MemberDescriptor<T, bool>{"ShowTargetLine", &T::ShowTargetLine, {}},
-                           MemberDescriptor<T, int>{"AimbotKeybind", &T::AimbotKeybind, {}});
+                           MemberDescriptor<T, Input::KeyID>{"AimbotKeybind", &T::AimbotKeybind, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::TriggerBotConfig>() {
     using T = Config::ConfigData::TriggerBotConfig;
-    return std::make_tuple(
-        MemberDescriptor<T, bool>{"Enabled", &T::Enabled, {}},
-        MemberDescriptor<T, bool>{"UseKeybind", &T::UseKeybind, {}},
-        MemberDescriptor<T, int>{"Keybind", &T::Keybind, {}}, MemberDescriptor<T, bool>{"ShowFOV", &T::ShowFOV, {}},
-        MemberDescriptor<T, float>{"FOV", &T::FOV, {}}, MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}},
-        MemberDescriptor<T, float>{"FireDelayS", &T::FireDelayS, {}});
+    return std::make_tuple(MemberDescriptor<T, bool>{"Enabled", &T::Enabled, {}},
+                           MemberDescriptor<T, bool>{"UseKeybind", &T::UseKeybind, {}},
+                           MemberDescriptor<T, Input::KeyID>{"Keybind", &T::Keybind, {}},
+                           MemberDescriptor<T, bool>{"ShowFOV", &T::ShowFOV, {}},
+                           MemberDescriptor<T, float>{"FOV", &T::FOV, {}},
+                           MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}},
+                           MemberDescriptor<T, float>{"FireDelayS", &T::FireDelayS, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::ExploitConfig>() {
@@ -159,7 +160,7 @@ template <> constexpr auto DescribeMembers<Config::ConfigData>() {
                            MemberDescriptor<T, Config::ConfigData::ExploitConfig>{"Exploit", &T::Exploit, {}},
                            MemberDescriptor<T, Config::ConfigData::KeybindConfig>{"Keybinds", &T::Keybinds, {}},
                            MemberDescriptor<T, Config::ConfigData::ColorConfig>{"Color", &T::Color, {}},
-                           MemberDescriptor<T, int>{"MenuKeybind", &T::MenuKeybind, {}});
+                           MemberDescriptor<T, Input::KeyID>{"MenuKeybind", &T::MenuKeybind, {}});
 }
 
 // --- Field Util Functions & Structs --------------------------------

@@ -34,7 +34,7 @@ bool KeybindData::Deserialize(const std::string& Data) {
         return false;
 
     ReflectedBool.FullPath = Data.substr(PathStart + 8, PathEnd - (PathStart + 8));
-    Keybind = static_cast<ImGuiKey>(KeyValue);
+    Keybind = static_cast<Input::KeyID>(KeyValue);
     return true;
 }
 
@@ -96,11 +96,9 @@ void Tick() {
     }
 
     for (const auto& Keybind : Config::g_Config.Keybinds.Keybinds) {
-#ifndef _ENGINE
-        if (ImGui::IsKeyPressed(Keybind.Keybind, false) && Keybind.ReflectedBool.Is<bool>()) {
+        if (Input::WasKeyJustPressed(Keybind.Keybind) && Keybind.ReflectedBool.Is<bool>()) {
             Keybind.ReflectedBool.As<bool>() = !Keybind.ReflectedBool.As<bool>();
         }
-#endif
     }
 }
 

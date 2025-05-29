@@ -74,7 +74,7 @@ void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char* Popup
         static bool WaitingForKeybind = false;
         GUI::Keybind("New Keybind", WaitingForKeybind, CurrentKeybind.Keybind);
 
-        bool ReadyToConfirm = CurrentKeybind.Keybind != ImGuiKey_None && CurrentKeybind.ReflectedBool.Ptr;
+        bool ReadyToConfirm = CurrentKeybind.Keybind != Input::KeyID::NONE && CurrentKeybind.ReflectedBool.Ptr;
 
         ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - 5);
         ImGui::BeginDisabled(!ReadyToConfirm);
@@ -126,7 +126,7 @@ void ListKeybinds() {
                 auto& Keybind = Config::g_Config.Keybinds.Keybinds[i];
 
                 std::string KeybindInfoStr =
-                    std::format("{} - {}", ImGui::GetKeyName(Keybind.Keybind), Keybind.ReflectedBool.Name.data());
+                    std::format("{} - {}", Input::GetKeyName(Keybind.Keybind), Keybind.ReflectedBool.Name.data());
                 ImGui::PushID(&Keybind);
                 ImGui::BeginDisabled(bEditing && i != EditingIdx);
 
@@ -178,13 +178,16 @@ void AimbotTab() {
             Config.DeadzoneFOV = Config.FOV;
 
         ImGui::Checkbox("Use Deadzone", &Config.UseDeadzone);
-        ImGui::Checkbox("Show Deadzone FOV", &Config.ShowDeadzoneFOV);
-        ImGui::SliderFloat("Deadzone FOV", &Config.DeadzoneFOV, 0.25f, Config.FOV);
+        if (Config.UseDeadzone) {
+            ImGui::Checkbox("Show Deadzone FOV", &Config.ShowDeadzoneFOV);
+            ImGui::SliderFloat("Deadzone FOV", &Config.DeadzoneFOV, 0.25f, Config.FOV);
+        }
 
         ImGui::Combo("Target Selection", (int*)&Config.Selection, "Distance\000Degrees\000Combined");
         ImGui::Combo("Target Bone", (int*)&Config.Bone, "Head\000Neck\000Chest\000Pelvis\000Random");
 
-        ImGui::SliderFloat("Random Bone Refresh Rate", &Config.RandomBoneRefreshRate, 0.1f, 3.f);
+        if (Config.Bone == Config::ConfigData::TargetBone::Random)
+            ImGui::SliderFloat("Random Bone Refresh Rate", &Config.RandomBoneRefreshRate, 0.1f, 3.f);
     };
 
     auto& AimbotConfig = Config::g_Config.Aimbot;
@@ -196,7 +199,7 @@ void AimbotTab() {
         ImGui::SameLine();
         ImGui::Checkbox("Show Target Line", &AimbotConfig.ShowTargetLine);
         static bool WaitingForKeybind = false;
-        GUI::Keybind("Aim Keybind", WaitingForKeybind, (ImGuiKey&)AimbotConfig.AimbotKeybind);
+        GUI::Keybind("Aim Keybind", WaitingForKeybind, AimbotConfig.AimbotKeybind);
 
         if (ImGui::BeginChild("AimbotConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
             ImGui::BeginTabBar("Aimbot Tab");
@@ -257,7 +260,7 @@ void TriggerBotTab() {
         ImGui::Checkbox("Use Keybind", &Config.UseKeybind);
         ImGui::SameLine();
         static bool WaitingForKeybind = false;
-        GUI::Keybind("Keybind", WaitingForKeybind, (ImGuiKey&)Config.Keybind);
+        GUI::Keybind("Keybind", WaitingForKeybind, Config.Keybind);
 
         ImGui::Checkbox("Show FOV", &Config.ShowFOV);
         ImGui::SliderFloat("FOV", &Config.FOV, 0.25f, 180.f);
@@ -483,7 +486,7 @@ void MiscTab() {
 
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         static bool WaitingForKeybind = false;
-        GUI::Keybind("Menu Keybind", WaitingForKeybind, (ImGuiKey&)Config::g_Config.MenuKeybind);
+        GUI::Keybind("Menu Keybind", WaitingForKeybind, Config::g_Config.MenuKeybind);
 
         ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
         ImGui::Text("Made by Raax with help from Toxy, Parkie & NotTacs");
@@ -495,7 +498,7 @@ void MiscTab() {
 // --- Public Tick Functions -----------------------------------------
 
 void Tick() {
-    if (ImGui::IsKeyReleased((ImGuiKey)Config::g_Config.MenuKeybind))
+    if (Input::WasKeyJustReleased(Config::g_Config.MenuKeybind))
         GUI::MainWindow::g_WindowOpen = !GUI::MainWindow::g_WindowOpen;
 
     if (GUI::MainWindow::g_WindowOpen) {

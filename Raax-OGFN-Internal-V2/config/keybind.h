@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <extern/imgui/imgui.h>
+#include <cheat/input.h>
 
 namespace Keybind {
 
@@ -12,7 +13,7 @@ namespace Keybind {
 
 struct KeybindData {
     ConfigReflection::ConfigFieldView ReflectedBool = {};
-    ImGuiKey                          Keybind = ImGuiKey_None;
+    Input::KeyID                      Keybind = Input::KeyID::NONE;
 
     std::string Serialize() const;
     bool        Deserialize(const std::string& Data);

@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include <extern/imgui/imgui.h>
+#include <cheat/input.h>
 
 namespace GUI {
 
@@ -14,7 +15,7 @@ void Destroy();
 
 // --- ImGui Utility Functions ---------------------------------------
 
-void Keybind(const char* Str, bool& WaitingForKeybind, ImGuiKey& OutKeybind);
+void Keybind(const char* Str, bool& WaitingForKeybind, Input::KeyID& OutKeybind);
 
 // --- WndProc Hook --------------------------------------------------
 

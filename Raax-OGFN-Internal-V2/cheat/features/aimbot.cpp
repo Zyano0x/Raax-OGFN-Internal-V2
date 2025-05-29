@@ -4,6 +4,7 @@
 #include <random>
 
 #include <cheat/features/weaponutils.h>
+#include <cheat/Input.h>
 #include <extern/imgui/imgui.h>
 #include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
@@ -166,9 +167,7 @@ void TickRenderThread() {
     if (!s.Config.Enabled || s.CurrentAmmo == WeaponUtils::AmmoType::Unknown)
         return;
 
-#ifndef _ENGINE
-    s.IsTargeting = ImGui::IsKeyDown((ImGuiKey)Config::g_Config.Aimbot.AimbotKeybind);
-#endif
+    s.IsTargeting = Input::IsKeyDown(Config::g_Config.Aimbot.AimbotKeybind);
     SDK::FVector2D Center =
         SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
     SDK::FLinearColor TargetColor =

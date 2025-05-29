@@ -49,6 +49,7 @@
     <ClCompile Include="extern\raaxgui\raaxgui.cpp" />
     <ClCompile Include="cheat\autorevertfeature.cpp" />
     <ClCompile Include="extern\cpp-base64\base64.cpp" />
+    <ClCompile Include="cheat\input.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />
@@ -110,6 +111,8 @@
     <ClInclude Include="cheat\autorevertfeature.h" />
     <ClInclude Include="extern\inifile-cpp\inicpp.h" />
     <ClInclude Include="extern\cpp-base64\base64.h" />
+    <ClInclude Include="extern\raaxgui\raaxgui_input.h" />
+    <ClInclude Include="cheat\input.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

@@ -5,7 +5,7 @@
 #include <format>
 
 #include <cheat/sdk/Basic.h>
-#include <extern/imgui/imgui.h>
+#include <cheat/input.h>
 
 namespace Config {
 
@@ -186,20 +186,20 @@ struct ConfigData {
 
         AimbotAmmoConfig AllAimbot = {};
 
-        bool SplitAimbotByAmmo = true;
-        bool BulletPrediction = true;
-        bool ShowTargetLine = true;
-        int  AimbotKeybind = ImGuiKey_MouseRight;
+        bool         SplitAimbotByAmmo = true;
+        bool         BulletPrediction = true;
+        bool         ShowTargetLine = true;
+        Input::KeyID AimbotKeybind = Input::KeyID::RightMouseButton;
     } Aimbot;
 
     struct TriggerBotConfig {
-        bool  Enabled = false;
-        bool  UseKeybind = false;
-        int   Keybind = ImGuiKey_G;
-        bool  ShowFOV = true;
-        float FOV = 4.f;
-        float MaxDistance = 25.f;
-        float FireDelayS = 0.25f;
+        bool         Enabled = false;
+        bool         UseKeybind = false;
+        Input::KeyID Keybind = Input::KeyID::G;
+        bool         ShowFOV = true;
+        float        FOV = 4.f;
+        float        MaxDistance = 25.f;
+        float        FireDelayS = 0.25f;
     } TriggerBot;
 
     struct ExploitConfig {
@@ -238,7 +238,7 @@ struct ConfigData {
         SDK::FLinearColor SecondaryColorHidden = SDK::FLinearColor(0.f, 0.17f, 0.34f, 1.f);
     } Color;
 
-    int MenuKeybind = ImGuiKey_Insert;
+    Input::KeyID MenuKeybind = Input::KeyID::Insert;
 
     std::string SerializeConfig(bool FullConfig);
     bool        DeserializeConfig(const std::string& Data);

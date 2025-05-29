@@ -89,14 +89,12 @@ void TickRenderThread() {
         return;
     }
 
-#ifndef _ENGINE
     const auto& Config = Config::g_Config.TriggerBot;
-    PressingKey = ImGui::IsKeyDown((ImGuiKey)Config.Keybind);
+    PressingKey = Input::IsKeyDown(Config.Keybind);
 
     SDK::FVector2D Center =
         SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
     Drawing::Circle(Center, Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::Green);
-#endif
 }
 
 } // namespace TriggerBot
