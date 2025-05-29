@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <utils/error.h>
+#include <utils/math.h>
 #include <cheat/sdk/sdk.h>
 
 namespace Drawing {
@@ -230,31 +231,83 @@ void Rect3D(const SDK::FVector2D (&BoxCorners)[8], const SDK::FLinearColor& Rend
 
 void Circle(SDK::FVector2D ScreenPosition, float Radius, int32_t Segments, const SDK::FLinearColor& RenderColor,
             float Thickness, bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
-    // if (Outlined)
-    //     g_DrawList->AddCircle(ImVec2(ScreenPosition.X, ScreenPosition.Y), Radius,
-    //                           ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A), Segments,
-    //                           Thickness + OutlineThickness);
-    // g_DrawList->AddCircle(ImVec2(ScreenPosition.X, ScreenPosition.Y), Radius,
-    //                       ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Segments, Thickness);
+    if (Segments < 3) {
+        Segments = 3;
+    }
+
+    float          AngleStep = (2.f * M_PI) / static_cast<float>(Segments);
+    SDK::FVector2D PreviousPoint =
+        SDK::FVector2D(Radius * cos(0) + ScreenPosition.X, Radius * sin(0) + ScreenPosition.Y);
+
+    for (int SegmentCount = 1; SegmentCount <= Segments; SegmentCount++) {
+        SDK::FVector2D CurrentPoint = SDK::FVector2D(Radius * cos(AngleStep * SegmentCount) + ScreenPosition.X,
+                                                     Radius * sin(AngleStep * SegmentCount) + ScreenPosition.Y);
+
+        Line(PreviousPoint, CurrentPoint, RenderColor, 1.0f, Outlined);
+        PreviousPoint = CurrentPoint;
+    }
 }
 
 void Triangle(const SDK::FVector2D& ScreenPositionA, const SDK::FVector2D& ScreenPositionB,
               const SDK::FVector2D& ScreenPositionC, bool Filled, const SDK::FLinearColor& RenderColor, float Thickness,
               bool Outlined, float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
-    // ImVec2 Points[3] = {ImVec2(ScreenPositionA.X, ScreenPositionA.Y), ImVec2(ScreenPositionB.X, ScreenPositionB.Y),
-    //                     ImVec2(ScreenPositionC.X, ScreenPositionC.Y)};
-    // if (Outlined) {
-    //     ImGui::GetBackgroundDrawList()->AddTriangle(
-    //         Points[0], Points[1], Points[2], ImColor(OutlineColor.R, OutlineColor.G, OutlineColor.B, OutlineColor.A),
-    //         Thickness + OutlineThickness);
-    // }
-    // if (Filled) {
-    //     g_DrawList->AddTriangleFilled(Points[0], Points[1], Points[2],
-    //                                   ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A));
-    // } else {
-    //     g_DrawList->AddTriangle(Points[0], Points[1], Points[2],
-    //                             ImColor(RenderColor.R, RenderColor.G, RenderColor.B, RenderColor.A), Thickness);
-    // }
+    // Helper function to sort vertices by Y coordinate
+    auto SortVertices = [](SDK::FVector2D& a, SDK::FVector2D& b, SDK::FVector2D& c) {
+        if (a.Y > b.Y)
+            std::swap(a, b);
+        if (a.Y > c.Y)
+            std::swap(a, c);
+        if (b.Y > c.Y)
+            std::swap(b, c);
+    };
+
+    SDK::FVector2D v1 = ScreenPositionA;
+    SDK::FVector2D v2 = ScreenPositionB;
+    SDK::FVector2D v3 = ScreenPositionC;
+
+    // Draw outline if requested
+    if (Outlined) {
+        Line(v1, v2, OutlineColor, Thickness + OutlineThickness, false);
+        Line(v2, v3, OutlineColor, Thickness + OutlineThickness, false);
+        Line(v3, v1, OutlineColor, Thickness + OutlineThickness, false);
+    }
+
+    // Draw wireframe or filled triangle
+    if (!Filled) {
+        Line(v1, v2, RenderColor, Thickness, false);
+        Line(v2, v3, RenderColor, Thickness, false);
+        Line(v3, v1, RenderColor, Thickness, false);
+    } else {
+        // Sort vertices by Y coordinate (v1 at top, v3 at bottom)
+        SortVertices(v1, v2, v3);
+
+        // Calculate the inverse slopes for the triangle edges
+        float invslope1 = (v2.X - v1.X) / (v2.Y - v1.Y);
+        float invslope2 = (v3.X - v1.X) / (v3.Y - v1.Y);
+
+        float curx1 = v1.X;
+        float curx2 = v1.X;
+
+        // Draw the top part of the triangle (flat top)
+        for (int y = v1.Y; y <= v2.Y; y++) {
+            Line(SDK::FVector2D(curx1, y), SDK::FVector2D(curx2, y), RenderColor, 1.0f, false);
+            curx1 += invslope1;
+            curx2 += invslope2;
+        }
+
+        // Adjust slopes if there's a flat bottom
+        if (v2.Y != v3.Y) {
+            float invslope3 = (v3.X - v2.X) / (v3.Y - v2.Y);
+            curx1 = v2.X;
+
+            // Draw the bottom part of the triangle (flat bottom)
+            for (int y = v2.Y; y <= v3.Y; y++) {
+                Line(SDK::FVector2D(curx1, y), SDK::FVector2D(curx2, y), RenderColor, 1.0f, false);
+                curx1 += invslope3;
+                curx2 += invslope2;
+            }
+        }
+    }
 }
 
 } // namespace Drawing

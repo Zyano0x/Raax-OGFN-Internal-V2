@@ -13,7 +13,7 @@ bool WasKeyJustReleased(KeyID Key) {
         return false;
 
     SDK::FKey fKey = {};
-    fKey.KeyName = SDK::FName(KeyIDNames[(int)Key]);
+    fKey.KeyName = SDK::FName(GetKeyName(Key));
 
     return Core::g_LocalPlayerController->WasInputKeyJustReleased(fKey);
 }
@@ -22,7 +22,7 @@ bool WasKeyJustPressed(KeyID Key) {
         return false;
 
     SDK::FKey fKey = {};
-    fKey.KeyName = SDK::FName(KeyIDNames[(int)Key]);
+    fKey.KeyName = SDK::FName(GetKeyName(Key));
 
     return Core::g_LocalPlayerController->WasInputKeyJustPressed(fKey);
 }
@@ -31,7 +31,7 @@ bool IsKeyDown(KeyID Key) {
         return false;
 
     SDK::FKey fKey = {};
-    fKey.KeyName = SDK::FName(KeyIDNames[(int)Key]);
+    fKey.KeyName = SDK::FName(GetKeyName(Key));
 
     return Core::g_LocalPlayerController->IsInputKeyDown(fKey);
 }

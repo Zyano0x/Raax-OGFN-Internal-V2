@@ -35,25 +35,23 @@ template <typename ElementType> class TArray {
     ~TArray() { Free(); }
 
   public:
-    TArray& operator=(TArray&& Other) noexcept {
-        if (this == &Other)
-            return *this;
-
-        Free();
-
-        Data = Other.Data;
-        NumElements = Other.NumElements;
-        MaxElements = Other.MaxElements;
-
-        Other.Data = nullptr;
-        Other.NumElements = 0;
-        Other.MaxElements = 0;
-
+    TArray& operator=(const TArray& Other) {
+        if (this != &Other) {
+            CopyFrom(Other);
+        }
         return *this;
     }
 
-    TArray& operator=(const TArray& Other) {
-        this->CopyFrom(Other);
+    TArray& operator=(TArray&& Other) noexcept {
+        if (this != &Other) {
+            Free();
+            Data = Other.Data;
+            NumElements = Other.NumElements;
+            MaxElements = Other.MaxElements;
+            Other.Data = nullptr;
+            Other.NumElements = 0;
+            Other.MaxElements = 0;
+        }
         return *this;
     }
 
@@ -99,9 +97,6 @@ template <typename ElementType> class TArray {
 
     inline void Clear() {
         NumElements = 0;
-
-        if (Data)
-            memset(Data, 0, NumElements * ElementSize);
     }
 
   public:
@@ -109,15 +104,13 @@ template <typename ElementType> class TArray {
         if (this == &Other || Other.NumElements == 0)
             return;
 
-        NumElements = Other.NumElements;
-
-        if (MaxElements >= Other.NumElements) {
-            memcpy(Data, Other.Data, Other.NumElements);
-            return;
+        if (!Data || MaxElements < Other.NumElements) {
+            Free();
+            Data = static_cast<ElementType*>(FMemory::Malloc(Other.NumElements * ElementSize, ElementAlign));
+            MaxElements = Other.NumElements;
         }
 
-        Data = static_cast<ElementType*>(FMemory::Realloc(Data, Other.NumElements * ElementSize, ElementAlign));
-        MaxElements = Other.NumElements;
+        NumElements = Other.NumElements;
         memcpy(Data, Other.Data, Other.NumElements * ElementSize);
     }
 
@@ -139,24 +132,42 @@ class FString : public TArray<wchar_t> {
     FString() : TArray<wchar_t>() {}
 
     FString(const wchar_t* Str) {
-        const uint32_t NullTerminatedLength = static_cast<uint32_t>(wcslen(Str) + 1);
+        if (!Str)
+            return;
 
-        Data = static_cast<wchar_t*>(FMemory::Malloc(NullTerminatedLength, 0));
+        const uint32_t Length = static_cast<uint32_t>(wcslen(Str));
+        const uint32_t NullTerminatedLength = Length + 1;
+
+        Data = static_cast<wchar_t*>(FMemory::Malloc(NullTerminatedLength * sizeof(wchar_t), 0));
         NumElements = NullTerminatedLength;
         MaxElements = NullTerminatedLength;
 
-        memcpy(Data, Str, NullTerminatedLength * sizeof(wchar_t));
+        memcpy(Data, Str, Length * sizeof(wchar_t));
+        Data[Length] = L'\0';
+    }
+
+    FString(FString&& Other) noexcept : TArray<wchar_t>(std::move(Other)) {}
+
+    FString& operator=(FString&& Other) noexcept {
+        TArray<wchar_t>::operator=(std::move(Other));
+        return *this;
+    }
+
+    FString& operator=(const FString& Other) {
+        TArray<wchar_t>::operator=(Other);
+        return *this;
     }
 
   public:
-    inline std::wstring ToWString() const { return IsValid() ? Data : L""; }
+    inline std::wstring ToWString() const {
+        return IsValid() ? std::wstring(Data, NumElements - 1) : L"";
+    }
 
     inline std::string ToString() const {
-        if (IsValid()) {
-            std::wstring WData = ToWString();
-            return std::string(WData.begin(), WData.end());
-        }
-        return "";
+        if (!IsValid())
+            return "";
+        std::wstring WData = ToWString();
+        return std::string(WData.begin(), WData.end());
     }
 
   public:

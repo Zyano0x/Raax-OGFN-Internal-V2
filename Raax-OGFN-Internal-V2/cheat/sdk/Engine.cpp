@@ -16,7 +16,7 @@ FString UKismetSystemLibrary::GetEngineVersion() {
     if (Func)
         StaticClass()->ProcessEvent(Func, &params);
 
-    return params.ReturnValue;
+    return std::move(params.ReturnValue);
 }
 bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
                                            ETraceTypeQuery TraceChannel, bool bTraceComplex,
@@ -68,7 +68,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         } params_K2_DrawText_1{};
 
         params_K2_DrawText_1.RenderFont = RenderFont;
-        params_K2_DrawText_1.RenderText = RenderText;
+        params_K2_DrawText_1.RenderText = std::move(RenderText);
         params_K2_DrawText_1.ScreenPosition = {ScreenPosition.X, ScreenPosition.Y};
         params_K2_DrawText_1.Scale = Scale;
         params_K2_DrawText_1.RenderColor = RenderColor;
@@ -98,7 +98,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         } params_K2_DrawText_2{};
 
         params_K2_DrawText_2.RenderFont = RenderFont;
-        params_K2_DrawText_2.RenderText = RenderText;
+        params_K2_DrawText_2.RenderText = std::move(RenderText);
         params_K2_DrawText_2.ScreenPosition = {ScreenPosition.X, ScreenPosition.Y};
         params_K2_DrawText_2.RenderColor = RenderColor;
         params_K2_DrawText_2.Kerning = Kerning;
@@ -322,7 +322,7 @@ FString APlayerState::GetPlayerName() {
     if (Func)
         ProcessEvent(Func, &params_GetPlayerName);
 
-    return params_GetPlayerName.return_value;
+    return std::move(params_GetPlayerName.return_value);
 }
 
 // --- Public Functions ----------------------------------------------
