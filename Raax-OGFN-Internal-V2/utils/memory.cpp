@@ -1,5 +1,8 @@
 #include "memory.h"
+
 #include <intrin.h>
+
+#include <utils/log.h>
 
 namespace Memory {
 

@@ -71,20 +71,32 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">
-    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate</IntDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate\</IntDir>
     <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">
-    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate</IntDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate\</IntDir>
     <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">
     <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate</IntDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate\</IntDir>
+    <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">
     <OutDir>$(SolutionDir)build\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate</IntDir>
+    <IntDir>$(SolutionDir)build\$(Configuration)\intermediate\</IntDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">
     <ClCompile>
@@ -259,6 +271,24 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="extern\raaxgui\raaxgui_element.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="extern\raaxgui\raaxgui_elements.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="extern\raaxgui\raaxgui_window.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="gui\dx11\dx11.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">false</ExcludedFromBuild>
@@ -283,6 +313,7 @@
     <ClCompile Include="utils\log.cpp" />
     <ClCompile Include="utils\math.cpp" />
     <ClCompile Include="utils\memory.cpp" />
+    <ClCompile Include="utils\string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\autorevertfeature.h" />
@@ -365,6 +396,24 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="extern\raaxgui\raaxgui_element.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="extern\raaxgui\raaxgui_elements.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="extern\raaxgui\raaxgui_globals.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="extern\raaxgui\raaxgui_impl.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
@@ -372,14 +421,16 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="extern\raaxgui\raaxgui_input.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">
-      </ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">
-      </ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="extern\raaxgui\raaxgui_window.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_ImGui|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_Engine|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release_ImGui|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="gui\dx11\dx11.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug_Engine|x64'">true</ExcludedFromBuild>
@@ -410,6 +461,7 @@
     <ClInclude Include="utils\log.h" />
     <ClInclude Include="utils\math.h" />
     <ClInclude Include="utils\memory.h" />
+    <ClInclude Include="utils\string.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cheat\autorevertfeature.inl" />

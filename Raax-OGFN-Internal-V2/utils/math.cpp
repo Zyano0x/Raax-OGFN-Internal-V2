@@ -96,7 +96,6 @@ float GetDegreeDistance(const SDK::FRotator& Rotator1, const SDK::FRotator& Rota
 bool IsOnScreen(const SDK::FVector2D& Position) {
     bool OnScreenX = (Position.X >= 0.f) && (Position.X <= Core::g_ScreenSizeX);
     bool OnScreenY = (Position.Y >= 0.f) && (Position.Y <= Core::g_ScreenSizeY);
-
     return OnScreenX && OnScreenY;
 }
 

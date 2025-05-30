@@ -1,4 +1,5 @@
 #include "containertick.h"
+
 #include <format>
 
 #include <cheat/cache/containercache.h>
@@ -11,7 +12,7 @@ namespace Container {
 
 // --- Container Utility Functions -----------------------------------
 
-void RenderContainer(const SDK::FVector2D& RootScreenLocation, const std::string& FormatStr,
+static void RenderContainer(const SDK::FVector2D& RootScreenLocation, const std::string& FormatStr,
                      const SDK::FLinearColor& Color, float DistM, float MaxDist, float FadeStart) {
     if (DistM <= MaxDist) {
         float Alpha = 1.0f;

@@ -10,14 +10,14 @@ namespace Container {
 
 // --- Cache Data ----------------------------------------------------
 
-std::unordered_map<void*, ContainerInfo>     CachedContainers;
-std::unordered_map<void*, GameplayActorInfo> CachedGameplayActors;
+static std::unordered_map<void*, ContainerInfo>     CachedContainers;
+static std::unordered_map<void*, GameplayActorInfo> CachedGameplayActors;
 
 // --- Cache Utility Functions ---------------------------------------
 
 template <typename InfoClass, typename ActorClass, typename TypeEnum>
-std::optional<InfoClass> CreateNewInfo(ActorClass Actor, TypeEnum Type) {
-    InfoClass Info;
+static std::optional<InfoClass> CreateNewInfo(ActorClass Actor, TypeEnum Type) {
+    InfoClass Info = {};
     Info.Actor = Actor;
     Info.RootComponent = Info.Actor->RootComponent;
     if (!Info.RootComponent)
@@ -32,7 +32,7 @@ std::optional<InfoClass> CreateNewInfo(ActorClass Actor, TypeEnum Type) {
     return Info;
 }
 
-template <typename InfoClass> bool UpdateExistingInfo(InfoClass& Info) {
+template <typename InfoClass> static bool UpdateExistingInfo(InfoClass& Info) {
     Info.RootComponent = Info.Actor->RootComponent;
     if (!Info.RootComponent)
         return false;
@@ -44,18 +44,18 @@ template <typename InfoClass> bool UpdateExistingInfo(InfoClass& Info) {
     return true;
 }
 
-template <typename InfoMap> void ResetSeenFlags(InfoMap& CacheMap) {
+template <typename InfoMap> static void ResetSeenFlags(InfoMap& CacheMap) {
     for (auto& [_, Info] : CacheMap) {
         Info.SeenThisFrame = false;
     }
 }
 
-template <typename InfoMap> void RemoveUnseen(InfoMap& CacheMap) {
+template <typename InfoMap> static void RemoveUnseen(InfoMap& CacheMap) {
     std::erase_if(CacheMap, [](const auto& Entry) { return !Entry.second.SeenThisFrame; });
 }
 
 template <typename T, typename InfoMap, typename InfoClass, typename ActorPtr, typename EnumType>
-void CacheActorsOfType(std::vector<T*>& ActorList, InfoMap& CacheMap, EnumType Type) {
+static void CacheActorsOfType(std::vector<T*>& ActorList, InfoMap& CacheMap, EnumType Type) {
     SDK::GetAllActorsOfClassAllLevels<T>(ActorList);
     for (const auto& Actor : ActorList) {
         if (!CacheMap.contains(Actor)) {
@@ -70,7 +70,7 @@ void CacheActorsOfType(std::vector<T*>& ActorList, InfoMap& CacheMap, EnumType T
     }
 }
 
-template <typename T> bool CheckIfStaticClassIsLoaded(float CheckDelayS) {
+template <typename T> static bool CheckIfStaticClassIsLoaded(float CheckDelayS) {
     static bool Found = false;
     if (Found)
         return true;

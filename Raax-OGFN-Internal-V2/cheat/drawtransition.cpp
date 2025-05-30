@@ -15,7 +15,7 @@ void* DrawTransitionAddress = nullptr;
 
 typedef void(__stdcall* t_DrawTransition)(SDK::UGameViewportClient* _this, SDK::UCanvas* Canvas);
 inline t_DrawTransition o_DrawTransition = nullptr;
-void                    h_DrawTransition(SDK::UGameViewportClient* _this, SDK::UCanvas* Canvas) {
+static void             h_DrawTransition(SDK::UGameViewportClient* _this, SDK::UCanvas* Canvas) {
     std::lock_guard<std::mutex> lock(Core::g_GameRenderThreadLock);
 
     Core::TickGameThread();
@@ -37,7 +37,7 @@ bool Init() {
 
     DrawTransitionAddress = GameViewport->VTable[SDK::UGameViewportClient::DrawTransition_Idx];
     return Hooks::CreateHook(DrawTransitionAddress, &h_DrawTransition, reinterpret_cast<void**>(&o_DrawTransition)) &&
-        Hooks::EnableHook(DrawTransitionAddress);
+           Hooks::EnableHook(DrawTransitionAddress);
 }
 
 void Destroy() {

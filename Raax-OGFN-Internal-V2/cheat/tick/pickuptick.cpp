@@ -1,4 +1,5 @@
 #include "pickuptick.h"
+
 #include <format>
 
 #include <cheat/cache/pickupcache.h>

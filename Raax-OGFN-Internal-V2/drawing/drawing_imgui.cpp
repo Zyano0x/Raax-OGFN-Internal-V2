@@ -1,8 +1,10 @@
 #include "drawing.h"
 #include "fontdata.h"
+
 #include <vector>
 
 #include <extern/imgui/imgui.h>
+#include <utils/string.h>
 
 namespace Drawing {
 
@@ -17,19 +19,19 @@ struct BatchedLine {
     SDK::FLinearColor OutlineColor;
 };
 
-ImDrawList*              g_DrawList = nullptr;
-ImFont*                  g_MainFontSmall = nullptr;
-ImFont*                  g_MainFont = nullptr;
-bool                     g_BatchedLines = false;
-std::vector<BatchedLine> g_BatchedLinesList;
+static ImDrawList*              g_DrawList = nullptr;
+static ImFont*                  g_MainFontSmall = nullptr;
+static ImFont*                  g_MainFont = nullptr;
+static bool                     g_BatchedLines = false;
+static std::vector<BatchedLine> g_BatchedLinesList;
 
 // --- Initialization & Tick Functions -------------------------------
 
 void Init() {
     ImFontConfig Config;
     Config.FontDataOwnedByAtlas = false; // Ensure ImGui doesn't try to free our font data.
-    g_MainFontSmall = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(&RawFontData, sizeof(RawFontData), 12.0f, &Config);
-    g_MainFont = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(&RawFontData, sizeof(RawFontData), 48.0f, &Config);
+    g_MainFontSmall = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(&g_RawFontData, sizeof(g_RawFontData), 12.0f, &Config);
+    g_MainFont = ImGui::GetIO().Fonts->AddFontFromMemoryTTF(&g_RawFontData, sizeof(g_RawFontData), 48.0f, &Config);
     g_DrawList = ImGui::GetBackgroundDrawList();
 }
 void Tick() {
@@ -130,8 +132,7 @@ void Text(const char* RenderText, const SDK::FVector2D& ScreenPosition, const SD
 void Text(const wchar_t* RenderText, const SDK::FVector2D& ScreenPosition, const SDK::FLinearColor& RenderColor,
           const float FontSize, const bool CenteredX, const bool CenteredY, const bool Outlined,
           const float OutlineThickness, const SDK::FLinearColor& OutlineColor) {
-    std::wstring wstr = RenderText;
-    Text(std::string(wstr.begin(), wstr.end()).c_str(), ScreenPosition, RenderColor, FontSize, CenteredX, CenteredY,
+    Text(String::WideToNarrow(RenderText).c_str(), ScreenPosition, RenderColor, FontSize, CenteredX, CenteredY,
          Outlined, OutlineThickness, OutlineColor);
 }
 

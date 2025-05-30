@@ -8,8 +8,8 @@
 
 namespace SDK {
 
-void UObject::ProcessEvent(class UFunction* Function, void* Parms) {
-    void (*PE)(class UObject* Object, class UFunction* Function, void* Parms) =
+void UObject::ProcessEvent(class UFunction* Function, void* Parms) const {
+    void (*PE)(const UObject* Object, class UFunction* Function, void* Parms) =
         (decltype(PE))this->VTable[ProcessEvent_Idx];
     PE(this, Function, Parms);
 }
@@ -107,7 +107,7 @@ PropertyInfo UStruct::FindProperty(const FName& Name) const {
         }
     } else {
         for (FField* ChildProperty = ChildProperties; ChildProperty && ChildProperty->Class;
-                ChildProperty = ChildProperty->Next) {
+             ChildProperty = ChildProperty->Next) {
             if (ChildProperty->HasTypeFlag(EClassCastFlags::Property) && ChildProperty->Name == Name) {
                 FProperty* Property = static_cast<FProperty*>(ChildProperty);
                 Result.Found = true;

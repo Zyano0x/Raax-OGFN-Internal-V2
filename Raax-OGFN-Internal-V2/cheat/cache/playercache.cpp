@@ -1,4 +1,5 @@
 #include "playercache.h"
+
 #include <chrono>
 
 #include <cheat/core.h>
@@ -10,11 +11,11 @@ namespace Player {
 
 // --- Cache Data ----------------------------------------------------
 
-std::unordered_map<void*, PlayerInfo> CachedPlayers;
+static std::unordered_map<void*, PlayerInfo> CachedPlayers;
 
 // --- Cache Utility Functions ---------------------------------------
 
-SDK::FName GetBoneNameFromIdx(BoneIdx Idx) {
+static SDK::FName GetBoneNameFromIdx(BoneIdx Idx) {
     static const std::unordered_map<BoneIdx, SDK::FName> BoneMap = {
         {BoneIdx::Head, "head"},
         {BoneIdx::Neck, "neck_01"},
@@ -39,7 +40,7 @@ SDK::FName GetBoneNameFromIdx(BoneIdx Idx) {
     return (It != BoneMap.end()) ? It->second : SDK::FName();
 }
 
-void PopulateBones(PlayerInfo& Cache) {
+static void PopulateBones(PlayerInfo& Cache) {
     if (!Cache.Mesh)
         return;
 
@@ -60,7 +61,7 @@ void PopulateBones(PlayerInfo& Cache) {
     Cache.BoneScreenPos[static_cast<int>(BoneIdx::Chest)] = SDK::Project(Chest);
 }
 
-void PopulateDrawingInfo(PlayerInfo& Cache) {
+static void PopulateDrawingInfo(PlayerInfo& Cache) {
     // Calculate the bounds for a 3D box and then project them to 2D
     SDK::FVector MostLeft = SDK::FVector(FLT_MAX, FLT_MAX, FLT_MAX);
     SDK::FVector MostRight = SDK::FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
@@ -145,7 +146,7 @@ void PopulateDrawingInfo(PlayerInfo& Cache) {
     }
 }
 
-void ForceRefreshIfNeeded() {
+static void ForceRefreshIfNeeded() {
     // Force refresh cache every 5 seconds for player name changes, skin changes, etc
     // as these will invalidate some cached player info
     static std::chrono::time_point<std::chrono::high_resolution_clock> LastCheckTime;
@@ -157,7 +158,7 @@ void ForceRefreshIfNeeded() {
     }
 }
 
-void SharedInfoUpdate(PlayerInfo& Info) {
+static void SharedInfoUpdate(PlayerInfo& Info) {
     SDK::AFortWeapon* NewWeapon = Info.Pawn->CurrentWeapon;
     if (NewWeapon) {
         if (NewWeapon != Info.CurrentWeapon) {
@@ -203,7 +204,7 @@ void SharedInfoUpdate(PlayerInfo& Info) {
     }
 }
 
-std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
+static std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     PlayerInfo Info;
 
     Info.Pawn = Pawn;
@@ -233,7 +234,7 @@ std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
     return Info;
 }
 
-bool UpdateExistingPlayerInfo(PlayerInfo& Info) {
+static bool UpdateExistingPlayerInfo(PlayerInfo& Info) {
     Info.PlayerState = SDK::Cast<SDK::AFortPlayerStateAthena, true>(Info.Pawn->PlayerState);
     if (!Info.PlayerState)
         return false;
@@ -250,13 +251,13 @@ bool UpdateExistingPlayerInfo(PlayerInfo& Info) {
     return true;
 }
 
-void ResetPlayerSeenFlags() {
+static void ResetPlayerSeenFlags() {
     for (auto& [_, Cache] : CachedPlayers) {
         Cache.SeenThisFrame = false;
     }
 }
 
-void RemoveUnseenPlayers() {
+static void RemoveUnseenPlayers() {
     std::erase_if(CachedPlayers, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
 }
 

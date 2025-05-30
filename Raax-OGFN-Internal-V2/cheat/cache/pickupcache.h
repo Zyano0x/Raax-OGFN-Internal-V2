@@ -1,6 +1,6 @@
 #pragma once
-
 #include <unordered_map>
+
 #include <cheat/sdk/sdk.h>
 
 namespace Cache {

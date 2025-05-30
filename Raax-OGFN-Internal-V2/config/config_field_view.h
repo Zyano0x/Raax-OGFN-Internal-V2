@@ -1,7 +1,7 @@
 #pragma once
+#include <string>
 
 #include <cheat/sdk/Basic.h>
-#include <string>
 
 namespace ConfigReflection {
 

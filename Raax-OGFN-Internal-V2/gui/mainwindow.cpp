@@ -19,7 +19,7 @@ namespace MainWindow {
 // --- Keybind UI Functions ------------------------------------------
 
 template <typename T>
-void DisplayMembersInTree(T* Instance, std::string Prefix, ConfigReflection::ConfigFieldView& OutField) {
+static void DisplayMembersInTree(T* Instance, std::string Prefix, ConfigReflection::ConfigFieldView& OutField) {
     auto Members = ConfigReflection::DescribeMembers<T>();
     std::apply(
         [&](auto&&... Member) {
@@ -50,7 +50,7 @@ void DisplayMembersInTree(T* Instance, std::string Prefix, ConfigReflection::Con
         Members);
 }
 
-void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char* PopupName, bool AllowCancelling) {
+static void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char* PopupName, bool AllowCancelling) {
     ImGui::SetNextWindowSize(ImVec2(350.f, 350.f), ImGuiCond_Appearing);
     if (ImGui::BeginPopupModal(PopupName, nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
         ImVec2 WindowSize = ImGui::GetWindowSize();
@@ -97,7 +97,7 @@ void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char* Popup
     }
 }
 
-void AddKeybindButton() {
+static void AddKeybindButton() {
     if (ImGui::Button("Add Keybind")) {
         ImGui::OpenPopup("Keybind");
     }
@@ -106,7 +106,7 @@ void AddKeybindButton() {
     DisplayKeybindPopup(CurrentKeybind, "Keybind", true);
 }
 
-void ListKeybinds() {
+static void ListKeybinds() {
     static Keybind::KeybindData CurrentKeybind = {};
 
     if (ImGui::Button("Delete All Keybinds")) {
@@ -160,7 +160,7 @@ void ListKeybinds() {
 
 // --- Window Tab Functions & Data -----------------------------------
 
-void AimbotTab() {
+static void AimbotTab() {
     auto DisplayAimbotConfig = [](Config::ConfigData::AimbotConfig::AimbotAmmoConfig& Config) {
         ImGui::Checkbox("Enabled", &Config.Enabled);
         ImGui::Checkbox("Use In Trigger Bot", &Config.UseInTriggerBot);
@@ -251,7 +251,7 @@ void AimbotTab() {
     ImGui::EndChild();
 }
 
-void TriggerBotTab() {
+static void TriggerBotTab() {
     auto& Config = Config::g_Config.TriggerBot;
 
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
@@ -271,7 +271,7 @@ void TriggerBotTab() {
     ImGui::EndChild();
 }
 
-void VisualsTab() {
+static void VisualsTab() {
     auto& Config = Config::g_Config.Visuals;
 
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
@@ -382,7 +382,7 @@ void VisualsTab() {
     ImGui::EndChild();
 }
 
-void ExploitsTab() {
+static void ExploitsTab() {
     auto& Config = Config::g_Config.Exploit;
 
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
@@ -441,7 +441,7 @@ void ExploitsTab() {
     ImGui::EndChild();
 }
 
-void KeybindsTab() {
+static void KeybindsTab() {
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         AddKeybindButton();
         ListKeybinds();
@@ -449,7 +449,7 @@ void KeybindsTab() {
     ImGui::EndChild();
 }
 
-void ConfigTab() {
+static void ConfigTab() {
     static char InputConfigData[8196];
     static bool InputConfigIsValid = false;
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
@@ -481,7 +481,7 @@ void ConfigTab() {
     ImGui::EndChild();
 }
 
-void MiscTab() {
+static void MiscTab() {
     auto& ColorConfig = Config::g_Config.Color;
 
     if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
@@ -545,18 +545,30 @@ void Tick() {
 }
 #else
 void Tick() {
-    if (GetAsyncKeyState(VK_INSERT) & 1)
+    if (Input::WasKeyJustReleased(Config::g_Config.MenuKeybind))
         GUI::MainWindow::g_WindowOpen = !GUI::MainWindow::g_WindowOpen;
 
-    static bool test = false;
+    if (GUI::MainWindow::g_WindowOpen) {
+        RaaxGUI::NewFrame();
+        RaaxGUI::SetNextWindowSize(SDK::FVector2D(700.f, 375.f));
+        if (RaaxGUI::Begin("Raax-OGFN-Internal V2")) {
+            auto& Config = Config::g_Config.Visuals;
 
-    RaaxGUI::NewFrame();
-    RaaxGUI::SetNextWindowSize(SDK::FVector2D(400.f, 600.f));
-    if (RaaxGUI::Begin("test", &GUI::MainWindow::g_WindowOpen)) {
-        RaaxGUI::Checkbox("Rapid Fire", &test);
+            RaaxGUI::Checkbox("Box", &Config.Player.Box);
+            RaaxGUI::Checkbox("Platform", &Config.Player.Platform);
+            RaaxGUI::Checkbox("Name", &Config.Player.Name);
+            RaaxGUI::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
+            RaaxGUI::Checkbox("Distance", &Config.Player.Distance);
+
+            RaaxGUI::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
+            RaaxGUI::SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
+        }
+        RaaxGUI::End();
+        RaaxGUI::EndFrame();
+
+        SDK::FVector2D MousePos = RaaxGUI::Impl::GetMousePos();
+        Drawing::Circle(MousePos, 5.f, 12, SDK::FLinearColor::White, 4.f);
     }
-    RaaxGUI::End();
-    RaaxGUI::EndFrame();
 }
 #endif
 

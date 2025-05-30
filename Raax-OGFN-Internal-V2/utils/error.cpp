@@ -10,7 +10,7 @@ namespace Error {
     MessageBoxA(0, Msg.c_str(), "Error", MB_ICONERROR);
 
     // TODO: Unload the cheat instead of exiting.
-    exit(1); // This will exit the game as well
+    exit(1);
 }
 
 } // namespace Error

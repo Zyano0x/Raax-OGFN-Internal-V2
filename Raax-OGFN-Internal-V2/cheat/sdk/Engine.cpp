@@ -1,8 +1,8 @@
 #include "Engine.h"
 
-#include <utils/memory.h>
 #include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
+#include <utils/memory.h>
 
 namespace SDK {
 
@@ -17,12 +17,12 @@ FString UKismetSystemLibrary::GetEngineVersion() {
     static UFunction* Func = GetFunction("KismetSystemLibrary", "GetEngineVersion");
     struct {
         FString ReturnValue;
-    } params{};
+    } params_GetEngineVersion{};
 
     if (Func)
-        StaticClass()->ProcessEvent(Func, &params);
+        StaticClass()->ProcessEvent(Func, &params_GetEngineVersion);
 
-    return std::move(params.ReturnValue);
+    return std::move(params_GetEngineVersion.ReturnValue);
 }
 bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
                                            ETraceTypeQuery TraceChannel, bool bTraceComplex,
@@ -78,7 +78,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         } params_K2_DrawText_1{};
 
         params_K2_DrawText_1.RenderFont = RenderFont;
-        params_K2_DrawText_1.RenderText = std::move(RenderText);
+        params_K2_DrawText_1.RenderText = RenderText;
         params_K2_DrawText_1.ScreenPosition = {ScreenPosition.X, ScreenPosition.Y};
         params_K2_DrawText_1.Scale = Scale;
         params_K2_DrawText_1.RenderColor = RenderColor;
@@ -108,7 +108,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         } params_K2_DrawText_2{};
 
         params_K2_DrawText_2.RenderFont = RenderFont;
-        params_K2_DrawText_2.RenderText = std::move(RenderText);
+        params_K2_DrawText_2.RenderText = RenderText;
         params_K2_DrawText_2.ScreenPosition = {ScreenPosition.X, ScreenPosition.Y};
         params_K2_DrawText_2.RenderColor = RenderColor;
         params_K2_DrawText_2.Kerning = Kerning;
@@ -124,7 +124,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
     }
 }
 
-FTransform& USceneComponent::getprop_ComponentToWorld() {
+FTransform USceneComponent::getprop_ComponentToWorld() const {
     if (ComponentToWorld_Offset) {
         return *(FTransform*)((uintptr_t)this + ComponentToWorld_Offset);
     } else {
@@ -142,17 +142,16 @@ FTransform& USceneComponent::getprop_ComponentToWorld() {
     }
 }
 
-TArray<FTransform>& USkinnedMeshComponent::getprop_ComponentSpaceTransformsArray() {
+TArray<FTransform>& USkinnedMeshComponent::getprop_ComponentSpaceTransformsArray() const {
     TArray<FTransform>& FirstArray = *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset);
     if (FirstArray.IsValid())
         return FirstArray;
 
     TArray<FTransform>& SecondArray =
         *(TArray<FTransform>*)((uintptr_t)this + ComponentSpaceTransformsArray_Offset + sizeof(TArray<FTransform>));
-    if (SecondArray.IsValid())
-        return SecondArray;
+    return SecondArray; // Assume second array is valid
 }
-int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) {
+int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) const {
     static UFunction* Func = GetFunction("SkinnedMeshComponent", "GetBoneIndex");
     struct {
         FName   BoneName;
@@ -167,12 +166,14 @@ int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) {
     return params_GetBoneIndex.ReturnValue;
 }
 
-FTransform USkeletalMeshComponent::GetBoneMatrix(int32_t BoneIndex) {
+FTransform USkeletalMeshComponent::GetBoneMatrix(int32_t BoneIndex) const {
     TArray<FTransform>& Array = ComponentSpaceTransformsArray;
     if (Array.IsValid())
         return Array.GetByIndex(BoneIndex);
+
+    return FTransform();
 }
-FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) {
+FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) const {
     FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
     FTransform ComponentToWrld = ComponentToWorld;
 
@@ -180,7 +181,7 @@ FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) {
     return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
 }
 
-float AActor::WasRecentlyRendered(float Tolerence) {
+float AActor::WasRecentlyRendered(float Tolerence) const {
     static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
     struct {
         float Tolerence;
@@ -195,7 +196,7 @@ float AActor::WasRecentlyRendered(float Tolerence) {
     return params_WasRecentlyRendered.ReturnValue;
 }
 
-FVector APlayerCameraManager::GetCameraLocation() {
+FVector APlayerCameraManager::GetCameraLocation() const {
     static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraLocation");
     struct {
         FVector ReturnValue;
@@ -206,7 +207,7 @@ FVector APlayerCameraManager::GetCameraLocation() {
 
     return params_GetCameraLocation.ReturnValue;
 }
-FRotator APlayerCameraManager::GetCameraRotation() {
+FRotator APlayerCameraManager::GetCameraRotation() const {
     static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraRotation");
     struct {
         FRotator ReturnValue;
@@ -217,7 +218,7 @@ FRotator APlayerCameraManager::GetCameraRotation() {
 
     return params_GetCameraRotation.ReturnValue;
 }
-float APlayerCameraManager::GetFOVAngle() {
+float APlayerCameraManager::GetFOVAngle() const {
     static UFunction* Func = GetFunction("PlayerCameraManager", "GetFOVAngle");
     struct {
         float ReturnValue;
@@ -251,7 +252,7 @@ void APlayerController::AddPitchInput(float Val) {
     if (Func)
         ProcessEvent(Func, &params_AddPitchInput);
 }
-bool APlayerController::WasInputKeyJustReleased(FKey& Key) {
+bool APlayerController::WasInputKeyJustReleased(const FKey& Key) const {
     static UFunction* Func = GetFunction("PlayerController", "WasInputKeyJustReleased");
     struct {
         FKey    Key;
@@ -266,7 +267,7 @@ bool APlayerController::WasInputKeyJustReleased(FKey& Key) {
 
     return params_WasInputKeyJustReleased.ReturnValue;
 }
-bool APlayerController::WasInputKeyJustPressed(FKey& Key) {
+bool APlayerController::WasInputKeyJustPressed(const FKey& Key) const {
     static UFunction* Func = GetFunction("PlayerController", "WasInputKeyJustPressed");
     struct {
         FKey    Key;
@@ -281,7 +282,7 @@ bool APlayerController::WasInputKeyJustPressed(FKey& Key) {
 
     return params_WasInputKeyJustPressed.ReturnValue;
 }
-bool APlayerController::IsInputKeyDown(FKey& Key) {
+bool APlayerController::IsInputKeyDown(const FKey& Key) const {
     static UFunction* Func = GetFunction("PlayerController", "IsInputKeyDown");
     struct {
         FKey    Key;
@@ -296,7 +297,7 @@ bool APlayerController::IsInputKeyDown(FKey& Key) {
 
     return params_IsInputKeyDown.ReturnValue;
 }
-bool APlayerController::GetMousePosition(float& LocationX, float& LocationY) {
+bool APlayerController::GetMousePosition(float& LocationX, float& LocationY) const {
     static UFunction* Func = GetFunction("PlayerController", "GetMousePosition");
     struct {
         float   LocationX;
@@ -323,7 +324,7 @@ void APlayerController::ServerChangeName(const FString& S) {
         ProcessEvent(Func, &params_ServerChangeName);
 }
 
-FString APlayerState::GetPlayerName() {
+FString APlayerState::GetPlayerName() const {
     static UFunction* Func = GetFunction("PlayerState", "GetPlayerName");
     struct {
         FString return_value;
@@ -416,7 +417,7 @@ bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* Ig
 FVector Project3D(const FVector& Location) {
     SDK::UCanvas* Canvas = GetCanvas();
     if (!Canvas)
-        return {};
+        return SDK::FVector();
 
     FMatrix& ViewProjectionMatrix = Canvas->ViewProjectionMatrix;
     float    X = Location.X * ViewProjectionMatrix.M[0][0] + Location.Y * ViewProjectionMatrix.M[1][0] +

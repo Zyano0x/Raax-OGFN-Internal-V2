@@ -11,7 +11,7 @@ namespace SDK {
 
 // --- Unreal-Engine general offsets ---------------------------------
 
-bool SetupGObjects() {
+static bool SetupGObjects() {
     // Two standard patterns for finding chunked and non-chunked GObjects.
     static const std::vector<std::pair<const std::string, const std::string>> Patterns = {
         {"Chunked", "48 8B 05 ? ? ? ? 48 8B 0C C8 48 8D 04 D1"}, {"Fixed", "48 8B 05 ? ? ? ? 48 8D 14 C8 EB 02"}};
@@ -29,7 +29,7 @@ bool SetupGObjects() {
     Error::ThrowError("Failed to find GObjects!");
     return false;
 }
-bool SetupFMemoryRealloc() {
+static bool SetupFMemoryRealloc() {
     // This signature has been very reliable from what I have tested.
     // Since Realloc can be used as Alloc and Free aswell, it is easier to only get Realloc.
     /*
@@ -56,7 +56,7 @@ bool SetupFMemoryRealloc() {
     Error::ThrowError("Failed to find FMemoryRealloc!");
     return false;
 }
-bool SetupFNameToString() {
+static bool SetupFNameToString() {
     uintptr_t StringRef = Memory::FindStringRef(L"TSoftObjectPtr<%s%s>");
     if (StringRef) {
         uintptr_t FNameToString = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8 ? ? ? ? 48", true, 1, true);
@@ -71,7 +71,7 @@ bool SetupFNameToString() {
     Error::ThrowError("Failed to find FNameToString!");
     return false;
 }
-bool SetupFNameConstructorW() {
+static bool SetupFNameConstructorW() {
     uintptr_t StringRef = Memory::FindStringRef(L"CanvasObject");
     if (!StringRef) {
         Error::ThrowError("Failed to find FNameConstructorW: \"CanvasObject\" string");
@@ -89,7 +89,7 @@ bool SetupFNameConstructorW() {
         reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameConstructorW) - Memory::GetImageBase()));
     return true;
 }
-bool SetupUKismetSystemLibraryLineTraceSingle() {
+static bool SetupUKismetSystemLibraryLineTraceSingle() {
     // Two patterns for LineTraceSingle. One supports older UE4 versions, and the other supports later UE4 versions and
     // some UE5 versions.
     static const std::vector<std::pair<size_t, const std::string>> Patterns = {
@@ -117,26 +117,35 @@ bool SetupUKismetSystemLibraryLineTraceSingle() {
     return false;
 }
 
-bool SetupUnrealGeneralOffsets() {
-    return SetupGObjects() && SetupFMemoryRealloc() && SetupFNameToString() && SetupFNameConstructorW() &&
-           SetupUKismetSystemLibraryLineTraceSingle();
+static bool SetupUnrealGeneralOffsets() {
+    if (!SetupGObjects())
+        return false;
+    if (!SetupFMemoryRealloc())
+        return false;
+    if (!SetupFNameToString())
+        return false;
+    if (!SetupFNameConstructorW())
+        return false;
+    if (!SetupUKismetSystemLibraryLineTraceSingle())
+        return false;
+    return true;
 }
 
 // --- Unreal-Engine struct/class offsets ----------------------------
 
-bool Setup_UProperty_Offset_Internal() {
+static bool Setup_UProperty_Offset_Internal() {
     /*temporary*/
     static bool bUnrealVersionHigherThan23 = false;
     UProperty::Offset_Internal_Offset = bUnrealVersionHigherThan23 ? 0x4C : 0x44;
     LOG(LOG_INFO, "Using hardcoded UProperty::Offset_Internal offset: 0x%X", UProperty::Offset_Internal_Offset);
     return true;
 }
-bool Setup_UBoolProperty_ByteMask() {
+static bool Setup_UBoolProperty_ByteMask() {
     UBoolProperty::ByteMask_Offset = 0x72;
     LOG(LOG_INFO, "Using hardcoded UBoolProperty::ByteMask offset: 0x%X", UBoolProperty::ByteMask_Offset);
     return true;
 }
-bool Setup_UClass_ClassCastFlags() {
+static bool Setup_UClass_ClassCastFlags() {
     std::vector<std::pair<void*, EClassCastFlags>> Pairs = {
         {UObject::FindObjectFast("Actor"), EClassCastFlags::Actor},
         {UObject::FindObjectFast("Class"), EClassCastFlags::Field | EClassCastFlags::Struct | EClassCastFlags::Class}};
@@ -150,7 +159,7 @@ bool Setup_UClass_ClassCastFlags() {
     Error::ThrowError("Failed to find UClass::ClassCastFlags offset!");
     return false;
 }
-bool Setup_UClass_ClassDefaultObject() {
+static bool Setup_UClass_ClassDefaultObject() {
     std::vector<std::pair<void*, void*>> Pairs = {
         {UObject::FindObjectFast("Object"), UObject::FindObjectFast("Default__Object")},
         {UObject::FindObjectFast("Field"), UObject::FindObjectFast("Default__Field")}};
@@ -164,7 +173,7 @@ bool Setup_UClass_ClassDefaultObject() {
     Error::ThrowError("Failed to find UClass::ClassDefaultObject offset!");
     return false;
 }
-bool Setup_UStruct_SuperStruct() {
+static bool Setup_UStruct_SuperStruct() {
     std::vector<std::pair<void*, void*>> Pairs = {
         {UObject::FindObjectFast("Struct"), UObject::FindObjectFast("Field")},
         {UObject::FindObjectFast("Class"), UObject::FindObjectFast("Struct")}};
@@ -181,7 +190,7 @@ bool Setup_UStruct_SuperStruct() {
     Error::ThrowError("Failed to find UStruct::SuperStruct offset!");
     return false;
 }
-bool Setup_UStruct_Children() {
+static bool Setup_UStruct_Children() {
     std::vector<std::pair<void*, void*>> Pairs = {
         {UObject::FindObjectFast("PlayerController"),
          UObject::FindObjectFastWithOuter("WasInputKeyJustReleased", "PlayerController")},
@@ -207,13 +216,13 @@ bool Setup_UStruct_Children() {
     Error::ThrowError("Failed to find UStruct::Children offset!");
     return false;
 }
-bool Setup_UStruct_ChildProperties() {
+static bool Setup_UStruct_ChildProperties() {
     UStruct::ChildProperties_Offset = 0x50; // Potentially unsafe to be hardcoded.
     LOG(LOG_INFO, "Using potentially unsafe hardcoded UStruct::ChildProperties offset: 0x%X",
         UStruct::ChildProperties_Offset);
     return true;
 }
-bool Setup_UField_Next() {
+static bool Setup_UField_Next() {
     std::vector<std::pair<void*, void*>> Pairs = {
         {UObject::FindObjectFast<UClass>("KismetArrayLibrary", EClassCastFlags::Class)->Children,
          UObject::FindObjectFast<UClass>("FilterArray", EClassCastFlags::Function)}};
@@ -227,7 +236,7 @@ bool Setup_UField_Next() {
     Error::ThrowError("Failed to find UField::Next offset!");
     return false;
 }
-bool Setup_UFunction_FunctionFlags() {
+static bool Setup_UFunction_FunctionFlags() {
     std::vector<std::pair<void*, EFunctionFlags>> Pairs = {
         {UObject::FindObjectFast("WasInputKeyJustPressed"),
          EFunctionFlags::Final | EFunctionFlags::Native | EFunctionFlags::Public | EFunctionFlags::BlueprintCallable |
@@ -252,7 +261,7 @@ bool Setup_UFunction_FunctionFlags() {
     Error::ThrowError("Failed to find UFunction::FunctionFlags offset!");
     return false;
 }
-bool Setup_UFunction_FuncPtr() {
+static bool Setup_UFunction_FuncPtr() {
     PIMAGE_SECTION_HEADER TextSection = Memory::GetImageTextSection();
     uintptr_t             TextStart = TextSection->VirtualAddress + Memory::GetImageBase();
     uintptr_t             TextEnd = TextStart + TextSection->Misc.VirtualSize;
@@ -272,16 +281,33 @@ bool Setup_UFunction_FuncPtr() {
     return false;
 }
 
-bool SetupUnrealStructOffsets() {
-    return Setup_UProperty_Offset_Internal() && Setup_UBoolProperty_ByteMask() && Setup_UClass_ClassCastFlags() &&
-           Setup_UClass_ClassDefaultObject() && Setup_UStruct_SuperStruct() && Setup_UStruct_Children() &&
-           Setup_UStruct_ChildProperties() && Setup_UField_Next() && Setup_UFunction_FunctionFlags() &&
-           Setup_UFunction_FuncPtr();
+static bool SetupUnrealStructOffsets() {
+    if (!Setup_UProperty_Offset_Internal())
+        return false;
+    if (!Setup_UBoolProperty_ByteMask())
+        return false;
+    if (!Setup_UClass_ClassCastFlags())
+        return false;
+    if (!Setup_UClass_ClassDefaultObject())
+        return false;
+    if (!Setup_UStruct_SuperStruct())
+        return false;
+    if (!Setup_UStruct_Children())
+        return false;
+    if (!Setup_UStruct_ChildProperties())
+        return false;
+    if (!Setup_UField_Next())
+        return false;
+    if (!Setup_UFunction_FunctionFlags())
+        return false;
+    if (!Setup_UFunction_FuncPtr())
+        return false;
+    return true;
 }
 
 // --- Unreal-Engine & Fortnite general offsets ----------------------
 
-bool SetupProcessEvent() {
+static bool SetupProcessEvent() {
     auto Resolve32BitRelativeJump = [](void* FunctionPtr) -> uintptr_t {
         uint8_t* Address = reinterpret_cast<uint8_t*>(FunctionPtr);
         if (*Address == 0xE9) {
@@ -315,7 +341,7 @@ bool SetupProcessEvent() {
     Error::ThrowError("Failed to find UObject::ProcessEvent VFT index!");
     return false;
 }
-bool SetupEngineVersion() {
+static bool SetupEngineVersion() {
     FString EngineVersionStr = UKismetSystemLibrary::GetEngineVersion();
 
     std::istringstream stream(EngineVersionStr.ToString());
@@ -339,7 +365,7 @@ bool SetupEngineVersion() {
         EngineVersionStr.ToString().c_str());
     return true;
 }
-bool SetupDrawTransition() {
+static bool SetupDrawTransition() {
     void**       VTable = UObject::FindObjectFast("Default__GameViewportClient")->VTable;
     PropertyInfo GameInstanceProp = UObject::GetPropertyInfo("GameViewportClient", "GameInstance");
     int          bSuppressTransitionMessage = GameInstanceProp.Offset + sizeof(void*);
@@ -362,7 +388,7 @@ bool SetupDrawTransition() {
     Error::ThrowError("Failed to find UCanvas::DrawTransition VFT index!");
     return false;
 }
-bool SetupViewProjectionMatrix() {
+static bool SetupViewProjectionMatrix() {
     uintptr_t SearchStart = Memory::FindStringRef(L"/Engine/EngineResources/GradientTexture0.");
     if (SearchStart) {
         // Resolve the jmp if the function is split into multiple parts.
@@ -400,12 +426,12 @@ bool SetupViewProjectionMatrix() {
     Error::ThrowError("Failed to find UCanvas::ViewProjectionMatrix offset!");
     return false;
 }
-bool SetupCanvas() {
+static bool SetupCanvas() {
     UCanvas::Canvas_Offset = UCanvas::ViewProjectionMatrix_Offset - (sizeof(void*) * 2);
     LOG(LOG_INFO, "Using hardcoded UCanvas::Canvas offset: 0x%X", UCanvas::Canvas_Offset);
     return true;
 }
-bool SetupFCanvasGetBatchedElements() {
+static bool SetupFCanvasGetBatchedElements() {
     uintptr_t StringRef = Memory::FindStringRef(L"STAT_Canvas_GetBatchElementsTime");
     if (!StringRef) {
         Error::ThrowError("Failed to find \"STAT_Canvas_GetBatchElementsTime\" for FCanvas::GetBatchedElements!");
@@ -423,13 +449,13 @@ bool SetupFCanvasGetBatchedElements() {
     Error::ThrowError("Failed to find FCanvas::GetBatchedElements!");
     return false;
 }
-bool SetupBatchedThickLines() {
+static bool SetupBatchedThickLines() {
     FBatchedElements::BatchedThickLines_Offset = 0x40;
     LOG(LOG_INFO, "Using hardcoded FBatchedElements::BatchedThickLines offset: 0x%X",
         FBatchedElements::BatchedThickLines_Offset);
     return true;
 }
-bool SetupLevelActors() {
+static bool SetupLevelActors() {
     UWorld* World = Core::GetNewWorld();
     if (!World) {
         Error::ThrowError("Failed to get World to find ULevel::Actors offset!");
@@ -465,7 +491,7 @@ bool SetupLevelActors() {
     Error::ThrowError("Failed to find ULevel::Actors offset!");
     return false;
 }
-bool SetupComponentSpaceTransformsArray() {
+static bool SetupComponentSpaceTransformsArray() {
     PropertyInfo Info = UObject::GetPropertyInfo("SkinnedMeshComponent", "VertexOffsetUsage", true);
     int32_t      Offset = Info.Offset + 0x10;
     if (!Info.Found) {
@@ -483,7 +509,7 @@ bool SetupComponentSpaceTransformsArray() {
     Error::ThrowError("Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
     return false;
 }
-bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
+static bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
     Output = Memory::FindStringRef(L"EditModeInputComponent0");
     if (Output) {
         LOG(LOG_INFO, "Found EditModeInputComponent0 offset: %p",
@@ -494,7 +520,7 @@ bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
     Error::ThrowError("Failed to find EditModeInputComponent0 offset!");
     return false;
 }
-bool SetupFireOffset(uint64_t EditModeInputComponent0) {
+static bool SetupFireOffset(uint64_t EditModeInputComponent0) {
     uintptr_t FireString = Memory::FindStringRefRange("Fire", (uint8_t*)(EditModeInputComponent0 - 0x4500), 0x4500);
     if (!FireString) {
         Error::ThrowError("Failed to find Fire_Press \"Fire\" string");
@@ -558,7 +584,7 @@ bool SetupFireOffset(uint64_t EditModeInputComponent0) {
 
     return true;
 }
-void FindGetWeaponStats() {
+static void FindGetWeaponStats() {
     void** VTable = UObject::FindObjectFast("Default__FortWeapon")->VTable;
 
     for (int i = 0x30; i < 0x100; i++) {
@@ -583,7 +609,7 @@ void FindGetWeaponStats() {
     LOG(LOG_WARN,
         "Failed to find AFortWeapon::GetWeaponStats VFT index! WeaponStats based exploits will no longer work.");
 }
-void FindComponentToWorldOffset() {
+static void FindComponentToWorldOffset() {
     void* execK2_GetComponentToWorld = UObject::GetFunction("SceneComponent", "K2_GetComponentToWorld")->FuncPtr;
     if (execK2_GetComponentToWorld) {
         uintptr_t K2_GetComponentToWorld =
@@ -604,28 +630,51 @@ void FindComponentToWorldOffset() {
     LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld offset! Will fallback to calling UFunction.");
 }
 
-bool SetupUnrealFortniteOffsets() {
-    bool Result = SetupProcessEvent() && SetupEngineVersion() && SetupDrawTransition() && SetupViewProjectionMatrix() &&
-                  SetupCanvas() && SetupFCanvasGetBatchedElements() && SetupBatchedThickLines() && SetupLevelActors() &&
-                  SetupComponentSpaceTransformsArray();
-    if (Result) {
-        FindGetWeaponStats();
-        FindComponentToWorldOffset();
-    }
+static bool SetupUnrealFortniteOffsets() {
+    if (!SetupProcessEvent())
+        return false;
+    if (!SetupEngineVersion())
+        return false;
+    if (!SetupDrawTransition())
+        return false;
+    if (!SetupViewProjectionMatrix())
+        return false;
+    if (!SetupCanvas())
+        return false;
+    if (!SetupFCanvasGetBatchedElements())
+        return false;
+    if (!SetupBatchedThickLines())
+        return false;
+    if (!SetupLevelActors())
+        return false;
+    if (!SetupComponentSpaceTransformsArray())
+        return false;
+
+    FindGetWeaponStats();
+    FindComponentToWorldOffset();
 
     uint64_t EditModeInputComponent0 = 0;
     if (SetupEditModeInputComponent0Offset(EditModeInputComponent0)) {
-        Result = SetupFireOffset(EditModeInputComponent0);
+        if (!SetupFireOffset(EditModeInputComponent0))
+            return false;
     }
 
-    return Result;
+    return true;
 }
 
 // --- Initialization ------------------------------------------------
 
 bool Init() {
     LOG(LOG_TRACE, "Setting up SDK...");
-    return SetupUnrealGeneralOffsets() && SetupUnrealStructOffsets() && SetupUnrealFortniteOffsets();
+
+    if (!SetupUnrealGeneralOffsets())
+        return false;
+    if (!SetupUnrealStructOffsets())
+        return false;
+    if (!SetupUnrealFortniteOffsets())
+        return false;
+
+    return true;
 }
 
 // --- Global Variables ----------------------------------------------

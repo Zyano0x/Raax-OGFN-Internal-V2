@@ -4,20 +4,16 @@ namespace SDK {
 
 // --- Classes & Structs ---------------------------------------------
 
-void (*AFortPlayerController::pFire_Press)(void*);
-void (*AFortPlayerController::pFire_Release)(void*);
 void AFortPlayerController::Fire_Press() {
-    if (pFire_Press) {
+    if (pFire_Press)
         pFire_Press(this);
-    }
 }
 void AFortPlayerController::Fire_Release() {
-    if (pFire_Release) {
+    if (pFire_Release)
         pFire_Release(this);
-    }
 }
 
-int32_t AFortWeapon::GetBulletsPerClip() {
+int32_t AFortWeapon::GetBulletsPerClip() const {
     static UFunction* Func = GetFunction("FortWeapon", "GetBulletsPerClip");
     struct {
         int32_t ReturnValue;

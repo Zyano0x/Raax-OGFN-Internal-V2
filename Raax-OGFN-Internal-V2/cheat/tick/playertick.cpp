@@ -1,4 +1,5 @@
 #include "playertick.h"
+
 #include <array>
 
 #include <cheat/features/weaponutils.h>

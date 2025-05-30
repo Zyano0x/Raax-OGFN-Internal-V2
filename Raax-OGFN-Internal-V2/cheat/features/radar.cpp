@@ -1,18 +1,18 @@
 #include "radar.h"
 
-#include <utils/log.h>
-#include <utils/math.h>
-#include <drawing/drawing.h>
 #include <cheat/core.h>
 #include <cheat/cache/playercache.h>
 #include <config/config.h>
+#include <drawing/drawing.h>
+#include <utils/log.h>
+#include <utils/math.h>
 
 namespace Features {
 namespace Radar {
 
 // --- Radar Utility Functions ---------------------------------------
 
-void DrawGuidelines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
+static void DrawGuidelines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
                     const SDK::FLinearColor& GuidelineColor, const SDK::FLinearColor& CrosshairColor,
                     const SDK::FVector2D& RadarPos, const SDK::FVector2D& RadarCenterPos, float Size) {
     if (!RadarConfig.ShowGuidelines)
@@ -47,7 +47,7 @@ void DrawGuidelines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarC
                   SDK::FVector2D(RadarCenterPos.X, RadarCenterPos.Y + Size / 2.f), CrosshairColor);
 }
 
-void DrawPlayerIcons(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
+static void DrawPlayerIcons(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
                      const SDK::FVector2D& RadarCenterPos, float CameraYaw, float Size) {
     float RadarRangeCm = RadarConfig.MaxDistance * 2 * 100.f;
     float PixelsPerCm = Size / RadarRangeCm;
@@ -83,7 +83,8 @@ void DrawPlayerIcons(const Config::ConfigData::VisualsConfig::RadarConfig& Radar
     }
 }
 
-void DrawFOVLines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig, const SDK::FLinearColor& LineColor,
+static void DrawFOVLines(const Config::ConfigData::VisualsConfig::RadarConfig& RadarConfig,
+                         const SDK::FLinearColor& LineColor,
                   const SDK::FVector2D& RadarCenterPos, float CameraYaw, float Size) {
     if (!RadarConfig.ShowCameraFOV)
         return;

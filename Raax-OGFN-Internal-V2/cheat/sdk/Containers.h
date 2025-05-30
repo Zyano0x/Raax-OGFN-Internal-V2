@@ -1,9 +1,10 @@
 #pragma once
+#include "FMemory.h"
 
 #include <cstdint>
 #include <string>
 
-#include "FMemory.h"
+#include <utils/string.h>
 
 namespace SDK {
 
@@ -19,19 +20,16 @@ template <typename ElementType> class TArray {
 
   public:
     TArray() : Data(nullptr), NumElements(0), MaxElements(0) {}
-
     TArray(int32_t Size)
         : Data(static_cast<ElementType*>(FMemory::Malloc(Size * ElementSize, ElementAlign))), NumElements(0),
           MaxElements(Size) {}
 
     TArray(const TArray& Other) : Data(nullptr), NumElements(0), MaxElements(0) { CopyFrom(Other); }
-
     TArray(TArray&& Other) noexcept : Data(Other.Data), NumElements(Other.NumElements), MaxElements(Other.MaxElements) {
         Other.Data = nullptr;
         Other.NumElements = 0;
         Other.MaxElements = 0;
     }
-
     ~TArray() { Free(); }
 
   public:
@@ -41,7 +39,6 @@ template <typename ElementType> class TArray {
         }
         return *this;
     }
-
     TArray& operator=(TArray&& Other) noexcept {
         if (this != &Other) {
             Free();
@@ -57,18 +54,13 @@ template <typename ElementType> class TArray {
 
   public:
     inline bool IsValid() const { return Data != nullptr; }
-
     inline bool IsValidIndex(int32_t Index) const { return Data && Index >= 0 && Index < NumElements; }
 
-    inline int32_t Num() const { return NumElements; }
-
-    inline int32_t Max() const { return MaxElements; }
-
-    inline int32_t GetSlack() const { return MaxElements - NumElements; }
-
+    inline int32_t      Num() const { return NumElements; }
+    inline int32_t      Max() const { return MaxElements; }
+    inline int32_t      GetSlack() const { return MaxElements - NumElements; }
     inline ElementType* GetData() { return Data; }
-
-    inline ElementType GetByIndex(int32_t Idx) { return Data[Idx]; }
+    inline ElementType  GetByIndex(int32_t Idx) { return Data[Idx]; }
 
   public:
     inline bool Add(const ElementType& Element) {
@@ -92,7 +84,6 @@ template <typename ElementType> class TArray {
         NumElements++;
         return true;
     }
-
     inline bool Remove(int32_t Index) {
         if (!IsValidIndex(Index))
             return false;
@@ -106,10 +97,7 @@ template <typename ElementType> class TArray {
 
         return true;
     }
-
-    inline void Clear() {
-        NumElements = 0;
-    }
+    inline void Clear() { NumElements = 0; }
 
   public:
     inline void CopyFrom(const TArray& Other) {
@@ -125,7 +113,6 @@ template <typename ElementType> class TArray {
         NumElements = Other.NumElements;
         memcpy(Data, Other.Data, Other.NumElements * ElementSize);
     }
-
     inline void Free() noexcept {
         if (Data)
             FMemory::Free(Data);
@@ -142,7 +129,6 @@ template <typename ElementType> class TArray {
 class FString : public TArray<wchar_t> {
   public:
     FString() : TArray<wchar_t>() {}
-
     FString(const wchar_t* Str) {
         if (!Str)
             return;
@@ -157,30 +143,20 @@ class FString : public TArray<wchar_t> {
         memcpy(Data, Str, Length * sizeof(wchar_t));
         Data[Length] = L'\0';
     }
-
     FString(FString&& Other) noexcept : TArray<wchar_t>(std::move(Other)) {}
 
     FString& operator=(FString&& Other) noexcept {
         TArray<wchar_t>::operator=(std::move(Other));
         return *this;
     }
-
     FString& operator=(const FString& Other) {
         TArray<wchar_t>::operator=(Other);
         return *this;
     }
 
   public:
-    inline std::wstring ToWString() const {
-        return IsValid() ? std::wstring(Data, NumElements - 1) : L"";
-    }
-
-    inline std::string ToString() const {
-        if (!IsValid())
-            return "";
-        std::wstring WData = ToWString();
-        return std::string(WData.begin(), WData.end());
-    }
+    inline std::wstring ToWString() const { return IsValid() ? std::wstring(Data, NumElements - 1) : L""; }
+    inline std::string  ToString() const { return String::WideToNarrow(ToWString()); }
 
   public:
     inline wchar_t*       CStr() { return Data; }

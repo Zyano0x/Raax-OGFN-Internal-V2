@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Engine.h"
 
 namespace SDK {
@@ -82,8 +81,8 @@ class AFortPlayerController : public APlayerController {
     STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController);
 
   public:
-    static void (*pFire_Press)(void*);
-    static void (*pFire_Release)(void*);
+    static inline void (*pFire_Press)(void*) = nullptr;
+    static inline void (*pFire_Release)(void*) = nullptr;
 
   public:
     void Fire_Press();
@@ -186,7 +185,7 @@ class AFortWeapon : public AActor {
     UPROPERTY(float, LastFireTime);
 
   public:
-    int32_t GetBulletsPerClip();
+    int32_t GetBulletsPerClip() const;
 
   public:
     FFortBaseWeaponStats* GetWeaponStats();

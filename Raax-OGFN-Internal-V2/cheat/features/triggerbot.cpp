@@ -1,30 +1,31 @@
 #include "triggerbot.h"
+
 #include <chrono>
 
-#include <utils/log.h>
-#include <utils/math.h>
-#include <drawing/drawing.h>
 #include <cheat/core.h>
 #include <cheat/cache/playercache.h>
 #include <cheat/features/weaponutils.h>
 #include <config/config.h>
+#include <drawing/drawing.h>
+#include <utils/log.h>
+#include <utils/math.h>
 
 namespace Features {
 namespace TriggerBot {
 
 // --- Trigger Bot Data ----------------------------------------------
 
-bool PressingKey = false;
+static bool PressingKey = false;
 
 // --- Trigger Bot Utility Functions ---------------------------------
 
-bool ShouldRun() {
+static bool ShouldRun() {
     auto&       s = WeaponUtils::GetState();
     const auto& Config = Config::g_Config.TriggerBot;
     return Config.Enabled && s.CurrentAmmo != WeaponUtils::AmmoType::Unknown && s.Config.UseInTriggerBot;
 }
 
-bool IsCandidate(const Cache::Player::PlayerInfo& Info) {
+static bool IsCandidate(const Cache::Player::PlayerInfo& Info) {
     const auto& Config = Config::g_Config.TriggerBot;
     if (!Info.HeadVisible || Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM > Config.MaxDistance ||
         Info.TeamIndex == Core::g_LocalTeamIndex) {
@@ -33,14 +34,12 @@ bool IsCandidate(const Cache::Player::PlayerInfo& Info) {
 
     int BoneIdx = (int)Cache::Player::BoneIdx::Head;
 
-    auto  TargetWorldPos = Info.BoneWorldPos[BoneIdx];
-    auto  TargetScreenPos = Info.BoneScreenPos[BoneIdx];
-    float DistMeters = Info.DistanceM;
+    auto TargetWorldPos = Info.BoneWorldPos[BoneIdx];
+    auto TargetScreenPos = Info.BoneScreenPos[BoneIdx];
 
     auto  AimRot = Math::FindLookAtRotation(Core::g_CameraLocation, TargetWorldPos);
     float DistDeg = Math::GetDegreeDistance(Core::g_CameraRotation, AimRot);
     float DistPix = TargetScreenPos.Dist({(float)Core::g_ScreenCenterX, (float)Core::g_ScreenCenterY});
-    float DistCombined = DistDeg + DistMeters * 0.25f;
 
     if (Math::IsOnScreen(TargetScreenPos) && (DistPix > Config.FOV * Core::g_PixelsPerDegree)) {
         return false;

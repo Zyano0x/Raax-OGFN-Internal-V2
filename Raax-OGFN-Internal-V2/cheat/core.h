@@ -1,5 +1,4 @@
 #pragma once
-
 #include <mutex>
 #include <cheat/sdk/Engine.h>
 

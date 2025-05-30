@@ -1,11 +1,11 @@
 #pragma once
+#include "Containers.h"
 
 #include <cstdint>
 #include <string>
 #include <immintrin.h>
 
 #include <globals.h>
-#include "Containers.h"
 
 namespace SDK {
 
@@ -130,12 +130,12 @@ enum class EFunctionFlags : uint32_t {
     AllFlags = 0xFFFFFFFF,
 };
 inline bool operator&(EFunctionFlags Left, EFunctionFlags Right) {
-    using CastFlagsType = std::underlying_type<EFunctionFlags>::type;
-    return (static_cast<CastFlagsType>(Left) & static_cast<CastFlagsType>(Right)) == static_cast<CastFlagsType>(Right);
+    using T = std::underlying_type_t<EFunctionFlags>;
+    return (static_cast<T>(Left) & static_cast<T>(Right)) == static_cast<T>(Right);
 }
 inline constexpr SDK::EFunctionFlags operator|(SDK::EFunctionFlags Left, SDK::EFunctionFlags Right) {
-    return (SDK::EFunctionFlags)((std::underlying_type<SDK::EFunctionFlags>::type)(Left) |
-                                 (std::underlying_type<SDK::EFunctionFlags>::type)(Right));
+    using T = std::underlying_type_t<EFunctionFlags>;
+    return static_cast<EFunctionFlags>(static_cast<T>(Left) | static_cast<T>(Right));
 }
 
 enum class EClassCastFlags : uint64_t {
@@ -192,12 +192,12 @@ enum class EClassCastFlags : uint64_t {
     EnumProperty = 0x0001000000000000,
 };
 inline bool operator&(EClassCastFlags Left, EClassCastFlags Right) {
-    using CastFlagsType = std::underlying_type<EClassCastFlags>::type;
-    return (static_cast<CastFlagsType>(Left) & static_cast<CastFlagsType>(Right)) == static_cast<CastFlagsType>(Right);
+    using T = std::underlying_type_t<EClassCastFlags>;
+    return (static_cast<T>(Left) & static_cast<T>(Right)) == static_cast<T>(Right);
 }
-inline constexpr SDK::EClassCastFlags operator|(SDK::EClassCastFlags Left, SDK::EClassCastFlags Right) {
-    return (SDK::EClassCastFlags)((std::underlying_type<SDK::EClassCastFlags>::type)(Left) |
-                                  (std::underlying_type<SDK::EClassCastFlags>::type)(Right));
+inline constexpr EClassCastFlags operator|(EClassCastFlags Left, EClassCastFlags Right) {
+    using T = std::underlying_type_t<EClassCastFlags>;
+    return static_cast<EClassCastFlags>(static_cast<T>(Left) | static_cast<T>(Right));
 }
 
 struct FVector {
@@ -207,78 +207,61 @@ struct FVector {
     float Z;
 
   public:
-    inline FVector() : X(0.0), Y(0.0), Z(0.0) {}
+    inline FVector() : X(0.f), Y(0.f), Z(0.f) {}
     inline FVector(float X, float Y, float Z) : X(X), Y(Y), Z(Z) {}
 
   public:
     FVector operator+(const FVector& Other) const { return FVector(X + Other.X, Y + Other.Y, Z + Other.Z); }
-
     FVector operator-(const FVector& Other) const { return FVector(X - Other.X, Y - Other.Y, Z - Other.Z); }
-
     FVector operator*(const FVector& Other) const { return FVector(X * Other.X, Y * Other.Y, Z * Other.Z); }
-
     FVector operator/(const FVector& Other) const { return FVector(X / Other.X, Y / Other.Y, Z / Other.Z); }
-
-    bool operator==(const FVector& Other) const { return X == Other.X && Y == Other.Y && Z == Other.Z; }
-
-    bool operator!=(const FVector& Other) const { return X != Other.X || Y != Other.Y || Z != Other.Z; }
-
     FVector operator+=(const FVector& Other) {
         X += Other.X;
         Y += Other.Y;
         Z += Other.Z;
         return *this;
     }
-
     FVector operator-=(const FVector& Other) {
         X -= Other.X;
         Y -= Other.Y;
         Z -= Other.Z;
         return *this;
     }
-
     FVector operator*=(const FVector& Other) {
         X *= Other.X;
         Y *= Other.Y;
         Z *= Other.Z;
         return *this;
     }
-
     FVector operator/=(const FVector& Other) {
         X /= Other.X;
         Y /= Other.Y;
         Z /= Other.Z;
         return *this;
     }
-
     FVector operator*(float Scale) const { return FVector(X * Scale, Y * Scale, Z * Scale); }
-
     FVector operator/(float Scale) const {
         const float RScale = 1.f / Scale;
         return FVector(X * RScale, Y * RScale, Z * RScale);
     }
-
     FVector operator+=(float Scale) {
         X += Scale;
         Y += Scale;
         Z += Scale;
         return *this;
     }
-
     FVector operator-=(float Scale) {
         X -= Scale;
         Y -= Scale;
         Z -= Scale;
         return *this;
     }
-
     FVector operator*=(float Scale) {
         X *= Scale;
         Y *= Scale;
         Z *= Scale;
         return *this;
     }
-
     FVector operator/=(float Scale) {
         const float RScale = 1.f / Scale;
         X *= RScale;
@@ -287,16 +270,16 @@ struct FVector {
         return *this;
     }
 
-    float Size() { return sqrtf(X * X + Y * Y + Z * Z); }
+    bool operator==(const FVector& Other) const { return X == Other.X && Y == Other.Y && Z == Other.Z; }
+    bool operator!=(const FVector& Other) const { return X != Other.X || Y != Other.Y || Z != Other.Z; }
 
-    float Dot(const FVector& Other) const { return X * Other.X + Y * Other.Y + Z * Other.Z; }
-
+    float   Size() const { return sqrtf(X * X + Y * Y + Z * Z); }
+    float   Dot(const FVector& Other) const { return X * Other.X + Y * Other.Y + Z * Other.Z; }
     FVector Cross(const FVector& Other) const {
         return FVector(Y * Other.Z - Z * Other.Y, Z * Other.X - X * Other.Z, X * Other.Y - Y * Other.X);
     }
-
     float Dist(const FVector& Other) const {
-        return (float)sqrt(pow((Other.X - X), 2) + pow((Other.Y - Y), 2) + pow((Other.Z - Z), 2));
+        return sqrtf(powf((Other.X - X), 2.f) + powf((Other.Y - Y), 2.f) + powf((Other.Z - Z), 2.f));
     }
 
     bool Normalize(float Tolerance = 1.e-8f);
@@ -308,71 +291,54 @@ struct FVector2D {
     float Y;
 
   public:
-    inline constexpr FVector2D() : X(0.0f), Y(0.0f) {}
+    inline constexpr FVector2D() : X(0.f), Y(0.f) {}
     inline constexpr FVector2D(float X, float Y) : X(X), Y(Y) {}
 
   public:
     FVector2D operator+(const FVector2D& Other) const { return FVector2D(X + Other.X, Y + Other.Y); }
-
     FVector2D operator-(const FVector2D& Other) const { return FVector2D(X - Other.X, Y - Other.Y); }
-
     FVector2D operator*(const FVector2D& Other) const { return FVector2D(X * Other.X, Y * Other.Y); }
-
     FVector2D operator/(const FVector2D& Other) const { return FVector2D(X / Other.X, Y / Other.Y); }
-
-    bool operator==(const FVector2D& Other) const { return X == Other.X && Y == Other.Y; }
-
-    bool operator!=(const FVector2D& Other) const { return X != Other.X || Y != Other.Y; }
-
     FVector2D operator+=(const FVector2D& Other) {
         X += Other.X;
         Y += Other.Y;
         return *this;
     }
-
     FVector2D operator-=(const FVector2D& Other) {
         X -= Other.X;
         Y -= Other.Y;
         return *this;
     }
-
     FVector2D operator*=(const FVector2D& Other) {
         X *= Other.X;
         Y *= Other.Y;
         return *this;
     }
-
     FVector2D operator/=(const FVector2D& Other) {
         X /= Other.X;
         Y /= Other.Y;
         return *this;
     }
-
     FVector2D operator*(float Scale) const { return FVector2D(X * Scale, Y * Scale); }
-
     FVector2D operator/(float Scale) const {
         const float RScale = 1.f / Scale;
         return FVector2D(X * RScale, Y * RScale);
     }
-
     FVector2D operator+=(float Scale) {
         X += Scale;
         Y += Scale;
         return *this;
     }
-
     FVector2D operator-=(float Scale) {
         X -= Scale;
         Y -= Scale;
         return *this;
     }
-
     FVector2D operator*=(float Scale) {
         X *= Scale;
         Y *= Scale;
         return *this;
     }
-
     FVector2D operator/=(float Scale) {
         const float RScale = 1.f / Scale;
         X *= RScale;
@@ -380,11 +346,12 @@ struct FVector2D {
         return *this;
     }
 
+    bool operator==(const FVector2D& Other) const { return X == Other.X && Y == Other.Y; }
+    bool operator!=(const FVector2D& Other) const { return X != Other.X || Y != Other.Y; }
+
     float Dot(const FVector2D& Other) const { return X * Other.X + Y * Other.Y; }
-
     float Cross(const FVector2D& Other) const { return X * Other.Y - Y * Other.X; }
-
-    float Dist(const FVector2D& Other) const { return (float)sqrt(pow((Other.X - X), 2) + pow((Other.Y - Y), 2)); }
+    float Dist(const FVector2D& Other) const { return sqrtf(powf((Other.X - X), 2.f) + powf((Other.Y - Y), 2.f)); }
 };
 
 struct FRotator {
@@ -394,90 +361,69 @@ struct FRotator {
     float Roll;
 
   public:
-    inline FRotator() : Pitch(0.0), Yaw(0.0), Roll(0.0) {}
+    inline FRotator() : Pitch(0.f), Yaw(0.f), Roll(0.f) {}
     inline FRotator(float Pitch, float Yaw, float Roll) : Pitch(Pitch), Yaw(Yaw), Roll(Roll) {}
 
   public:
     FRotator operator+(const FRotator& Other) const {
         return FRotator(Pitch + Other.Pitch, Yaw + Other.Yaw, Roll + Other.Roll);
     }
-
     FRotator operator-(const FRotator& Other) const {
         return FRotator(Pitch - Other.Pitch, Yaw - Other.Yaw, Roll - Other.Roll);
     }
-
     FRotator operator*(const FRotator& Other) const {
         return FRotator(Pitch * Other.Pitch, Yaw * Other.Yaw, Roll * Other.Roll);
     }
-
     FRotator operator/(const FRotator& Other) const {
         return FRotator(Pitch / Other.Pitch, Yaw / Other.Yaw, Roll / Other.Roll);
     }
-
-    bool operator==(const FRotator& Other) const {
-        return Pitch == Other.Pitch && Yaw == Other.Yaw && Roll == Other.Roll;
-    }
-
-    bool operator!=(const FRotator& Other) const {
-        return Pitch != Other.Pitch || Yaw != Other.Yaw || Roll != Other.Roll;
-    }
-
     FRotator operator+=(const FRotator& Other) {
         Pitch += Other.Pitch;
         Yaw += Other.Yaw;
         Roll += Other.Roll;
         return *this;
     }
-
     FRotator operator-=(const FRotator& Other) {
         Pitch -= Other.Pitch;
         Yaw -= Other.Yaw;
         Roll -= Other.Roll;
         return *this;
     }
-
     FRotator operator*=(const FRotator& Other) {
         Pitch *= Other.Pitch;
         Yaw *= Other.Yaw;
         Roll *= Other.Roll;
         return *this;
     }
-
     FRotator operator/=(const FRotator& Other) {
         Pitch /= Other.Pitch;
         Yaw /= Other.Yaw;
         Roll /= Other.Roll;
         return *this;
     }
-
     FRotator operator*(float Scale) const { return FRotator(Pitch * Scale, Yaw * Scale, Roll * Scale); }
-
     FRotator operator/(float Scale) const {
         const float RScale = 1.f / Scale;
         return FRotator(Pitch * RScale, Yaw * RScale, Roll * RScale);
     }
-
     FRotator operator+=(float Scale) {
         Pitch += Scale;
         Yaw += Scale;
         Roll += Scale;
         return *this;
     }
-
     FRotator operator-=(float Scale) {
         Pitch -= Scale;
         Yaw -= Scale;
         Roll -= Scale;
         return *this;
     }
-
     FRotator operator*=(float Scale) {
         Pitch *= Scale;
         Yaw *= Scale;
         Roll *= Scale;
         return *this;
     }
-
     FRotator operator/=(float Scale) {
         const float RScale = 1.f / Scale;
         Pitch *= RScale;
@@ -486,15 +432,20 @@ struct FRotator {
         return *this;
     }
 
-    float Size() { return sqrtf(Pitch * Pitch + Yaw * Yaw + Roll * Roll); }
+    bool operator==(const FRotator& Other) const {
+        return Pitch == Other.Pitch && Yaw == Other.Yaw && Roll == Other.Roll;
+    }
+    bool operator!=(const FRotator& Other) const {
+        return Pitch != Other.Pitch || Yaw != Other.Yaw || Roll != Other.Roll;
+    }
 
+    float Size() const { return sqrtf(Pitch * Pitch + Yaw * Yaw + Roll * Roll); }
     float Dot(const FRotator& Other) const { return Pitch * Other.Pitch + Yaw * Other.Yaw + Roll * Other.Roll; }
 
     FRotator Cross(const FRotator& Other) const {
         return FRotator(Yaw * Other.Roll - Roll * Other.Yaw, Roll * Other.Pitch - Pitch * Other.Roll,
                         Pitch * Other.Yaw - Yaw * Other.Pitch);
     }
-
     FRotator Normalize() {
         while (Yaw > 180.f)
             Yaw -= 360.f;
@@ -522,10 +473,10 @@ struct FMatrix {
   public:
     FMatrix operator*(const FMatrix& B) const {
 #if CFG_AVXOPTIMISATIONS
-        FMatrix Result = {0};
+        FMatrix Result = {};
 
-        __m128 RightRow[4];
-        __m128 ResultRow[4];
+        __m128 RightRow[4] = {};
+        __m128 ResultRow[4] = {};
 
         for (int i = 0; i < 4; ++i) {
             RightRow[i] = _mm_loadu_ps(B.M[i]);
@@ -567,20 +518,24 @@ struct FQuat {
     float Y;
     float Z;
     float W;
+
+  public:
+    inline FQuat() : X(0.f), Y(0.f), Z(0.f), W(0.f) {}
+    inline FQuat(float X, float Y, float Z, float W) : X(X), Y(Y), Z(Z), W(W) {}
 };
 
 struct FTransform {
   public:
     FQuat   Rotation;
     FVector Translation;
-    int     _pad1;
+    int     _pad1 = 0;
     FVector Scale;
-    int     _pad2;
+    int     _pad2 = 0;
 
   public:
     FMatrix ToMatrixWithScale() const {
 #if CFG_AVXOPTIMISATIONS
-        FMatrix m;
+        FMatrix m = {};
 
         m.M[3][0] = Translation.X;
         m.M[3][1] = Translation.Y;
@@ -706,6 +661,7 @@ struct FLinearColor {
 };
 
 struct FColor {
+  public:
     uint8_t B;
     uint8_t G;
     uint8_t R;

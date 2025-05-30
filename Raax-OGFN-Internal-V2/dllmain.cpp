@@ -2,17 +2,15 @@
 
 #include <globals.h>
 #include <cheat/core.h>
-#include <cheat/sdk/sdk.h>
 #include <utils/log.h>
-#include <utils/memory.h>
 
-DWORD Main(LPVOID) {
+static DWORD Main(LPVOID hModule) {
+#if CFG_MAINTHREAD
     bool Result = Core::Init();
     LOG(LOG_INFO, "Core::Init() -> %d", Result);
-    return 0;
-}
+#endif
 
-DWORD Unload(LPVOID hModule) {
+#if CFG_UNLOADTHREAD
     while (true) {
         if (GetAsyncKeyState(VK_F6) & 1) {
             LOG(LOG_INFO, "Unloading...");
@@ -25,20 +23,18 @@ DWORD Unload(LPVOID hModule) {
 
     Sleep(1000);
     FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), 0);
+#endif
+    return 0;
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
-#if CFG_MAINTHREAD
+#if CFG_MAINTHREAD || CFG_UNLOADTHREAD
         DisableThreadLibraryCalls(hModule);
-        CreateThread(nullptr, 0, Main, nullptr, 0, nullptr);
+        CreateThread(nullptr, 0, Main, hModule, 0, nullptr);
 #else
         Main(nullptr);
-#endif
-
-#if CFG_UNLOADTHREAD
-        CreateThread(nullptr, 0, Unload, hModule, 0, nullptr);
 #endif
         break;
     case DLL_THREAD_ATTACH:

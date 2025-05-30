@@ -10,6 +10,8 @@ bool Begin(const char* Name, bool* pOpen = nullptr);
 void End();
 
 void Checkbox(const char* Name, bool* pValue);
+void SliderInt(const char* Name, int* pValue, int Min, int Max);
+void SliderFloat(const char* Name, float* pValue, float Min, float Max);
 
 // --- Public Tick Functions -----------------------------------------
 

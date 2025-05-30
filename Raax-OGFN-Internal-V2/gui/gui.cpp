@@ -37,8 +37,7 @@ void Destroy() {
 
 // --- ImGui Utility Functions ---------------------------------------
 
-#ifndef _ENGINE
-Input::KeyID GetLastReleasedKey() {
+static Input::KeyID GetLastReleasedKey() {
     for (int i = (int)Input::KeyID::START; i < (int)Input::KeyID::COUNT; i++) {
         if (Input::WasKeyJustReleased((Input::KeyID)i))
             return (Input::KeyID)i;
@@ -46,7 +45,6 @@ Input::KeyID GetLastReleasedKey() {
 
     return Input::KeyID::NONE;
 }
-#endif
 
 void Keybind(const char* Str, bool& WaitingForKeybind, Input::KeyID& OutKeybind) {
 #ifndef _ENGINE
@@ -69,6 +67,7 @@ void Keybind(const char* Str, bool& WaitingForKeybind, Input::KeyID& OutKeybind)
 #endif
 }
 
+#ifndef _ENGINE
 // --- Hook Functions ------------------------------------------------
 
 LRESULT __stdcall h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -124,5 +123,6 @@ LRESULT __stdcall h_WndProc(const HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 std::recursive_mutex g_WndProcMutex;
 bool                 g_SetupImGui = false;
+#endif
 
 } // namespace GUI

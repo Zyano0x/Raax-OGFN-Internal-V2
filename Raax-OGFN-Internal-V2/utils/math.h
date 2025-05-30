@@ -1,7 +1,7 @@
 #pragma once
 #include <cheat/sdk/Basic.h>
 
-#define M_PI 3.14159265358979323f
+constexpr auto M_PI = 3.14159265358979323f;
 
 namespace Math {
 

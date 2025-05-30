@@ -1,5 +1,7 @@
 #include "core.h"
+
 #include <algorithm>
+#include <filesystem>
 
 #include <cheat/autorevertfeature.h>
 #include <cheat/sdk/sdk.h>
@@ -20,7 +22,6 @@
 #include <gui/gui.h>
 #include <utils/log.h>
 #include <utils/math.h>
-#include <filesystem>
 
 namespace Core {
 
@@ -38,7 +39,7 @@ SDK::UWorld* GetNewWorld() {
     return GameViewport->World;
 }
 
-SDK::ULocalPlayer* GetNewLocalPlayer() {
+static SDK::ULocalPlayer* GetNewLocalPlayer() {
     SDK::UEngine* Engine = SDK::GetEngine();
     if (!Engine)
         return nullptr;
@@ -58,47 +59,47 @@ SDK::ULocalPlayer* GetNewLocalPlayer() {
     return LocalPlayers.GetByIndex(0);
 }
 
-SDK::APlayerController* GetNewPlayerController() {
+static SDK::APlayerController* GetNewPlayerController() {
     if (!g_LocalPlayer)
         return nullptr;
 
     return g_LocalPlayer->PlayerController;
 }
 
-SDK::APlayerCameraManager* GetNewPlayerCameraManager() {
+static SDK::APlayerCameraManager* GetNewPlayerCameraManager() {
     if (!g_LocalPlayerController)
         return nullptr;
 
     return g_LocalPlayerController->PlayerCameraManager;
 }
 
-SDK::APawn* GetNewPawn() {
+static SDK::APawn* GetNewPawn() {
     if (!g_LocalPlayerController)
         return nullptr;
 
     return g_LocalPlayerController->AcknowledgedPawn;
 }
 
-float GetNewCameraFOV() {
+static float GetNewCameraFOV() {
     if (!g_LocalPlayerCameraManager)
         return 0.f;
 
     return g_LocalPlayerCameraManager->GetFOVAngle();
 }
-SDK::FVector GetNewCameraLocation() {
+static SDK::FVector GetNewCameraLocation() {
     if (!g_LocalPlayerCameraManager)
-        return {};
+        return SDK::FVector();
 
     return g_LocalPlayerCameraManager->GetCameraLocation();
 }
-SDK::FRotator GetNewCameraRotation() {
+static SDK::FRotator GetNewCameraRotation() {
     if (!g_LocalPlayerCameraManager)
-        return {};
+        return SDK::FRotator();
 
     return g_LocalPlayerCameraManager->GetCameraRotation();
 }
 
-void UpdateGlobalVariables() {
+static void UpdateGlobalVariables() {
     g_World = GetNewWorld();
     g_LocalPlayer = GetNewLocalPlayer();
     g_LocalPlayerController = GetNewPlayerController();
@@ -109,8 +110,8 @@ void UpdateGlobalVariables() {
     if (Canvas) {
         g_ScreenSizeX = SDK::GetCanvas()->SizeX;
         g_ScreenSizeY = SDK::GetCanvas()->SizeY;
-        g_ScreenCenterX = static_cast<int32_t>(static_cast<float>(g_ScreenSizeX) / 2.f);
-        g_ScreenCenterY = static_cast<int32_t>(static_cast<float>(g_ScreenSizeY) / 2.f);
+        g_ScreenCenterX = g_ScreenSizeX / 2;
+        g_ScreenCenterY = g_ScreenSizeY / 2;
     }
 
     g_CameraLocation = GetNewCameraLocation();
@@ -183,13 +184,6 @@ void TickGameThread() {
 }
 
 void TickRenderThread() {
-#ifdef _ENGINE
-    static bool Init = false;
-    if (!Init) {
-        Drawing::Init();
-        Init = true;
-    }
-#endif
     Drawing::Tick();
 
     Tick::Container::TickRenderThread();

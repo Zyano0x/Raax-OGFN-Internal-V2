@@ -1,6 +1,6 @@
 #pragma once
-
 #include <unordered_map>
+
 #include <cheat/sdk/sdk.h>
 
 namespace Cache {
@@ -61,7 +61,7 @@ struct PlayerInfo {
 
     // Bone and position info
 
-    int32_t        BoneIndicies[(int)BoneIdx::NUM];
+    int32_t        BoneIndicies[(int)BoneIdx::NUM] = {};
     SDK::FVector   RootWorldLocation;
     SDK::FVector   RootComponentVelocity;
     SDK::FVector   BoneWorldPos[(int)BoneIdx::NUM];

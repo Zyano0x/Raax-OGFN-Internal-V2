@@ -1,10 +1,11 @@
 #include "aimbot.h"
-#include <vector>
+
 #include <unordered_map>
+#include <vector>
 #include <random>
 
 #include <cheat/features/weaponutils.h>
-#include <cheat/Input.h>
+#include <cheat/input.h>
 #include <extern/imgui/imgui.h>
 #include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
@@ -29,13 +30,13 @@ struct TargetInfo {
     bool            Visible = false;
 
     void Reset() { Pawn = nullptr; }
-} target;
+} static target;
 
-float WorldGravityZ = 0.f;
+static float WorldGravityZ = 0.f;
 
 // --- Global Data Functions -----------------------------------------
 
-void UpdateWorldGravityZ() {
+static void UpdateWorldGravityZ() {
     SDK::UWorld* World = SDK::GetWorld();
     if (!World)
         return;
@@ -53,7 +54,7 @@ void UpdateWorldGravityZ() {
 
 // --- Target Functions ----------------------------------------------
 
-bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
+static bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
     auto& s = WeaponUtils::GetState();
     if (Info.DistanceM > s.Config.MaxDistance) {
         return false;
@@ -117,7 +118,7 @@ bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
     return true;
 }
 
-void AcquireTarget() {
+static void AcquireTarget() {
     auto& s = WeaponUtils::GetState();
 
     bool Found = false;

@@ -1,4 +1,4 @@
-#include "AutoRevertFeature.h"
+#include "autorevertfeature.h"
 
 namespace AutoRevertFeature {
 

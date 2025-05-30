@@ -1,8 +1,8 @@
 #pragma once
-
-#include "Containers.h"
 #include "CoreUObject.h"
+#include "Containers.h"
 #include "Basic.h"
+
 #include <vector>
 
 #include <utils/log.h>
@@ -102,7 +102,7 @@ enum ESimpleElementBlendMode {
     SE_BLEND_MAX,
 };
 struct FDepthFieldGlowInfo {
-    uint32_t     bEnableGlow : 1;
+    uint32_t     bEnableGlow : 1 = 0;
     FLinearColor GlowColor;
     FVector2D    GlowOuterRadius;
     FVector2D    GlowInnerRadius;
@@ -258,7 +258,7 @@ class USceneComponent : public UObject {
   public:
     UPROPERTY(FVector, RelativeLocation);
     UPROPERTY(FVector, ComponentVelocity);
-    FTransform&                                                     getprop_ComponentToWorld();
+    FTransform                                                      getprop_ComponentToWorld() const;
     __declspec(property(get = getprop_ComponentToWorld)) FTransform ComponentToWorld;
 };
 
@@ -270,11 +270,11 @@ class USkinnedMeshComponent : public USceneComponent {
     static inline uint32_t ComponentSpaceTransformsArray_Offset;
 
   public:
-    TArray<FTransform>&                                               getprop_ComponentSpaceTransformsArray();
+    TArray<FTransform>&                                               getprop_ComponentSpaceTransformsArray() const;
     __declspec(property(get = getprop_ComponentSpaceTransformsArray)) TArray<FTransform> ComponentSpaceTransformsArray;
 
   public:
-    int32_t GetBoneIndex(FName BoneName);
+    int32_t GetBoneIndex(FName BoneName) const;
 };
 
 class USkeletalMeshComponent : public USkinnedMeshComponent {
@@ -282,8 +282,8 @@ class USkeletalMeshComponent : public USkinnedMeshComponent {
     STATICCLASS_DEFAULTOBJECT("SkeletalMeshComponent", USkeletalMeshComponent);
 
   public:
-    FTransform GetBoneMatrix(int32_t BoneIndex);
-    FVector    GetBoneLocation(int32_t BoneIndex);
+    FTransform GetBoneMatrix(int32_t BoneIndex) const;
+    FVector    GetBoneLocation(int32_t BoneIndex) const;
 };
 
 class AActor : public UObject {
@@ -294,7 +294,7 @@ class AActor : public UObject {
     UPROPERTY(class USceneComponent*, RootComponent);
 
   public:
-    float WasRecentlyRendered(float Tolerence);
+    float WasRecentlyRendered(float Tolerence) const;
 };
 
 class AWorldSettings : AActor {
@@ -310,9 +310,9 @@ class APlayerCameraManager : public AActor {
     STATICCLASS_DEFAULTOBJECT("PlayerCameraManager", APlayerCameraManager);
 
   public:
-    FVector  GetCameraLocation();
-    FRotator GetCameraRotation();
-    float    GetFOVAngle();
+    FVector  GetCameraLocation() const;
+    FRotator GetCameraRotation() const;
+    float    GetFOVAngle() const;
 };
 
 class APlayerController : public AActor {
@@ -328,10 +328,10 @@ class APlayerController : public AActor {
   public:
     void AddYawInput(float Val);
     void AddPitchInput(float Val);
-    bool WasInputKeyJustReleased(FKey& Key);
-    bool WasInputKeyJustPressed(FKey& Key);
-    bool IsInputKeyDown(FKey& Key);
-    bool GetMousePosition(float& LocationX, float& LocationY);
+    bool WasInputKeyJustReleased(const FKey& Key) const;
+    bool WasInputKeyJustPressed(const FKey& Key) const;
+    bool IsInputKeyDown(const FKey& Key) const;
+    bool GetMousePosition(float& LocationX, float& LocationY) const;
     void ServerChangeName(const FString& S);
 };
 
@@ -356,7 +356,7 @@ class APlayerState : public AActor {
     STATICCLASS_DEFAULTOBJECT("PlayerState", APlayerState);
 
   public:
-    FString GetPlayerName();
+    FString GetPlayerName() const;
 };
 
 // --- Public Functions ----------------------------------------------

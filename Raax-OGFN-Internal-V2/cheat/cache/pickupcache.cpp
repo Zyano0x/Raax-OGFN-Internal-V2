@@ -1,5 +1,7 @@
 #include "pickupcache.h"
+
 #include <chrono>
+
 #include <config/config.h>
 
 namespace Cache {
@@ -7,11 +9,11 @@ namespace Pickup {
 
 // --- Cache Data ----------------------------------------------------
 
-std::unordered_map<void*, PickupInfo> CachedPickups;
+static std::unordered_map<void*, PickupInfo> CachedPickups;
 
 // --- Cache Utility Functions ---------------------------------------
 
-std::optional<PickupInfo> CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
+static std::optional<PickupInfo> CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
     PickupInfo Info;
     Info.Pickup = Pickup;
     Info.RootComponent = Info.Pickup->RootComponent;
@@ -33,7 +35,7 @@ std::optional<PickupInfo> CreateNewPickupInfo(SDK::AFortPickup* Pickup) {
     return Info;
 }
 
-bool UpdateExistingPickupInfo(PickupInfo& Info) {
+static bool UpdateExistingPickupInfo(PickupInfo& Info) {
     Info.RootComponent = Info.Pickup->RootComponent;
     if (!Info.RootComponent)
         return false;
@@ -45,13 +47,13 @@ bool UpdateExistingPickupInfo(PickupInfo& Info) {
     return true;
 }
 
-void ResetPickupSeenFlags() {
+static void ResetPickupSeenFlags() {
     for (auto& [_, Cache] : CachedPickups) {
         Cache.SeenThisFrame = false;
     }
 }
 
-void RemoveUnseenPickups() {
+static void RemoveUnseenPickups() {
     std::erase_if(CachedPickups, [](const auto& Cache) { return !Cache.second.SeenThisFrame; });
 }
 

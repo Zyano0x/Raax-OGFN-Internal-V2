@@ -7,7 +7,7 @@ namespace Log {
 
 // --- Logging Functions & Data --------------------------------------
 
-std::string GenerateTimeDateStamp() {
+static std::string GenerateTimeDateStamp() {
     std::time_t T = std::time(nullptr);
     std::tm     TMInfo;
     localtime_s(&TMInfo, &T);

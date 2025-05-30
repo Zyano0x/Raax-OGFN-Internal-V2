@@ -34,7 +34,7 @@ bool                    g_Hooked = false;
 
 typedef HRESULT(__stdcall* t_Present)(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags);
 inline t_Present o_Present = nullptr;
-HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags) {
+static HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT Flags) {
     std::lock_guard<std::recursive_mutex> lock(GUI::g_WndProcMutex);
     std::lock_guard<std::mutex>           lock2(Core::g_GameRenderThreadLock);
 
@@ -105,7 +105,7 @@ HRESULT __stdcall h_Present(IDXGISwapChain* SwapChain, UINT SyncInterval, UINT F
 using t_ResizeBuffers = HRESULT (*)(IDXGISwapChain* pThis, UINT BufferCount, UINT Width, UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags);
 inline t_ResizeBuffers o_ResizeBuffers = nullptr;
-HRESULT __stdcall h_ResizeBuffers(IDXGISwapChain* pThis, UINT BufferCount, UINT Width, UINT Height,
+static HRESULT __stdcall h_ResizeBuffers(IDXGISwapChain* pThis, UINT BufferCount, UINT Width, UINT Height,
                                   DXGI_FORMAT NewFormat, UINT SwapChainFlags) {
     if (g_RenderTargetView) {
         g_DeviceContext->OMSetRenderTargets(0, 0, 0);
@@ -193,9 +193,9 @@ bool Init() {
     Device->Release();
     DeviceContext->Release();
 
-    g_Hooked = Hooks::CreateHook(g_PresentFunc, h_Present, reinterpret_cast<void**>(&o_Present)) &&
+    g_Hooked = Hooks::CreateHook(g_PresentFunc, &h_Present, reinterpret_cast<void**>(&o_Present)) &&
              Hooks::EnableHook(g_PresentFunc) &&
-             Hooks::CreateHook(g_ResizeBuffersFunc, h_ResizeBuffers, reinterpret_cast<void**>(&o_ResizeBuffers)) &&
+             Hooks::CreateHook(g_ResizeBuffersFunc, &h_ResizeBuffers, reinterpret_cast<void**>(&o_ResizeBuffers)) &&
              Hooks::EnableHook(g_ResizeBuffersFunc);
     return g_Hooked;
 }

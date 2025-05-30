@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 
 namespace SDK {
@@ -26,10 +25,8 @@ class Chunked_TUObjectArray {
     int32_t        NumChunks;
 
   public:
-    inline int32_t Num() const { return NumElements; }
-
+    inline int32_t        Num() const { return NumElements; }
     inline FUObjectItem** GetDecrytedObjPtr() const { return reinterpret_cast<FUObjectItem**>(DecryptPtr(Objects)); }
-
     inline class UObject* GetByIndex(const int32_t Index) const {
         if (Index < 0 || Index > NumElements)
             return nullptr;
@@ -50,10 +47,8 @@ class Fixed_TUObjectArray {
     int32_t       NumElements;
 
   public:
-    inline int Num() const { return NumElements; }
-
-    inline FUObjectItem* GetDecrytedObjPtr() const { return reinterpret_cast<FUObjectItem*>(DecryptPtr(Objects)); }
-
+    inline int            Num() const { return NumElements; }
+    inline FUObjectItem*  GetDecrytedObjPtr() const { return reinterpret_cast<FUObjectItem*>(DecryptPtr(Objects)); }
     inline class UObject* GetByIndex(const int32_t Index) const {
         if (Index < 0 || Index > NumElements)
             return nullptr;
@@ -75,12 +70,10 @@ class TUObjectArray {
         m_ObjectArray = Address;
         m_IsChunked = IsChunked;
     }
-
     inline int32_t Num() const {
         return m_IsChunked ? static_cast<Chunked_TUObjectArray*>(m_ObjectArray)->Num()
                            : static_cast<Fixed_TUObjectArray*>(m_ObjectArray)->Num();
     }
-
     inline class UObject* GetByIndex(int32_t Index) const {
         return m_IsChunked ? static_cast<Chunked_TUObjectArray*>(m_ObjectArray)->GetByIndex(Index)
                            : static_cast<Fixed_TUObjectArray*>(m_ObjectArray)->GetByIndex(Index);

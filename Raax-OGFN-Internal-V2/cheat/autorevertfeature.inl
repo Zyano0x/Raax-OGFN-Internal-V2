@@ -30,8 +30,8 @@ template <typename T> bool AutoRevertFeature<T>::Tick() {
 template <typename T>
 AutoRevertScalingFeature<T>::AutoRevertScalingFeature(T* Address, T TargetValue, const float* Scalar,
                                                       const bool* Enabled)
-    : Address(Address), OriginalValue(*Address), TargetValue(TargetValue), LastScalarValue(TargetValue),
-      FirstTick(true), Scalar(Scalar), Enabled(Enabled) {}
+    : Address(Address), OriginalValue(*Address), TargetValue(TargetValue), LastScalarValue(*Scalar), FirstTick(true),
+      Scalar(Scalar), Enabled(Enabled) {}
 
 template <typename T> AutoRevertScalingFeature<T>::~AutoRevertScalingFeature() {
     if (Memory::IsValidAndWritable(Address))
@@ -50,7 +50,7 @@ template <typename T> bool AutoRevertScalingFeature<T>::Tick() {
     if (FirstTick || *Scalar != LastScalarValue) {
         if (!Memory::IsValidAndWritable(Address))
             return false;
-        *Address = OriginalValue + ((TargetValue - OriginalValue) * *Scalar);
+        *Address = static_cast<T>(OriginalValue + ((TargetValue - OriginalValue) * *Scalar));
         LastScalarValue = *Scalar;
         FirstTick = false;
     }

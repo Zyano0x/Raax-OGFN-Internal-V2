@@ -1,11 +1,10 @@
 #pragma once
+#include "Basic.h"
+#include "ObjectArray.h"
+#include "FProperty.h"
 
 #include <string>
 #include <type_traits>
-
-#include "ObjectArray.h"
-#include "Basic.h"
-#include "FProperty.h"
 
 /* @brief Sets up StaticClass() and GetDefaultObj() functions. */
 #define STATICCLASS_DEFAULTOBJECT(ClassNameStr, Type)                                                                  \
@@ -36,39 +35,30 @@ struct PropertyInfo {
     };
 };
 
-#define UPROPERTY(type, name)                                                                                          \
-    static const PropertyInfo& getpropinfo_##name(bool SuppressFailure = false) {                                      \
+#define UPROPERTY(Type, Name)                                                                                          \
+    static const PropertyInfo& getpropinfo_##Name(bool SuppressFailure = false) {                                      \
         static PropertyInfo Prop =                                                                                     \
-            GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #name, SuppressFailure);         \
+            GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #Name, SuppressFailure);         \
         return Prop;                                                                                                   \
     }                                                                                                                  \
-    void putprop_##name(const type& v) {                                                                               \
-        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
-        *reinterpret_cast<type*>((uint8_t*)this + Prop.Offset) = const_cast<type&>(v);                                 \
+    inline void putprop_##Name(const Type& v) {                                                                        \
+        const PropertyInfo& Prop = getpropinfo_##Name();                                                               \
+        *reinterpret_cast<Type*>((uint8_t*)this + Prop.Offset) = const_cast<Type&>(v);                                 \
     }                                                                                                                  \
-    type& getprop_##name() const {                                                                                     \
-        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
-        return *reinterpret_cast<type*>((uint8_t*)this + Prop.Offset);                                                 \
+    inline Type& getprop_##Name() const {                                                                              \
+        const PropertyInfo& Prop = getpropinfo_##Name();                                                               \
+        return *reinterpret_cast<Type*>((uint8_t*)this + Prop.Offset);                                                 \
     }                                                                                                                  \
-    __declspec(property(get = getprop_##name, put = putprop_##name)) type name
+    __declspec(property(get = getprop_##Name, put = putprop_##Name)) Type Name
 
-#define UPROPERTY_OFFSET(type, name, offset)                                                                           \
-    void putprop_##name(const type& v) {                                                                               \
-        *reinterpret_cast<type*>((uint8_t*)this + offset) = const_cast<type&>(v);                                      \
-    }                                                                                                                  \
-    type& getprop_##name() const {                                                                                     \
-        return *reinterpret_cast<type*>((uint8_t*)this + offset);                                                      \
-    }                                                                                                                  \
-    __declspec(property(get = getprop_##name, put = putprop_##name)) type name
-
-#define UPROPERTY_BITFIELD(name)                                                                                       \
-    static const PropertyInfo& getpropinfo_##name(bool SuppressFailure = false) {                                      \
+#define UPROPERTY_BITFIELD(Name)                                                                                       \
+    static const PropertyInfo& getpropinfo_##Name(bool SuppressFailure = false) {                                      \
         static PropertyInfo Prop =                                                                                     \
-            GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #name, SuppressFailure);         \
+            GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #Name, SuppressFailure);         \
         return Prop;                                                                                                   \
     }                                                                                                                  \
-    void putprop_##name(const bool& v) {                                                                               \
-        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
+    inline void putprop_##Name(const bool& v) {                                                                        \
+        const PropertyInfo& Prop = getpropinfo_##Name();                                                               \
         if (Prop.ByteMask) {                                                                                           \
             auto& ByteValue = *reinterpret_cast<uint8_t*>((uint8_t*)this + Prop.Offset);                               \
             ByteValue &= ~Prop.ByteMask;                                                                               \
@@ -79,14 +69,23 @@ struct PropertyInfo {
         }                                                                                                              \
         *reinterpret_cast<bool*>((uint8_t*)this + Prop.Offset) = const_cast<bool&>(v);                                 \
     }                                                                                                                  \
-    bool getprop_##name() const {                                                                                      \
-        const PropertyInfo& Prop = getpropinfo_##name();                                                               \
+    inline bool getprop_##Name() const {                                                                               \
+        const PropertyInfo& Prop = getpropinfo_##Name();                                                               \
         auto                Value = *reinterpret_cast<uint8_t*>((uint8_t*)this + Prop.Offset);                         \
         if (Prop.ByteMask)                                                                                             \
             return Value & Prop.ByteMask;                                                                              \
         return Value;                                                                                                  \
     }                                                                                                                  \
-    __declspec(property(get = getprop_##name, put = putprop_##name)) bool name
+    __declspec(property(get = getprop_##Name, put = putprop_##Name)) bool Name
+
+#define UPROPERTY_OFFSET(Type, Name, Offset)                                                                           \
+    inline void putprop_##Name(const Type& v) {                                                                        \
+        *reinterpret_cast<Type*>((uint8_t*)this + Offset) = const_cast<Type&>(v);                                      \
+    }                                                                                                                  \
+    inline Type& getprop_##Name() const {                                                                              \
+        return *reinterpret_cast<Type*>((uint8_t*)this + Offset);                                                      \
+    }                                                                                                                  \
+    __declspec(property(get = getprop_##Name, put = putprop_##Name)) Type Name
 
 class UObject {
   public:
@@ -104,7 +103,7 @@ class UObject {
     UObject*      Outer;
 
   public:
-    void ProcessEvent(class UFunction* Function, void* Parms);
+    void ProcessEvent(class UFunction* Function, void* Parms) const;
 
     bool IsA(class UClass* Class) const;
     bool IsDefaultObject() const;

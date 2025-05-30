@@ -1,5 +1,7 @@
 #include "config.h"
 #include "config_reflection.h"
+#include "keybind.h"
+
 #include <sstream>
 #include <charconv>
 
@@ -7,23 +9,22 @@
 #include <extern/cpp-base64/base64.h>
 #include <utils/error.h>
 #include <utils/log.h>
-#include "keybind.h"
 
 namespace Config {
 
 // --- Serialization Utility Functions -------------------------------
 
-bool TryParseInt(const std::string& Str, int& Out) {
+static bool TryParseInt(const std::string& Str, int& Out) {
     auto Result = std::from_chars(Str.data(), Str.data() + Str.size(), Out);
     return Result.ec == std::errc();
 }
 
-bool TryParseFloat(const std::string& Str, float& Out) {
+static bool TryParseFloat(const std::string& Str, float& Out) {
     auto Result = std::from_chars(Str.data(), Str.data() + Str.size(), Out);
     return Result.ec == std::errc();
 }
 
-bool TryParseBool(const std::string& Str, bool& Out) {
+static bool TryParseBool(const std::string& Str, bool& Out) {
     if (Str == "true") {
         Out = true;
         return true;
@@ -34,7 +35,7 @@ bool TryParseBool(const std::string& Str, bool& Out) {
     return false;
 }
 
-bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
+static bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
     std::stringstream ss(Str);
     std::string       Item;
     int               Colors[4];
@@ -53,7 +54,7 @@ bool TryParseColor(const std::string& Str, SDK::FLinearColor& OutColor) {
     return true;
 }
 
-template <typename T> bool TryParseEnum(const std::string& Str, T& Out) {
+template <typename T> static bool TryParseEnum(const std::string& Str, T& Out) {
     int IntValue;
     if (TryParseInt(Str, IntValue)) {
         Out = static_cast<T>(IntValue);
@@ -64,12 +65,12 @@ template <typename T> bool TryParseEnum(const std::string& Str, T& Out) {
 
 // --- Config Serialization Functions --------------------------------
 
-void SerializeKeybinds(ConfigData& Config) {
+static void SerializeKeybinds(ConfigData& Config) {
     Config.Keybinds.KeybindData =
         Config.Keybinds.Keybinds.empty() ? "" : Keybind::SerializeKeybinds(Config.Keybinds.Keybinds);
 }
 
-template <typename T> bool ShouldSerializeValue(const T& Value, const T& MergeValue) {
+template <typename T> static bool ShouldSerializeValue(const T& Value, const T& MergeValue) {
     if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
         const auto Members = ConfigReflection::DescribeMembers<T>();
         bool       AnyDifference = false;
@@ -90,8 +91,8 @@ template <typename T> bool ShouldSerializeValue(const T& Value, const T& MergeVa
 }
 
 template <typename T>
-void StructureToIni(ini::IniFile& Ini, const T& Value, const T& MergeValue, bool IgnoreMergeConfig,
-                    const std::string& Section = "", const std::string& ValueName = "") {
+static void StructureToIni(ini::IniFile& Ini, const T& Value, const T& MergeValue, bool IgnoreMergeConfig,
+                           const std::string& Section = "", const std::string& ValueName = "") {
     if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
         if (!IgnoreMergeConfig && !ShouldSerializeValue(Value, MergeValue)) {
             return;
@@ -152,7 +153,7 @@ void StructureToIni(ini::IniFile& Ini, const T& Value, const T& MergeValue, bool
     }
 }
 
-template <typename T> bool IniToStructure(ini::IniFile& Ini, const std::string& Section, T& OutValue) {
+template <typename T> static bool IniToStructure(ini::IniFile& Ini, const std::string& Section, T& OutValue) {
     if constexpr (requires { ConfigReflection::DescribeMembers<T>(); }) {
         const auto Members = ConfigReflection::DescribeMembers<T>();
         bool       AllSuccess = true;
@@ -228,23 +229,7 @@ template <typename T> bool IniToStructure(ini::IniFile& Ini, const std::string& 
     }
 }
 
-std::string ConfigData::SerializeConfig(bool FullConfig) {
-    SerializeKeybinds(*this);
-
-    ini::IniFile Ini;
-    if (FullConfig) {
-        StructureToIni(Ini, *this, *this, true);
-    } else {
-        ConfigData Default = {};
-        StructureToIni(Ini, *this, Default, false);
-    }
-
-    std::ostringstream ss;
-    Ini.encode(ss);
-    return base64_encode(ss.str());
-}
-
-bool DeserializeKeybinds(ConfigData& Config) {
+static bool DeserializeKeybinds(ConfigData& Config) {
     if (Config.Keybinds.KeybindData.empty()) {
         return true;
     }
@@ -262,6 +247,22 @@ bool DeserializeKeybinds(ConfigData& Config) {
     return true;
 }
 
+std::string ConfigData::SerializeConfig(bool FullConfig) {
+    SerializeKeybinds(*this);
+
+    ini::IniFile Ini;
+    if (FullConfig) {
+        StructureToIni(Ini, *this, *this, true);
+    } else {
+        ConfigData Default = {};
+        StructureToIni(Ini, *this, Default, false);
+    }
+
+    std::ostringstream ss;
+    Ini.encode(ss);
+    return base64_encode(ss.str());
+}
+
 bool ConfigData::DeserializeConfig(const std::string& Data) {
     try {
         ini::IniFile Ini;
@@ -274,8 +275,7 @@ bool ConfigData::DeserializeConfig(const std::string& Data) {
             return true;
         }
         return false;
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
 }

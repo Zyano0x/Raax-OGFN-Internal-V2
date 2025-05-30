@@ -1,6 +1,7 @@
 #pragma once
-
 #include "memory.h"
+
+#include <utils/log.h>
 
 namespace Memory {
 

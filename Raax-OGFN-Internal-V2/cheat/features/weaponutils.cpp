@@ -1,4 +1,5 @@
 #include "weaponutils.h"
+
 #include <chrono>
 
 #include <extern/imgui/imgui.h>
@@ -11,7 +12,7 @@ namespace WeaponUtils {
 
 // --- State ---------------------------------------------------------
 
-State s;
+static State s;
 
 State& GetState() {
     return s;
@@ -33,7 +34,7 @@ SDK::FVector PredictProjectile(const SDK::FVector& Origin, const SDK::FVector& T
 
 // --- Per-Frame Updates ---------------------------------------------
 
-void SetCurrentBone() {
+static void SetCurrentBone() {
     if (s.Config.Bone == Config::ConfigData::TargetBone::Random) {
         static std::mt19937                                                RNG{std::random_device{}()};
         static std::chrono::time_point<std::chrono::high_resolution_clock> LastBoneRefresh;
@@ -63,7 +64,7 @@ void SetCurrentBone() {
     }
 }
 
-void UpdateGravityScales() {
+static void UpdateGravityScales() {
     static std::vector<SDK::AFortProjectileBase*> Projectiles;
     SDK::GetAllActorsOfClass<SDK::AFortProjectileBase>(Projectiles);
     for (auto& Proj : Projectiles) {
@@ -73,7 +74,7 @@ void UpdateGravityScales() {
     }
 }
 
-void DetectAmmoType() {
+static void DetectAmmoType() {
     auto* Pawn = SDK::Cast<SDK::AFortPawn>(SDK::GetLocalPawn());
     if (!Pawn) {
         s.CurrentAmmo = AmmoType::Unknown;
@@ -126,7 +127,7 @@ void DetectAmmoType() {
         s.CurrentAmmo = AmmoType::Other;
 }
 
-void UpdateConfig() {
+static void UpdateConfig() {
     s.Config = s.CurrentAmmo != AmmoType::Unknown && Config::g_Config.Aimbot.SplitAimbotByAmmo
                    ? [&] {
                          switch (s.CurrentAmmo) {
@@ -145,7 +146,7 @@ void UpdateConfig() {
                    : Config::g_Config.Aimbot.AllAimbot;
 }
 
-void UpdateSmoothness() {
+static void UpdateSmoothness() {
     static std::chrono::time_point<std::chrono::high_resolution_clock> LastFrameTime;
     auto                                                               Now = std::chrono::high_resolution_clock::now();
     float Elapsed = std::chrono::duration<float>(Now - LastFrameTime).count();

@@ -8,29 +8,27 @@ namespace AutoRevertFeature {
 // --- Auto Revert Classes -------------------------------------------
 
 class IAutoRevertFeature {
-public:
+  public:
     virtual ~IAutoRevertFeature() = default;
     virtual bool IsDuplicate(void* Address, const bool* Enabled, uint8_t BitMask) const = 0;
     virtual bool Tick() = 0;
 };
 
-template <typename T>
-class AutoRevertFeature : public IAutoRevertFeature {
-private:
+template <typename T> class AutoRevertFeature : public IAutoRevertFeature {
+  private:
     T*          Address;
     T           OriginalValue;
     const bool* Enabled;
 
-public:
+  public:
     AutoRevertFeature(T* Address, const bool* Enabled);
     ~AutoRevertFeature() override;
     bool IsDuplicate(void* Address, const bool* Enabled, uint8_t BitMask) const override;
     bool Tick() override;
 };
 
-template <typename T>
-class AutoRevertScalingFeature : public IAutoRevertFeature {
-private:
+template <typename T> class AutoRevertScalingFeature : public IAutoRevertFeature {
+  private:
     T*           Address;
     T            OriginalValue;
     T            TargetValue;
@@ -39,7 +37,7 @@ private:
     const float* Scalar;
     const bool*  Enabled;
 
-public:
+  public:
     AutoRevertScalingFeature(T* Address, T TargetValue, const float* Scalar, const bool* Enabled);
     ~AutoRevertScalingFeature() override;
     bool IsDuplicate(void* Address, const bool* Enabled, uint8_t BitMask) const override;
@@ -49,9 +47,7 @@ public:
 // --- Public Creation Functions -------------------------------------
 
 template <typename T> void Create(T* Address, const bool* Enabled);
-
-template <typename T>
-void CreateScaling(T* Address, T TargetValue, const float* Scalar, const bool* Enabled);
+template <typename T> void CreateScaling(T* Address, T TargetValue, const float* Scalar, const bool* Enabled);
 
 // --- Public Initialization & Tick Functions ------------------------
 
@@ -64,4 +60,4 @@ extern std::vector<std::unique_ptr<IAutoRevertFeature>> g_AutoRevertFeatures;
 
 } // namespace AutoRevertFeature
 
-#include "AutoRevertFeature.inl"
+#include "autorevertfeature.inl"

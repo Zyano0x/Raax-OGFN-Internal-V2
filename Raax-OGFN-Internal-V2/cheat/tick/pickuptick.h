@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cheat/sdk/sdk.h>
 
 namespace Tick {

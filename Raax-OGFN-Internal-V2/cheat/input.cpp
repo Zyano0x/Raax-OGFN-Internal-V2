@@ -1,4 +1,3 @@
-#pragma once
 #include "input.h"
 
 namespace Input {
@@ -36,7 +35,7 @@ bool IsKeyDown(KeyID Key) {
     return Core::g_LocalPlayerController->IsInputKeyDown(fKey);
 }
 #else
-ImGuiKey KeyIDToImGuiKey(KeyID Key) {
+static ImGuiKey KeyIDToImGuiKey(KeyID Key) {
     switch (Key) {
     case KeyID::LeftMouseButton:
         return ImGuiKey_MouseLeft;
