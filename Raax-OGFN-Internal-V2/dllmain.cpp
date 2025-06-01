@@ -6,7 +6,7 @@
 
 static DWORD Main(LPVOID hModule) {
 #if CFG_MAINTHREAD
-    bool Result = Core::Init();
+    bool Result = Core::Init(hModule);
     LOG(LOG_INFO, "Core::Init() -> %d", Result);
 #endif
 

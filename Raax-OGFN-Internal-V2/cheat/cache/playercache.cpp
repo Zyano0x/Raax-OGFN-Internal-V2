@@ -44,12 +44,13 @@ static void PopulateBones(PlayerInfo& Cache) {
     if (!Cache.Mesh)
         return;
 
+    SDK::FTransform ComponentToWorld = Cache.Mesh->ComponentToWorld;
     for (int i = 0; i < static_cast<int>(BoneIdx::NUM); i++) {
         if (i == static_cast<int>(BoneIdx::Chest))
             continue;
 
         int32_t Bone = Cache.BoneIndicies[i];
-        Cache.BoneWorldPos[i] = Cache.Mesh->GetBoneLocation(Bone);
+        Cache.BoneWorldPos[i] = Cache.Mesh->GetBoneLocation(Bone, ComponentToWorld);
         Cache.BoneScreenPos[i] = SDK::Project(Cache.BoneWorldPos[i]);
     }
 

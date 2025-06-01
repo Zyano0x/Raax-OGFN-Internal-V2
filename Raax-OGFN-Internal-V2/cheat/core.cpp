@@ -17,11 +17,11 @@
 #include <cheat/features/exploits.h>
 #include <drawing/drawing.h>
 #include <config/keybind.h>
-#include <globals.h>
 #include <gui/mainwindow.h>
 #include <gui/gui.h>
 #include <utils/log.h>
 #include <utils/math.h>
+#include <globals.h>
 
 namespace Core {
 
@@ -136,14 +136,16 @@ static void UpdateGlobalVariables() {
 
 // --- Initialization ------------------------------------------------
 
-bool Init() {
-    LOG(LOG_TRACE, "Setting up core...");
+bool Init(void* hModule) {
 #if CFG_USELOGGING
     Log::InitLogger();
 #endif
 #if CFG_SHOWCONSOLE
     Log::CreateConsole();
 #endif
+    LOG(LOG_TRACE, "Setting up core...");
+    LOG(LOG_INFO, "Image Base: %llX", Memory::GetImageBase());
+    LOG(LOG_INFO, "Module Base: %llX", hModule);
     return Hooks::Init() && SDK::Init() && GUI::Init() && DrawTransition::Init();
 }
 

@@ -235,7 +235,7 @@ class UFortWeaponItemDefinition : public UFortItemDefinition {
     STATICCLASS_DEFAULTOBJECT("FortWeaponItemDefinition", UFortWeaponItemDefinition);
 
   public:
-    UPROPERTY(TSoftObjectPtr<UFortWeaponItemDefinition>, AmmoData);
+    UPROPERTY(TSoftObjectPtr<UFortItemDefinition>, AmmoData);
     UPROPERTY(EFortWeaponTriggerType, TriggerType);
 };
 

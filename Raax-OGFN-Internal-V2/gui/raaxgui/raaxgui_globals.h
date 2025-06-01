@@ -17,8 +17,12 @@ struct InputData {
 
 struct RaaxStyle {
     Vec2 ElementSpacing = Vec2(4.f, 4.f);
-
     Color WindowCol = Color(0.1f, 0.1f, 0.1f, 1.f);
+
+    Color ButtonCol = Color(0.2f, 0.2f, 0.2f, 1.f);
+    Color ButtonTextCol = Color(1.f, 1.f, 1.f, 1.f);
+    Vec2  ButtonSize = Vec2(70.f, 50.f);
+    float ButtonTextFontSize = 10.f;
 
     Color CheckboxCol = Color(0.2f, 0.2f, 0.2f, 1.f);
     Color CheckboxBoxCol = Color(0.2f, 0.8f, 0.2f, 1.f);
@@ -40,6 +44,7 @@ struct RaaxStyle {
 
 inline bool g_PendingNextWindowSize = false;
 inline Vec2 g_NextWindowSize = Vec2();
+inline bool g_SameLine = false;
 
 inline bool                                                 g_InFrame = false;
 inline std::unordered_map<int, std::unique_ptr<RaaxWindow>> g_Windows;

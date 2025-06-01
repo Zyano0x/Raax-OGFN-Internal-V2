@@ -48,18 +48,18 @@ std::string FName::ToString() const {
     return FStr.ToString();
 }
 
-FString* FText::Get() const {
+FString& FText::Get() const {
     uint32_t Offset = g_EngineVersion >= 5.f ? 0x30 : 0x28;
-    FString* Text = (FString*)((uint64_t)Data + Offset);
+    FString& Text = *(FString*)((uint64_t)TextData + Offset);
     return Text;
 }
 std::string FText::ToString() const {
-    if (!Data)
+    if (!TextData)
         return "";
 
-    FString* Text = Get();
-    if (Text->IsValid()) {
-        return Text->ToString();
+    FString& Text = Get();
+    if (Text.IsValid()) {
+        return Text.ToString();
     }
 
     return "";

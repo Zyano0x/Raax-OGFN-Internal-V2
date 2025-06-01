@@ -8,13 +8,29 @@
 namespace RaaxGUI {
 namespace Impl {
 
+RaaxButton::RaaxButton(RaaxWindow* Window, const char* Name)
+    : RaaxElement(Window), m_Name(Name), m_Clicked(false), m_JustEndedClick(false), m_SameLine(false),
+      m_Size(g_Style.ButtonSize) {}
+
+void RaaxButton::Render() {
+    m_JustEndedClick = false;
+
+    RaaxWindow* ParentWindow = static_cast<RaaxWindow*>(m_Parent);
+    m_Pos = ParentWindow->GetNextElementPos(m_Size, m_SameLine);
+
+    DrawFilledRect(m_Pos, m_Size, g_Style.ButtonCol);
+
+    Vec2 TextPos = Vec2(m_Pos.X + (m_Size.X / 2.f), m_Pos.Y + (m_Size.Y / 2.f));
+    DrawText(m_Name.c_str(), TextPos, g_Style.ButtonTextCol, g_Style.ButtonTextFontSize, true, true, true);
+}
+
 RaaxCheckbox::RaaxCheckbox(RaaxWindow* Window, const char* Name, bool* pValue)
-    : RaaxElement(Window), m_Name(Name), m_pValue(pValue), m_Clicked(false),
+    : RaaxElement(Window), m_Name(Name), m_pValue(pValue), m_Clicked(false), m_SameLine(false),
       m_Size(Vec2(g_Style.CheckboxSize, g_Style.CheckboxSize)) {}
 
 void RaaxCheckbox::Render() {
     RaaxWindow* ParentWindow = static_cast<RaaxWindow*>(m_Parent);
-    m_Pos = ParentWindow->GetNextElementPos(m_Size);
+    m_Pos = ParentWindow->GetNextElementPos(m_Size, m_SameLine);
 
     DrawFilledRect(m_Pos, m_Size, g_Style.CheckboxCol);
 
@@ -28,40 +44,32 @@ void RaaxCheckbox::Render() {
     DrawText(m_Name.c_str(), TextPos, g_Style.CheckboxTextCol, g_Style.CheckboxTextFontSize, false, false, true);
 }
 
+bool RaaxButton::CollidesWith(const Vec2& Pos) {
+    Vec2 TopLeft = m_Pos;
+    Vec2 BottomRight = m_Pos + m_Size;
+    return Pos.X >= TopLeft.X && Pos.Y >= TopLeft.Y && Pos.X < BottomRight.X && Pos.Y < BottomRight.Y;
+}
+
 bool RaaxCheckbox::CollidesWith(const Vec2& Pos) {
     Vec2 TopLeft = m_Pos;
     Vec2 BottomRight = m_Pos + m_Size;
     return Pos.X >= TopLeft.X && Pos.Y >= TopLeft.Y && Pos.X < BottomRight.X && Pos.Y < BottomRight.Y;
 }
 
+void RaaxCheckbox::Update(bool* pValue) {
+    m_pValue = pValue;
+}
+
 template <typename T>
 RaaxSlider<T>::RaaxSlider(RaaxWindow* Window, const char* Name, T* pValue, T Min, T Max)
-    : RaaxElement(Window), m_Name(Name), m_pValue(pValue), m_Clicked(false),
+    : RaaxElement(Window), m_Name(Name), m_pValue(pValue), m_Clicked(false), m_SameLine(false),
       m_Size(Vec2(std::max(g_Style.SliderSize.X, g_Style.SliderGrabberSize.X),
                   std::max(g_Style.SliderSize.Y, g_Style.SliderGrabberSize.Y) + g_Style.SliderTextFontSize)),
       m_Min(Min), m_Max(Max) {}
 
-template <typename T> float RaaxSlider<T>::GetPercentageFull() {
-    return std::clamp((static_cast<float>(*m_pValue - m_Min) / static_cast<float>(m_Max - m_Min)), 0.f, 1.f);
-}
-template <typename T> Vec2 RaaxSlider<T>::GetSliderPos() {
-    return Vec2(m_Pos.X, m_Pos.Y + g_Style.SliderGrabberSize.Y / 3.f);
-}
-template <typename T> Vec2 RaaxSlider<T>::GetSliderGrabberPos() {
-    float PercentageFull = GetPercentageFull();
-    float HalfGrabber = g_Style.SliderGrabberSize.X / 2.f;
-    float SliderStart = m_Pos.X;
-    float SliderEnd = m_Pos.X + g_Style.SliderSize.X;
-
-    float CenterX = SliderStart + (g_Style.SliderSize.X * PercentageFull);
-    CenterX = std::clamp(CenterX, SliderStart + HalfGrabber, SliderEnd - HalfGrabber);
-
-    return Vec2(CenterX - HalfGrabber, m_Pos.Y);
-}
-
 template <typename T> void RaaxSlider<T>::Render() {
     RaaxWindow* ParentWindow = static_cast<RaaxWindow*>(m_Parent);
-    m_Pos = ParentWindow->GetNextElementPos(m_Size);
+    m_Pos = ParentWindow->GetNextElementPos(m_Size, m_SameLine);
 
     float PercentageFull = GetPercentageFull();
     Vec2  SliderPos = GetSliderPos();
@@ -85,6 +93,24 @@ template <typename T> void RaaxSlider<T>::Render() {
     DrawText(m_Name.c_str(), TextPos, g_Style.SliderTextCol, g_Style.SliderTextFontSize, false, false, true);
 }
 
+template <typename T> float RaaxSlider<T>::GetPercentageFull() {
+    return std::clamp((static_cast<float>(*m_pValue - m_Min) / static_cast<float>(m_Max - m_Min)), 0.f, 1.f);
+}
+template <typename T> Vec2 RaaxSlider<T>::GetSliderPos() {
+    return Vec2(m_Pos.X, m_Pos.Y + g_Style.SliderGrabberSize.Y / 3.f);
+}
+template <typename T> Vec2 RaaxSlider<T>::GetSliderGrabberPos() {
+    float PercentageFull = GetPercentageFull();
+    float HalfGrabber = g_Style.SliderGrabberSize.X / 2.f;
+    float SliderStart = m_Pos.X;
+    float SliderEnd = m_Pos.X + g_Style.SliderSize.X;
+
+    float CenterX = SliderStart + (g_Style.SliderSize.X * PercentageFull);
+    CenterX = std::clamp(CenterX, SliderStart + HalfGrabber, SliderEnd - HalfGrabber);
+
+    return Vec2(CenterX - HalfGrabber, m_Pos.Y);
+}
+
 template <typename T> bool RaaxSlider<T>::CollidesWith(const Vec2& Pos) {
     Vec2 SliderPos = GetSliderPos();
     Vec2 SliderGrabberPos = GetSliderGrabberPos();
@@ -104,8 +130,14 @@ template <typename T> void RaaxSlider<T>::TickClick(const Vec2& Pos) {
     *m_pValue = static_cast<T>(m_Min + PercentComplete * (m_Max - m_Min));
 }
 
-template class RaaxGUI::Impl::RaaxSlider<int>;
-template class RaaxGUI::Impl::RaaxSlider<float>;
+template <typename T> void RaaxSlider<T>::Update(T* pValue, T Min, T Max) {
+    m_pValue = pValue;
+    m_Min = Min;
+    m_Max = Max;
+}
+
+template class RaaxSlider<int>;
+template class RaaxSlider<float>;
 
 } // namespace Impl
 } // namespace RaaxGUI

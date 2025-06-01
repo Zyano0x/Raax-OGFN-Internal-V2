@@ -21,6 +21,7 @@ struct ConfigData {
     struct VisualsConfig {
         struct PlayerConfig {
             float MaxDistance = 300.f;
+            float FontSize = 16.f;
 
             bool    Box = true;
             BoxType BoxType = BoxType::Cornered;

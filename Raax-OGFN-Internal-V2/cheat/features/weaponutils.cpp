@@ -6,6 +6,7 @@
 #include <cheat/core.h>
 #include <config/config.h>
 #include <drawing/drawing.h>
+#include <utils/error.h>
 
 namespace Features {
 namespace WeaponUtils {
@@ -113,6 +114,9 @@ static void DetectAmmoType() {
         s.CurrentAmmo = AmmoType::Unknown;
         return;
     }
+
+    if (!AmmoData->IsA(SDK::UFortItemDefinition::StaticClass()))
+        Error::ThrowError("Open a GitHub issue and let me know which game version you are on!");
 
     auto AmmoName = AmmoData->DisplayName.ToString();
     if (AmmoName == "Ammo: Shells")

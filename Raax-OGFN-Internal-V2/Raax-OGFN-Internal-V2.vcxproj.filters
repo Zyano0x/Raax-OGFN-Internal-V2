@@ -46,13 +46,13 @@
     <ClCompile Include="extern\imgui\imgui_draw.cpp" />
     <ClCompile Include="extern\imgui\imgui_demo.cpp" />
     <ClCompile Include="extern\imgui\imgui.cpp" />
-    <ClCompile Include="extern\raaxgui\raaxgui.cpp" />
+    <ClCompile Include="gui\raaxgui\raaxgui.cpp" />
     <ClCompile Include="cheat\autorevertfeature.cpp" />
     <ClCompile Include="extern\cpp-base64\base64.cpp" />
     <ClCompile Include="cheat\input.cpp" />
-    <ClCompile Include="extern\raaxgui\raaxgui_element.cpp" />
-    <ClCompile Include="extern\raaxgui\raaxgui_elements.cpp" />
-    <ClCompile Include="extern\raaxgui\raaxgui_window.cpp" />
+    <ClCompile Include="gui\raaxgui\raaxgui_element.cpp" />
+    <ClCompile Include="gui\raaxgui\raaxgui_elements.cpp" />
+    <ClCompile Include="gui\raaxgui\raaxgui_window.cpp" />
     <ClCompile Include="utils\string.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -102,8 +102,8 @@
     <ClInclude Include="cheat\features\triggerbot.h" />
     <ClInclude Include="cheat\features\weaponutils.h" />
     <ClInclude Include="extern\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_impl.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui_impl.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui.h" />
     <ClInclude Include="cheat\features\exploits.h" />
     <ClInclude Include="extern\imgui\imstb_truetype.h" />
     <ClInclude Include="extern\imgui\imgui_impl_win32.h" />
@@ -115,12 +115,12 @@
     <ClInclude Include="cheat\autorevertfeature.h" />
     <ClInclude Include="extern\inifile-cpp\inicpp.h" />
     <ClInclude Include="extern\cpp-base64\base64.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_input.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui_input.h" />
     <ClInclude Include="cheat\input.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_window.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_element.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_elements.h" />
-    <ClInclude Include="extern\raaxgui\raaxgui_globals.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui_window.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui_element.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui_elements.h" />
+    <ClInclude Include="gui\raaxgui\raaxgui_globals.h" />
     <ClInclude Include="utils\string.h" />
   </ItemGroup>
   <ItemGroup>

@@ -9,8 +9,7 @@
 namespace SDK {
 
 void UObject::ProcessEvent(class UFunction* Function, void* Parms) const {
-    void (*PE)(const UObject* Object, class UFunction* Function, void* Parms) =
-        (decltype(PE))this->VTable[ProcessEvent_Idx];
+    void (*PE)(const UObject* Object, class UFunction* Function, void* Parms) = (decltype(PE))VTable[ProcessEvent_Idx];
     PE(this, Function, Parms);
 }
 
@@ -71,8 +70,6 @@ PropertyInfo UObject::GetPropertyInfo(const FName& ClassName, const FName& Prope
     return Info;
 }
 UFunction* UObject::GetFunction(const FName& ClassName, const FName& FunctionName, bool SuppressFailure) {
-    return FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindFunction(FunctionName);
-
     UFunction* const Function = FindObjectFast<UStruct>(ClassName, EClassCastFlags::Struct)->FindFunction(FunctionName);
 
     if (!SuppressFailure && !Function)

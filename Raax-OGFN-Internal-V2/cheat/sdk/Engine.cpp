@@ -131,12 +131,11 @@ FTransform USceneComponent::getprop_ComponentToWorld() const {
         static UFunction* Func = GetFunction("SceneComponent", "K2_GetComponentToWorld");
         struct {
             FTransform ReturnValue;
+            uint8_t    Pad[0x30]; // No idea why, but this fixes crash on ProcessEvent on 3.5
         } params_ComponentToWorld{};
 
         if (Func)
             ProcessEvent(Func, &params_ComponentToWorld);
-        else
-            LOG(LOG_WARN, "Failed to find USceneComponent::ComponentToWorld!");
 
         return params_ComponentToWorld.ReturnValue;
     }
@@ -173,11 +172,9 @@ FTransform USkeletalMeshComponent::GetBoneMatrix(int32_t BoneIndex) const {
 
     return FTransform();
 }
-FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex) const {
+FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex, FTransform ComponentToWrld) const {
     FTransform BoneMatrix = GetBoneMatrix(BoneIndex);
-    FTransform ComponentToWrld = ComponentToWorld;
-
-    FMatrix Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
+    FMatrix    Matrix = BoneMatrix.ToMatrixWithScale() * ComponentToWrld.ToMatrixWithScale();
     return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
 }
 

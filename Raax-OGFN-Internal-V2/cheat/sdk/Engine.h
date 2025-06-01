@@ -283,7 +283,7 @@ class USkeletalMeshComponent : public USkinnedMeshComponent {
 
   public:
     FTransform GetBoneMatrix(int32_t BoneIndex) const;
-    FVector    GetBoneLocation(int32_t BoneIndex) const;
+    FVector    GetBoneLocation(int32_t BoneIndex, FTransform ComponentToWrld) const;
 };
 
 class AActor : public UObject {

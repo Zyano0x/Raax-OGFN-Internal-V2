@@ -1,5 +1,6 @@
 #pragma once
 #include <mutex>
+
 #include <cheat/sdk/Engine.h>
 
 namespace Core {
@@ -9,7 +10,7 @@ SDK::UWorld* GetNewWorld();
 
 // --- Initialization ------------------------------------------------
 
-bool Init();
+bool Init(void* hModule);
 void Destroy();
 
 // --- Public Tick Functions -----------------------------------------

@@ -116,28 +116,64 @@ void End() {
     Impl::g_CurrentWindow = nullptr;
 }
 
+void SameLine() {
+    Impl::g_SameLine = true;
+}
+
+bool Button(const char* Name) {
+    if (!Impl::g_CurrentWindow)
+        Impl::ThrowError("Attempted to create a button whilst not in a window!");
+
+    bool SameLine = Impl::g_SameLine;
+    Impl::g_SameLine = false;
+
+    int  Id = Impl::HashString(Name);
+    auto Elem = static_cast<Impl::RaaxButton*>(Impl::g_CurrentWindow->AddButton(Id, Name));
+    if (Elem) {
+        Elem->SetSameLine(SameLine);
+        return Elem->JustEndedClick();
+    }
+    return false;
+}
+
 void Checkbox(const char* Name, bool* pValue) {
     if (!Impl::g_CurrentWindow)
         Impl::ThrowError("Attempted to create a checkbox whilst not in a window!");
 
-    int Id = Impl::HashString(Name);
-    Impl::g_CurrentWindow->AddCheckbox(Id, Name, pValue);
+    bool SameLine = Impl::g_SameLine;
+    Impl::g_SameLine = false;
+
+    int  Id = Impl::HashString(Name);
+    auto Elem = static_cast<Impl::RaaxCheckbox*>(Impl::g_CurrentWindow->AddCheckbox(Id, Name, pValue));
+    if (Elem)
+        Elem->SetSameLine(SameLine);
 }
 
 void SliderInt(const char* Name, int* pValue, int Min, int Max) {
     if (!Impl::g_CurrentWindow)
         Impl::ThrowError("Attempted to create an int slider whilst not in a window!");
 
-    int Id = Impl::HashString(Name);
-    Impl::g_CurrentWindow->AddSliderInt(Id, Name, pValue, Min, Max);
+    bool SameLine = Impl::g_SameLine;
+    Impl::g_SameLine = false;
+
+    int  Id = Impl::HashString(Name);
+    auto Elem = static_cast<Impl::RaaxSlider<int>*>(Impl::g_CurrentWindow->AddSliderInt(Id, Name, pValue, Min, Max));
+    if (Elem)
+        Elem->SetSameLine(SameLine);
 }
 
 void SliderFloat(const char* Name, float* pValue, float Min, float Max) {
     if (!Impl::g_CurrentWindow)
         Impl::ThrowError("Attempted to create an float slider whilst not in a window!");
 
-    int Id = Impl::HashString(Name);
-    Impl::g_CurrentWindow->AddSliderFloat(Id, Name, pValue, Min, Max);
+    bool SameLine = Impl::g_SameLine;
+    Impl::g_SameLine = false;
+
+    int  Id = Impl::HashString(Name);
+    auto Elem =
+        static_cast<Impl::RaaxSlider<float>*>(Impl::g_CurrentWindow->AddSliderFloat(Id, Name, pValue, Min, Max));
+    if (Elem)
+        Elem->SetSameLine(SameLine);
 }
 
 // --- Public Tick Functions -----------------------------------------

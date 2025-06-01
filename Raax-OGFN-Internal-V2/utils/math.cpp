@@ -1,4 +1,5 @@
 #include "math.h"
+
 #include <algorithm>
 
 #include <cheat/core.h>
@@ -72,7 +73,7 @@ SDK::FRotator FindLookAtRotation(const SDK::FVector& Start, const SDK::FVector& 
 
 SDK::FVector GetForwardVector(const SDK::FRotator& InRot) {
     float PitchNoWinding = fmodf(InRot.Pitch, 360.f);
-    float YawNoWinding = fmod(InRot.Yaw, 360.f);
+    float YawNoWinding = fmodf(InRot.Yaw, 360.f);
 
     float CP, SP, CY, SY;
     SinCos(&SP, &CP, DegreesToRadians(PitchNoWinding));

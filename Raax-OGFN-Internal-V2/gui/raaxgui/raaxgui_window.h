@@ -14,13 +14,17 @@ class RaaxWindow final : public RaaxElement {
   public:
     void Render() override;
 
-  public:
-    void AddCheckbox(int Id, const char* Name, bool* pValue);
-    void AddSliderInt(int Id, const char* Name, int* pValue, int Min, int Max);
-    void AddSliderFloat(int Id, const char* Name, float* pValue, float Min, float Max);
+  private:
+    void RemoveUnseenElements();
 
   public:
-    Vec2 GetNextElementPos(const Vec2& ElementSize);
+    RaaxElement* AddButton(int Id, const char* Name);
+    RaaxElement* AddCheckbox(int Id, const char* Name, bool* pValue);
+    RaaxElement* AddSliderInt(int Id, const char* Name, int* pValue, int Min, int Max);
+    RaaxElement* AddSliderFloat(int Id, const char* Name, float* pValue, float Min, float Max);
+
+  public:
+    Vec2 GetNextElementPos(const Vec2& ElementSize, bool SameLine);
 
   public:
     RaaxElement* GetCollidingElement(const Vec2& Pos);
@@ -45,13 +49,14 @@ class RaaxWindow final : public RaaxElement {
   private:
     Vec2 m_ClickPos;
     Vec2 m_CurrentElementPos;
+    bool m_IsFirstElement;
 
     std::string m_Name;
     Vec2        m_Pos;
     Vec2        m_Size;
     bool        m_Open = false;
 
-    std::unordered_map<int, std::unique_ptr<RaaxElement>> m_Elements;
+    std::unordered_map<int, std::pair<bool, std::unique_ptr<RaaxElement>>> m_Elements;
 
   public:
     bool SeenThisFrame = false;

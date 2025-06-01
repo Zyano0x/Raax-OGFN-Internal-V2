@@ -16,6 +16,7 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::Pl
     using T = Config::ConfigData::VisualsConfig::PlayerConfig;
     return std::make_tuple(
         MemberDescriptor<T, float>{"MaxDistance", &T::MaxDistance, {}}, MemberDescriptor<T, bool>{"Box", &T::Box, {}},
+        MemberDescriptor<T, float>{"FontSize", &T::FontSize, {}},
         MemberDescriptor<T, Config::ConfigData::BoxType>{"BoxType", &T::BoxType, {}},
         MemberDescriptor<T, float>{"BoxThickness", &T::BoxThickness, {}},
         MemberDescriptor<T, bool>{"FilledBox", &T::FilledBox, {}},

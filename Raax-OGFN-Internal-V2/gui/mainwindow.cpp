@@ -9,7 +9,7 @@
 #include <cheat/sdk/Engine.h>
 
 #ifdef _ENGINE
-#include <extern/raaxgui/raaxgui.h>
+#include <gui/raaxgui/raaxgui.h>
 #endif
 
 namespace GUI {
@@ -204,6 +204,7 @@ static void AimbotTab() {
         if (ImGui::BeginChild("AimbotConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
             ImGui::BeginTabBar("Aimbot Tab");
 
+            // Scuffed attempt to fix flickering when toggling SplitAimbotByAmmo
             static bool AllWeaponsSelected = false;
 
             ImGui::BeginDisabled(!AllWeaponsSelected && AimbotConfig.SplitAimbotByAmmo);
@@ -278,6 +279,7 @@ static void VisualsTab() {
         ImGui::BeginTabBar("Visuals Tab");
         if (ImGui::BeginTabItem("Player")) {
             ImGui::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
+            ImGui::SliderFloat("Font Size", &Config.Player.FontSize, 4.f, 32.f);
 
             ImGui::Checkbox("Box", &Config.Player.Box);
             if (Config.Player.Box) {
@@ -411,12 +413,10 @@ static void ExploitsTab() {
             Config.DamageMultiplierAmount /= 50.f;
 
             ImGui::Checkbox("Fast Pickaxe", &Config.FastPickaxe);
-            if (Config.FastPickaxe) {
-                Config.FastPickaxeSpeed *= 50.f; // scuffed fix for now
-                ImGui::SameLine();
-                ImGui::SliderFloat("Speed##5", &Config.FastPickaxeSpeed, 1.f, 50.f);
-                Config.FastPickaxeSpeed /= 50.f;
-            }
+            Config.FastPickaxeSpeed *= 50.f; // scuffed fix for now
+            ImGui::SameLine();
+            ImGui::SliderFloat("Speed##5", &Config.FastPickaxeSpeed, 1.f, 50.f);
+            Config.FastPickaxeSpeed /= 50.f;
 
             ImGui::Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
             ImGui::EndTabItem();
@@ -457,6 +457,8 @@ static void ConfigTab() {
             Config::ConfigData TestConfig = {};
             InputConfigIsValid = TestConfig.DeserializeConfig(InputConfigData);
         }
+        if (InputConfigData[0] == '\0') // ImGui seems to not always return true when deleting the final character
+            InputConfigIsValid = false;
 
         if (ImGui::Button("Copy Config")) {
             ImGui::SetClipboardText(Config::g_Config.SerializeConfig(false).c_str());
@@ -553,15 +555,31 @@ void Tick() {
         RaaxGUI::SetNextWindowSize(SDK::FVector2D(700.f, 375.f));
         if (RaaxGUI::Begin("Raax-OGFN-Internal V2")) {
             auto& Config = Config::g_Config.Visuals;
+            auto& AimbotConfig = Config::g_Config.Aimbot;
 
-            RaaxGUI::Checkbox("Box", &Config.Player.Box);
-            RaaxGUI::Checkbox("Platform", &Config.Player.Platform);
-            RaaxGUI::Checkbox("Name", &Config.Player.Name);
-            RaaxGUI::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
-            RaaxGUI::Checkbox("Distance", &Config.Player.Distance);
+            static int Tab = 0;
+            if (RaaxGUI::Button("Test")) {
+                Tab = 0;
+            }
+            RaaxGUI::SameLine();
+            if (RaaxGUI::Button("Test 2")) {
+                Tab = 1;
+            }
 
-            RaaxGUI::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
-            RaaxGUI::SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
+            if (Tab == 0) {
+                RaaxGUI::Checkbox("Box", &Config.Player.Box);
+                RaaxGUI::Checkbox("Platform", &Config.Player.Platform);
+                RaaxGUI::Checkbox("Name", &Config.Player.Name);
+                RaaxGUI::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
+                RaaxGUI::Checkbox("Distance", &Config.Player.Distance);
+
+                RaaxGUI::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
+                RaaxGUI::SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
+            } else if (Tab == 1) {
+                RaaxGUI::Checkbox("Split By Ammo Type", &AimbotConfig.SplitAimbotByAmmo);
+                RaaxGUI::Checkbox("Bullet Prediction", &AimbotConfig.BulletPrediction);
+                RaaxGUI::Checkbox("Show Target Line", &AimbotConfig.ShowTargetLine);
+            }
         }
         RaaxGUI::End();
         RaaxGUI::EndFrame();

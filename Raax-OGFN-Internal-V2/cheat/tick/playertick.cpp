@@ -52,7 +52,7 @@ void TickRenderThread() {
     const auto& PlayerConfig = Config::g_Config.Visuals.Player;
     const auto& ColorConfig = Config::g_Config.Color;
 
-    float FontSize = 16.f;
+    float FontSize = PlayerConfig.FontSize;
 
     for (const auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
         if (Info.Pawn == SDK::GetLocalPawn() || Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance ||

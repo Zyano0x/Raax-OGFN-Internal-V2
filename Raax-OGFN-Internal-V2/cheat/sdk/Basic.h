@@ -37,16 +37,23 @@ class FName {
     void operator=(const wchar_t* Name);
     void operator=(const char* Name);
 };
+static_assert(alignof(FName) == 0x000004, "Wrong alignment on FName");
+static_assert(sizeof(FName) == 0x000008, "Wrong size on FName");
+static_assert(offsetof(FName, ComparisonIndex) == 0x000000, "Member 'FName::ComparisonIndex' has a wrong offset!");
+static_assert(offsetof(FName, Number) == 0x000004, "Member 'FName::Number' has a wrong offset!");
 
 class FText {
-  private:
-    void*   Data;
+  public:
+    void*   TextData;
     uint8_t Pad[0x10];
 
   public:
-    FString*    Get() const;
+    FString&    Get() const;
     std::string ToString() const;
 };
+static_assert(alignof(FText) == 0x000008, "Wrong alignment on FText");
+static_assert(sizeof(FText) == 0x000018, "Wrong size on FText");
+static_assert(offsetof(FText, TextData) == 0x000000, "Member 'FText::TextData' has a wrong offset!");
 
 class FWeakObjectPtr {
   public:
@@ -61,6 +68,12 @@ class FWeakObjectPtr {
     bool           operator==(const class UObject* Other) const;
     bool           operator!=(const class UObject* Other) const;
 };
+static_assert(alignof(FWeakObjectPtr) == 0x000004, "Wrong alignment on FWeakObjectPtr");
+static_assert(sizeof(FWeakObjectPtr) == 0x000008, "Wrong size on FWeakObjectPtr");
+static_assert(offsetof(FWeakObjectPtr, ObjectIndex) == 0x000000,
+              "Member 'FWeakObjectPtr::ObjectIndex' has a wrong offset!");
+static_assert(offsetof(FWeakObjectPtr, ObjectSerialNumber) == 0x000004,
+              "Member 'FWeakObjectPtr::ObjectSerialNumber' has a wrong offset!");
 
 template <typename TObjectID> class TPersistentObjectPtr {
   public:
@@ -72,12 +85,24 @@ template <typename TObjectID> class TPersistentObjectPtr {
     class UObject* Get() const { return WeakPtr.Get(); }
     class UObject* operator->() const { return WeakPtr.Get(); }
 };
-
 struct FSoftObjectPath {
   public:
     FName   AssetPathName;
     FString SubPathString;
 };
+static_assert(alignof(FSoftObjectPath) == 0x000008, "Wrong alignment on FSoftObjectPath");
+static_assert(sizeof(FSoftObjectPath) == 0x000018, "Wrong size on FSoftObjectPath");
+static_assert(offsetof(FSoftObjectPath, AssetPathName) == 0x000000,
+              "Member 'FSoftObjectPath::AssetPathName' has a wrong offset!");
+static_assert(offsetof(FSoftObjectPath, SubPathString) == 0x000008,
+              "Member 'FSoftObjectPath::SubPathString' has a wrong offset!");
+
+static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, WeakPtr) == 0x000000,
+              "Member 'TPersistentObjectPtr::WeakPtr' has a wrong offset!");
+static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, TagAtLastTest) == 0x000008,
+              "Member 'TPersistentObjectPtr::TagAtLastTest' has a wrong offset!");
+//static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, ObjectID) == 0x00000C,
+//              "Member 'TPersistentObjectPtr::ObjectID' has a wrong offset!");
 
 class FSoftObjectPtr : public TPersistentObjectPtr<FSoftObjectPath> {};
 
@@ -528,9 +553,9 @@ struct FTransform {
   public:
     FQuat   Rotation;
     FVector Translation;
-    int     _pad1 = 0;
+    int     Pad1 = 0;
     FVector Scale;
-    int     _pad2 = 0;
+    int     Pad2 = 0;
 
   public:
     FMatrix ToMatrixWithScale() const {

@@ -162,6 +162,14 @@ class UObject {
                                         bool SuppressFailure = false);
     static UFunction*   GetFunction(const FName& ClassName, const FName& FunctionName, bool SuppressFailure = false);
 };
+static_assert(alignof(UObject) == 0x000008, "Wrong alignment on UObject");
+static_assert(sizeof(UObject) == 0x000028, "Wrong size on UObject");
+static_assert(offsetof(UObject, VTable) == 0x000000, "Member 'UObject::VTable' has a wrong offset!");
+static_assert(offsetof(UObject, Flags) == 0x000008, "Member 'UObject::Flags' has a wrong offset!");
+static_assert(offsetof(UObject, Index) == 0x00000C, "Member 'UObject::Index' has a wrong offset!");
+static_assert(offsetof(UObject, Class) == 0x000010, "Member 'UObject::Class' has a wrong offset!");
+static_assert(offsetof(UObject, Name) == 0x000018, "Member 'UObject::Name' has a wrong offset!");
+static_assert(offsetof(UObject, Outer) == 0x000020, "Member 'UObject::Outer' has a wrong offset!");
 
 class UStruct : public UObject {
   public:
