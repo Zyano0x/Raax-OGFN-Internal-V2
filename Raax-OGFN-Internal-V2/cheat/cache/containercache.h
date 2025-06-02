@@ -8,7 +8,7 @@ namespace Container {
 
 // --- Cache Structures ----------------------------------------------
 
-enum class ContainerType { Chest, AmmoBox };
+enum class ContainerType { NONE = 0, Chest, AmmoBox, Llama, SupplyDrop };
 
 struct ContainerInfo {
     SDK::ABuildingContainer* Actor = nullptr;
@@ -17,21 +17,8 @@ struct ContainerInfo {
     SDK::FVector   RootWorldLocation;
     SDK::FVector2D RootScreenLocation;
 
-    ContainerType Type = ContainerType::Chest;
-
-    bool SeenThisFrame = false;
-};
-
-enum class GameplayActorType { Llama, SupplyDrop };
-
-struct GameplayActorInfo {
-    SDK::AActor*          Actor = nullptr;
-    SDK::USceneComponent* RootComponent = nullptr;
-
-    SDK::FVector   RootWorldLocation;
-    SDK::FVector2D RootScreenLocation;
-
-    GameplayActorType Type = GameplayActorType::SupplyDrop;
+    ContainerType Type = ContainerType::NONE;
+    bool          AlreadySearched = false;
 
     bool SeenThisFrame = false;
 };
@@ -39,7 +26,6 @@ struct GameplayActorInfo {
 // --- Public Cache Functions ----------------------------------------
 
 const std::unordered_map<void*, ContainerInfo>&     GetCachedContainers();
-const std::unordered_map<void*, GameplayActorInfo>& GetCachedGameplayActors();
 
 void UpdateCache();
 

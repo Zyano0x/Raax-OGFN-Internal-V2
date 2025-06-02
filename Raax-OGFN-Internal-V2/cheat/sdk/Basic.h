@@ -101,8 +101,8 @@ static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, WeakPtr) == 0x0000
               "Member 'TPersistentObjectPtr::WeakPtr' has a wrong offset!");
 static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, TagAtLastTest) == 0x000008,
               "Member 'TPersistentObjectPtr::TagAtLastTest' has a wrong offset!");
-//static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, ObjectID) == 0x00000C,
-//              "Member 'TPersistentObjectPtr::ObjectID' has a wrong offset!");
+// static_assert(offsetof(TPersistentObjectPtr<FSoftObjectPath>, ObjectID) == 0x00000C,
+//               "Member 'TPersistentObjectPtr::ObjectID' has a wrong offset!");
 
 class FSoftObjectPtr : public TPersistentObjectPtr<FSoftObjectPath> {};
 
@@ -116,6 +116,30 @@ template <typename UEType> class TSoftClassPtr : public FSoftObjectPtr {
   public:
     UEType* Get() const { return (UEType*)TPersistentObjectPtr::Get(); }
     UEType* operator->() const { return Get(); }
+};
+
+template <typename ClassType> class TSubclassOf {
+    class UClass* ClassPtr;
+
+  public:
+    TSubclassOf() = default;
+    inline TSubclassOf(UClass* Class) : ClassPtr(Class) {}
+    inline UClass* Get() { return ClassPtr; }
+
+    inline operator UClass*() const { return ClassPtr; }
+    template <typename Target, typename = std::enable_if<std::is_base_of_v<Target, ClassType>, bool>::type>
+    inline operator TSubclassOf<Target>() const {
+        return ClassPtr;
+    }
+    inline UClass*      operator->() { return ClassPtr; }
+    inline TSubclassOf& operator=(UClass* Class) {
+        ClassPtr = Class;
+        return *this;
+    }
+    inline bool operator==(const TSubclassOf& Other) const { return ClassPtr == Other.ClassPtr; }
+    inline bool operator!=(const TSubclassOf& Other) const { return ClassPtr != Other.ClassPtr; }
+    inline bool operator==(UClass* Other) const { return ClassPtr == Other; }
+    inline bool operator!=(UClass* Other) const { return ClassPtr != Other; }
 };
 
 enum class EFunctionFlags : uint32_t {

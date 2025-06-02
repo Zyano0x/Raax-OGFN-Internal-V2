@@ -31,7 +31,13 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::Pl
         MemberDescriptor<T, bool>{"CurrentWeapon", &T::CurrentWeapon, {}},
         MemberDescriptor<T, bool>{"Distance", &T::Distance, {}}, MemberDescriptor<T, bool>{"OSI", &T::OSI, {}},
         MemberDescriptor<T, bool>{"OSIMatchFOV", &T::OSIMatchFOV, {}},
-        MemberDescriptor<T, float>{"OSIFOV", &T::OSIFOV, {}}, MemberDescriptor<T, float>{"OSISize", &T::OSISize, {}});
+        MemberDescriptor<T, float>{"OSIFOV", &T::OSIFOV, {}}, MemberDescriptor<T, float>{"OSISize", &T::OSISize, {}},
+        MemberDescriptor<T, bool>{"Chams", &T::Chams, {}},
+        MemberDescriptor<T, bool>{"ChamsOnSelf", &T::ChamsOnSelf, {}},
+        MemberDescriptor<T, bool>{"ChamsWireframe", &T::ChamsWireframe, {}},
+        MemberDescriptor<T, bool>{"ChamsThroughWalls", &T::ChamsThroughWalls, {}},
+        MemberDescriptor<T, float>{"ChamsEmissionIntensity", &T::ChamsEmissionIntensity, {}},
+        MemberDescriptor<T, SDK::FLinearColor>{"ChamsColor", &T::ChamsColor, {}});
 }
 
 template <> constexpr auto DescribeMembers<Config::ConfigData::VisualsConfig::RadarConfig>() {
@@ -128,14 +134,19 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::ExploitConfig>() 
                            MemberDescriptor<T, float>{"NoRecoilAmount", &T::NoRecoilAmount, {}},
                            MemberDescriptor<T, bool>{"NoReload", &T::NoReload, {}},
                            MemberDescriptor<T, float>{"NoReloadAmount", &T::NoReloadAmount, {}},
+                           MemberDescriptor<T, bool>{"NoCharge", &T::NoCharge, {}},
+                           MemberDescriptor<T, float>{"NoChargeAmount", &T::NoChargeAmount, {}},
                            MemberDescriptor<T, bool>{"RapidFire", &T::RapidFire, {}},
                            MemberDescriptor<T, float>{"RapidFireAmount", &T::RapidFireAmount, {}},
                            MemberDescriptor<T, bool>{"DamageMultiplier", &T::DamageMultiplier, {}},
                            MemberDescriptor<T, float>{"DamageMultiplierAmount", &T::DamageMultiplierAmount, {}},
                            MemberDescriptor<T, bool>{"AutomaticWeapons", &T::AutomaticWeapons, {}},
+                           MemberDescriptor<T, bool>{"DoublePump", &T::DoublePump, {}},
+                           MemberDescriptor<T, bool>{"ADSInAir", &T::ADSInAir, {}},
                            MemberDescriptor<T, bool>{"FastPickaxe", &T::FastPickaxe, {}},
                            MemberDescriptor<T, float>{"FastPickaxeSpeed", &T::FastPickaxeSpeed, {}},
                            MemberDescriptor<T, bool>{"ZiplineFly", &T::ZiplineFly, {}},
+                           MemberDescriptor<T, bool>{"AutoReviveSelf", &T::AutoReviveSelf, {}},
                            MemberDescriptor<T, bool>{"InstantRevive", &T::InstantRevive, {}});
 }
 

@@ -312,6 +312,16 @@ static void VisualsTab() {
                 ImGui::SliderFloat("OSI FOV", &Config.Player.OSIFOV, 0.25f, 180.f);
                 ImGui::SliderFloat("OSI Size", &Config.Player.OSISize, 1.f, 20.f);
             }
+
+            ImGui::Checkbox("Chams", &Config.Player.Chams);
+            if (Config.Player.Chams) {
+                ImGui::Checkbox("Chams On Self", &Config.Player.ChamsOnSelf);
+                ImGui::Checkbox("Chams Wireframe", &Config.Player.ChamsWireframe);
+                ImGui::Checkbox("Chams Through Walls", &Config.Player.ChamsThroughWalls);
+                ImGui::SliderFloat("Chams Emission Intensity", &Config.Player.ChamsEmissionIntensity, 0.f, 100.f);
+                ImGui::ColorEdit4("Chams Color", (float*)&Config.Player.ChamsColor);
+            }
+
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Radar")) {
@@ -399,6 +409,9 @@ static void ExploitsTab() {
             ImGui::Checkbox("No Reload", &Config.NoReload);
             ImGui::SameLine();
             ImGui::SliderFloat("Time##2", &Config.NoReloadAmount, 0.f, 1.f);
+            ImGui::Checkbox("No Charge", &Config.NoCharge);
+            ImGui::SameLine();
+            ImGui::SliderFloat("Time##3", &Config.NoChargeAmount, 0.f, 1.f);
 
             ImGui::Checkbox("Rapid Fire", &Config.RapidFire);
             Config.RapidFireAmount *= 50.f; // scuffed fix for now
@@ -419,10 +432,13 @@ static void ExploitsTab() {
             Config.FastPickaxeSpeed /= 50.f;
 
             ImGui::Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
+            ImGui::Checkbox("Double Pump", &Config.DoublePump);
+            ImGui::Checkbox("ADS In Air", &Config.ADSInAir);
             ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem("Player")) {
             ImGui::Checkbox("Zipline Fly", &Config.ZiplineFly);
+            ImGui::Checkbox("Auto Revive Self", &Config.AutoReviveSelf);
             ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
 
             static char InputName[1024];

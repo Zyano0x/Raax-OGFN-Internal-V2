@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <functional>
 
 namespace AutoRevertFeature {
 
@@ -27,6 +28,20 @@ template <typename T> class AutoRevertFeature : public IAutoRevertFeature {
     bool Tick() override;
 };
 
+class AutoRevertBitFieldFeature : public IAutoRevertFeature {
+  private:
+    uint8_t*    Address;
+    bool        OriginalValue;
+    uint8_t     BitMask;
+    const bool* Enabled;
+
+  public:
+    AutoRevertBitFieldFeature(uint8_t* Address, const bool* Enabled, uint8_t BitMask);
+    ~AutoRevertBitFieldFeature() override;
+    bool IsDuplicate(void* Address, const bool* Enabled, uint8_t BitMask) const override;
+    bool Tick() override;
+};
+
 template <typename T> class AutoRevertScalingFeature : public IAutoRevertFeature {
   private:
     T*           Address;
@@ -47,6 +62,7 @@ template <typename T> class AutoRevertScalingFeature : public IAutoRevertFeature
 // --- Public Creation Functions -------------------------------------
 
 template <typename T> void Create(T* Address, const bool* Enabled);
+void                       CreateBitField(uint8_t* Address, const bool* Enabled, uint8_t BitMask);
 template <typename T> void CreateScaling(T* Address, T TargetValue, const float* Scalar, const bool* Enabled);
 
 // --- Public Initialization & Tick Functions ------------------------

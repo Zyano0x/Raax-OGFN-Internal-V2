@@ -426,35 +426,6 @@ static bool SetupViewProjectionMatrix() {
     Error::ThrowError("Failed to find UCanvas::ViewProjectionMatrix offset!");
     return false;
 }
-static bool SetupCanvas() {
-    UCanvas::Canvas_Offset = UCanvas::ViewProjectionMatrix_Offset - (sizeof(void*) * 2);
-    LOG(LOG_INFO, "Using hardcoded UCanvas::Canvas offset: 0x%X", UCanvas::Canvas_Offset);
-    return true;
-}
-static bool SetupFCanvasGetBatchedElements() {
-    uintptr_t StringRef = Memory::FindStringRef(L"STAT_Canvas_GetBatchElementsTime");
-    if (!StringRef) {
-        Error::ThrowError("Failed to find \"STAT_Canvas_GetBatchElementsTime\" for FCanvas::GetBatchedElements!");
-        return false;
-    }
-
-    uintptr_t Address = Memory::PatternScanRange<int32_t>(StringRef, 0x100, "48 8B C4", true);
-    if (Memory::IsAddressInsideImage(Address)) {
-        FCanvas::FCanvasGetBatchedElements = reinterpret_cast<decltype(FCanvas::FCanvasGetBatchedElements)>(Address);
-        LOG(LOG_INFO, "Found FCanvas::GetBatchedElements offset: 0x%p",
-            reinterpret_cast<void*>(Address - Memory::GetImageBase()));
-        return true;
-    }
-
-    Error::ThrowError("Failed to find FCanvas::GetBatchedElements!");
-    return false;
-}
-static bool SetupBatchedThickLines() {
-    FBatchedElements::BatchedThickLines_Offset = 0x40;
-    LOG(LOG_INFO, "Using hardcoded FBatchedElements::BatchedThickLines offset: 0x%X",
-        FBatchedElements::BatchedThickLines_Offset);
-    return true;
-}
 static bool SetupLevelActors() {
     UWorld* World = Core::GetNewWorld();
     if (!World) {
@@ -509,6 +480,37 @@ static bool SetupComponentSpaceTransformsArray() {
     Error::ThrowError("Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
     return false;
 }
+#ifdef _ENGINE
+static bool SetupCanvas() {
+    UCanvas::Canvas_Offset = UCanvas::ViewProjectionMatrix_Offset - (sizeof(void*) * 2);
+    LOG(LOG_INFO, "Using hardcoded UCanvas::Canvas offset: 0x%X", UCanvas::Canvas_Offset);
+    return true;
+}
+static bool SetupFCanvasGetBatchedElements() {
+    uintptr_t StringRef = Memory::FindStringRef(L"STAT_Canvas_GetBatchElementsTime");
+    if (!StringRef) {
+        Error::ThrowError("Failed to find \"STAT_Canvas_GetBatchElementsTime\" for FCanvas::GetBatchedElements!");
+        return false;
+    }
+
+    uintptr_t Address = Memory::PatternScanRange<int32_t>(StringRef, 0x100, "48 8B C4", true);
+    if (Memory::IsAddressInsideImage(Address)) {
+        FCanvas::FCanvasGetBatchedElements = reinterpret_cast<decltype(FCanvas::FCanvasGetBatchedElements)>(Address);
+        LOG(LOG_INFO, "Found FCanvas::GetBatchedElements offset: 0x%p",
+            reinterpret_cast<void*>(Address - Memory::GetImageBase()));
+        return true;
+    }
+
+    Error::ThrowError("Failed to find FCanvas::GetBatchedElements!");
+    return false;
+}
+static bool SetupBatchedThickLines() {
+    FBatchedElements::BatchedThickLines_Offset = 0x40;
+    LOG(LOG_INFO, "Using hardcoded FBatchedElements::BatchedThickLines offset: 0x%X",
+        FBatchedElements::BatchedThickLines_Offset);
+    return true;
+}
+#endif
 static bool SetupEditModeInputComponent0Offset(uint64_t& Output) {
     Output = Memory::FindStringRef(L"EditModeInputComponent0");
     if (Output) {
@@ -639,16 +641,18 @@ static bool SetupUnrealFortniteOffsets() {
         return false;
     if (!SetupViewProjectionMatrix())
         return false;
+    if (!SetupLevelActors())
+        return false;
+    if (!SetupComponentSpaceTransformsArray())
+        return false;
+#ifdef _ENGINE
     if (!SetupCanvas())
         return false;
     if (!SetupFCanvasGetBatchedElements())
         return false;
     if (!SetupBatchedThickLines())
         return false;
-    if (!SetupLevelActors())
-        return false;
-    if (!SetupComponentSpaceTransformsArray())
-        return false;
+#endif
 
     FindGetWeaponStats();
     FindComponentToWorldOffset();

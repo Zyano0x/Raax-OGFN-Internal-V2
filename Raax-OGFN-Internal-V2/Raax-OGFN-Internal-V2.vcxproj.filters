@@ -54,6 +54,7 @@
     <ClCompile Include="gui\raaxgui\raaxgui_elements.cpp" />
     <ClCompile Include="gui\raaxgui\raaxgui_window.cpp" />
     <ClCompile Include="utils\string.cpp" />
+    <ClCompile Include="cheat\features\chams.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cheat\hooks.h" />
@@ -122,6 +123,7 @@
     <ClInclude Include="gui\raaxgui\raaxgui_elements.h" />
     <ClInclude Include="gui\raaxgui\raaxgui_globals.h" />
     <ClInclude Include="utils\string.h" />
+    <ClInclude Include="cheat\features\chams.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\memory.inl" />

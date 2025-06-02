@@ -76,7 +76,7 @@ void TickRenderThread() {
         OutlineColor.A = Color.A;
 
         char Buffer[128];
-        snprintf(Buffer, sizeof(Buffer), "%s [%d m]", Info.WeaponName.c_str(), static_cast<int>(DistM));
+        snprintf(Buffer, sizeof(Buffer), "%s\n[%d m]", Info.WeaponName.c_str(), static_cast<int>(DistM));
         Drawing::Text(Buffer, Info.RootScreenLocation, Color, 12.f, true, true, true, 1.f, OutlineColor);
     }
 }

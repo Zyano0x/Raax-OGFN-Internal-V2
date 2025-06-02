@@ -57,6 +57,10 @@ struct PropertyInfo {
             GetPropertyInfo(ClassName /* assumes STATICCLASS_DEFAULTOBJECT is used*/, #Name, SuppressFailure);         \
         return Prop;                                                                                                   \
     }                                                                                                                  \
+    inline uint8_t* getbitfieldprop_##Name() const {                                                                   \
+        const PropertyInfo& Prop = getpropinfo_##Name();                                                               \
+        return reinterpret_cast<uint8_t*>((uint8_t*)this + Prop.Offset);                                               \
+    }                                                                                                                  \
     inline void putprop_##Name(const bool& v) {                                                                        \
         const PropertyInfo& Prop = getpropinfo_##Name();                                                               \
         if (Prop.ByteMask) {                                                                                           \

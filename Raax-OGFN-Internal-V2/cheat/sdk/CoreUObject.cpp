@@ -39,7 +39,7 @@ std::string UObject::GetFullName() const {
     if (Class) {
         std::string Temp;
         for (UObject* NextOuter = Outer; NextOuter; NextOuter = NextOuter->Outer) {
-            Temp = NextOuter->GetName();
+            Temp = NextOuter->GetName() + "." + Temp;
         }
 
         return Class->GetName() + " " + Temp + GetName();
@@ -122,7 +122,6 @@ PropertyInfo UStruct::FindProperty(const FName& Name) const {
         }
     }
 
-    LOG(LOG_WARN, "Failed to find property: %s", Name.ToString().c_str());
     return Result;
 }
 UFunction* UStruct::FindFunction(const FName& Name) const {
@@ -135,7 +134,6 @@ UFunction* UStruct::FindFunction(const FName& Name) const {
             return Function;
     }
 
-    LOG(LOG_WARN, "Failed to find UFunction: %s", Name.ToString().c_str());
     return nullptr;
 }
 

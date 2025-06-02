@@ -2,7 +2,6 @@
 
 #include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
-#include <utils/memory.h>
 
 namespace SDK {
 
@@ -19,9 +18,7 @@ FString UKismetSystemLibrary::GetEngineVersion() {
         FString ReturnValue;
     } params_GetEngineVersion{};
 
-    if (Func)
-        StaticClass()->ProcessEvent(Func, &params_GetEngineVersion);
-
+    StaticClass()->ProcessEvent(Func, &params_GetEngineVersion);
     return std::move(params_GetEngineVersion.ReturnValue);
 }
 bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FVector& Start, const FVector& End,
@@ -31,11 +28,84 @@ bool UKismetSystemLibrary::LineTraceSingle(UObject* WorldContextObject, const FV
                                            const FLinearColor& TraceHitColor, float DrawTime) {
     return KismetSystemLibraryLineTraceSingle(WorldContextObject, Start, End, TraceChannel, bTraceComplex,
                                               ActorsToIgnore, EDrawDebugTrace::None, OutHit, bIgnoreSelf,
-                                              SDK::FLinearColor::White, SDK::FLinearColor::White, 0.f);
+                                              FLinearColor::White, FLinearColor::White, 0.f);
+}
+
+UMaterialInstanceDynamic* UKismetMaterialLibrary::CreateDynamicMaterialInstance(class UObject* WorldContextObject,
+                                                                                class UMaterialInterface* Parent,
+                                                                                class FName OptionalName) {
+    static UFunction* Func = GetFunction("KismetMaterialLibrary", "CreateDynamicMaterialInstance");
+    if (g_EngineVersion >= 4.24) {
+        struct {
+            UObject*                  WorldContextObject;
+            UMaterialInterface*       Parent;
+            EMIDCreationFlags         CreationFlags;
+            uint8_t                   Pad[0x7];
+            FName                     OptionalName;
+            UMaterialInstanceDynamic* ReturnValue;
+        } params_CreateDynamicMaterialInstance1{};
+
+        params_CreateDynamicMaterialInstance1.WorldContextObject = WorldContextObject;
+        params_CreateDynamicMaterialInstance1.Parent = Parent;
+        params_CreateDynamicMaterialInstance1.CreationFlags = EMIDCreationFlags::None;
+        params_CreateDynamicMaterialInstance1.OptionalName = OptionalName;
+
+        LOG(LOG_INFO, "Using this 1!");
+
+        StaticClass()->ProcessEvent(Func, &params_CreateDynamicMaterialInstance1);
+        return params_CreateDynamicMaterialInstance1.ReturnValue;
+    } else if (g_EngineVersion >= 4.21) {
+        struct {
+            UObject*                  WorldContextObject;
+            UMaterialInterface*       Parent;
+            FName                     OptionalName;
+            UMaterialInstanceDynamic* ReturnValue;
+        } params_CreateDynamicMaterialInstance2{};
+
+        params_CreateDynamicMaterialInstance2.WorldContextObject = WorldContextObject;
+        params_CreateDynamicMaterialInstance2.Parent = Parent;
+        params_CreateDynamicMaterialInstance2.OptionalName = OptionalName;
+
+        LOG(LOG_INFO, "Using this 2!");
+
+        StaticClass()->ProcessEvent(Func, &params_CreateDynamicMaterialInstance2);
+        return params_CreateDynamicMaterialInstance2.ReturnValue;
+    } else {
+        struct {
+            UObject*                  WorldContextObject;
+            UMaterialInterface*       Parent;
+            UMaterialInstanceDynamic* ReturnValue;
+        } params_CreateDynamicMaterialInstance3{};
+
+        params_CreateDynamicMaterialInstance3.WorldContextObject = WorldContextObject;
+        params_CreateDynamicMaterialInstance3.Parent = Parent;
+
+        LOG(LOG_INFO, "Using this 3!");
+
+        StaticClass()->ProcessEvent(Func, &params_CreateDynamicMaterialInstance3);
+        return params_CreateDynamicMaterialInstance3.ReturnValue;
+    }
 }
 
 void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& ScreenPositionB, float Thickness,
                           const FLinearColor& RenderColor) {
+#if 0
+    static UFunction* Func = GetFunction("Canvas", "K2_DrawLine");
+    struct {
+        FVector2D    ScreenPositionA;
+        FVector2D    ScreenPositionB;
+        float        Thickness;
+        FLinearColor RenderColor;
+    } params_K2_DrawLine{};
+
+    params_K2_DrawLine.ScreenPositionA = ScreenPositionA;
+    params_K2_DrawLine.ScreenPositionB = ScreenPositionB;
+    params_K2_DrawLine.Thickness = Thickness;
+    params_K2_DrawLine.RenderColor = RenderColor;
+
+    if (Func)
+        ProcessEvent(Func, &params_K2_DrawLine);
+#else
     FCanvas* CanvasPtr = Canvas;
     if (!CanvasPtr)
         return;
@@ -45,8 +115,8 @@ void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& Scr
         return;
 
     FBatchedThickLines ThickLine = {};
-    ThickLine.Start = SDK::FVector(ScreenPositionA.X, ScreenPositionA.Y, 0.f);
-    ThickLine.End = SDK::FVector(ScreenPositionB.X, ScreenPositionB.Y, 0.f);
+    ThickLine.Start = FVector(ScreenPositionA.X, ScreenPositionA.Y, 0.f);
+    ThickLine.End = FVector(ScreenPositionB.X, ScreenPositionB.Y, 0.f);
     ThickLine.Thickness = Thickness;
     ThickLine.Color = RenderColor;
     ThickLine.HitProxyColor = {};
@@ -55,6 +125,7 @@ void UCanvas::K2_DrawLine(const FVector2D& ScreenPositionA, const FVector2D& Scr
 
     TArray<FBatchedThickLines>& BatchedThickLines = BatchElements->BatchedThickLines;
     BatchedThickLines.Add(ThickLine);
+#endif
 }
 void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FVector2D& ScreenPosition,
                           const FVector2D& Scale, const FLinearColor& RenderColor, float Kerning,
@@ -90,8 +161,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         params_K2_DrawText_1.bOutlined = bOutlined;
         params_K2_DrawText_1.OutlineColor = OutlineColor;
 
-        if (Func)
-            ProcessEvent(Func, &params_K2_DrawText_1);
+        ProcessEvent(Func, &params_K2_DrawText_1);
     } else {
         struct {
             UFont*       RenderFont;
@@ -119,8 +189,7 @@ void UCanvas::K2_DrawText(UFont* RenderFont, const FString& RenderText, const FV
         params_K2_DrawText_2.bOutlined = bOutlined;
         params_K2_DrawText_2.OutlineColor = OutlineColor;
 
-        if (Func)
-            ProcessEvent(Func, &params_K2_DrawText_2);
+        ProcessEvent(Func, &params_K2_DrawText_2);
     }
 }
 
@@ -134,11 +203,33 @@ FTransform USceneComponent::getprop_ComponentToWorld() const {
             uint8_t    Pad[0x30]; // No idea why, but this fixes crash on ProcessEvent on 3.5
         } params_ComponentToWorld{};
 
-        if (Func)
-            ProcessEvent(Func, &params_ComponentToWorld);
-
+        ProcessEvent(Func, &params_ComponentToWorld);
         return params_ComponentToWorld.ReturnValue;
     }
+}
+
+void UPrimitiveComponent::SetMaterial(int32_t ElementIndex, UMaterialInterface* Material) {
+    static UFunction* Func = GetFunction("PrimitiveComponent", "SetMaterial");
+    struct {
+        int32_t             ElementIndex;
+        uint8_t             Pad[0x4];
+        UMaterialInterface* Material;
+    } params_SetMaterial{};
+
+    params_SetMaterial.ElementIndex = ElementIndex;
+    params_SetMaterial.Material = Material;
+
+    ProcessEvent(Func, &params_SetMaterial);
+}
+
+TArray<UMaterialInterface*> UMeshComponent::GetMaterials() {
+    static UFunction* Func = GetFunction("MeshComponent", "GetMaterials");
+    struct {
+        TArray<UMaterialInterface*> ReturnValue;
+    } params_GetMaterials{};
+
+    ProcessEvent(Func, &params_GetMaterials);
+    return std::move(params_GetMaterials.ReturnValue);
 }
 
 TArray<FTransform>& USkinnedMeshComponent::getprop_ComponentSpaceTransformsArray() const {
@@ -159,9 +250,7 @@ int32_t USkinnedMeshComponent::GetBoneIndex(FName BoneName) const {
 
     params_GetBoneIndex.BoneName = BoneName;
 
-    if (Func)
-        ProcessEvent(Func, &params_GetBoneIndex);
-
+    ProcessEvent(Func, &params_GetBoneIndex);
     return params_GetBoneIndex.ReturnValue;
 }
 
@@ -178,6 +267,31 @@ FVector USkeletalMeshComponent::GetBoneLocation(int32_t BoneIndex, FTransform Co
     return FVector(Matrix.M[3][0], Matrix.M[3][1], Matrix.M[3][2]);
 }
 
+void UMaterialInstanceDynamic::SetVectorParameterValue(FName ParameterName, const FLinearColor& Value) {
+    static UFunction* Func = GetFunction("MaterialInstanceDynamic", "SetVectorParameterValue");
+    struct {
+        FName        ParameterName;
+        FLinearColor Value;
+    } params_SetVectorParameterValue{};
+
+    params_SetVectorParameterValue.ParameterName = ParameterName;
+    params_SetVectorParameterValue.Value = Value;
+
+    ProcessEvent(Func, &params_SetVectorParameterValue);
+}
+void UMaterialInstanceDynamic::SetScalarParameterValue(FName ParameterName, float Value) {
+    static UFunction* Func = GetFunction("MaterialInstanceDynamic", "SetScalarParameterValue");
+    struct {
+        FName ParameterName;
+        float Value;
+    } params_SetScalarParameterValue{};
+
+    params_SetScalarParameterValue.ParameterName = ParameterName;
+    params_SetScalarParameterValue.Value = Value;
+
+    ProcessEvent(Func, &params_SetScalarParameterValue);
+}
+
 float AActor::WasRecentlyRendered(float Tolerence) const {
     static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
     struct {
@@ -187,8 +301,7 @@ float AActor::WasRecentlyRendered(float Tolerence) const {
 
     params_WasRecentlyRendered.Tolerence = Tolerence;
 
-    if (Func)
-        ProcessEvent(Func, &params_WasRecentlyRendered);
+    ProcessEvent(Func, &params_WasRecentlyRendered);
 
     return params_WasRecentlyRendered.ReturnValue;
 }
@@ -199,8 +312,7 @@ FVector APlayerCameraManager::GetCameraLocation() const {
         FVector ReturnValue;
     } params_GetCameraLocation{};
 
-    if (Func)
-        ProcessEvent(Func, &params_GetCameraLocation);
+    ProcessEvent(Func, &params_GetCameraLocation);
 
     return params_GetCameraLocation.ReturnValue;
 }
@@ -210,8 +322,7 @@ FRotator APlayerCameraManager::GetCameraRotation() const {
         FRotator ReturnValue;
     } params_GetCameraRotation{};
 
-    if (Func)
-        ProcessEvent(Func, &params_GetCameraRotation);
+    ProcessEvent(Func, &params_GetCameraRotation);
 
     return params_GetCameraRotation.ReturnValue;
 }
@@ -221,8 +332,7 @@ float APlayerCameraManager::GetFOVAngle() const {
         float ReturnValue;
     } params_GetFOVAngle{};
 
-    if (Func)
-        ProcessEvent(Func, &params_GetFOVAngle);
+    ProcessEvent(Func, &params_GetFOVAngle);
 
     return params_GetFOVAngle.ReturnValue;
 }
@@ -235,8 +345,7 @@ void APlayerController::AddYawInput(float Val) {
 
     params_AddYawInput.Val = Val;
 
-    if (Func)
-        ProcessEvent(Func, &params_AddYawInput);
+    ProcessEvent(Func, &params_AddYawInput);
 }
 void APlayerController::AddPitchInput(float Val) {
     static UFunction* Func = GetFunction("PlayerController", "AddPitchInput");
@@ -246,8 +355,7 @@ void APlayerController::AddPitchInput(float Val) {
 
     params_AddPitchInput.Val = Val;
 
-    if (Func)
-        ProcessEvent(Func, &params_AddPitchInput);
+    ProcessEvent(Func, &params_AddPitchInput);
 }
 bool APlayerController::WasInputKeyJustReleased(const FKey& Key) const {
     static UFunction* Func = GetFunction("PlayerController", "WasInputKeyJustReleased");
@@ -259,9 +367,7 @@ bool APlayerController::WasInputKeyJustReleased(const FKey& Key) const {
 
     params_WasInputKeyJustReleased.Key = Key;
 
-    if (Func)
-        ProcessEvent(Func, &params_WasInputKeyJustReleased);
-
+    ProcessEvent(Func, &params_WasInputKeyJustReleased);
     return params_WasInputKeyJustReleased.ReturnValue;
 }
 bool APlayerController::WasInputKeyJustPressed(const FKey& Key) const {
@@ -274,9 +380,7 @@ bool APlayerController::WasInputKeyJustPressed(const FKey& Key) const {
 
     params_WasInputKeyJustPressed.Key = Key;
 
-    if (Func)
-        ProcessEvent(Func, &params_WasInputKeyJustPressed);
-
+    ProcessEvent(Func, &params_WasInputKeyJustPressed);
     return params_WasInputKeyJustPressed.ReturnValue;
 }
 bool APlayerController::IsInputKeyDown(const FKey& Key) const {
@@ -289,9 +393,7 @@ bool APlayerController::IsInputKeyDown(const FKey& Key) const {
 
     params_IsInputKeyDown.Key = Key;
 
-    if (Func)
-        ProcessEvent(Func, &params_IsInputKeyDown);
-
+    ProcessEvent(Func, &params_IsInputKeyDown);
     return params_IsInputKeyDown.ReturnValue;
 }
 bool APlayerController::GetMousePosition(float& LocationX, float& LocationY) const {
@@ -303,8 +405,7 @@ bool APlayerController::GetMousePosition(float& LocationX, float& LocationY) con
         uint8_t Pad[3];
     } params_GetMousePosition{};
 
-    if (Func)
-        ProcessEvent(Func, &params_GetMousePosition);
+    ProcessEvent(Func, &params_GetMousePosition);
 
     LocationX = params_GetMousePosition.LocationX;
     LocationY = params_GetMousePosition.LocationY;
@@ -317,8 +418,7 @@ void APlayerController::ServerChangeName(const FString& S) {
         FString S;
     } params_ServerChangeName{};
 
-    if (Func)
-        ProcessEvent(Func, &params_ServerChangeName);
+    ProcessEvent(Func, &params_ServerChangeName);
 }
 
 FString APlayerState::GetPlayerName() const {
@@ -327,9 +427,7 @@ FString APlayerState::GetPlayerName() const {
         FString return_value;
     } params_GetPlayerName{};
 
-    if (Func)
-        ProcessEvent(Func, &params_GetPlayerName);
-
+    ProcessEvent(Func, &params_GetPlayerName);
     return std::move(params_GetPlayerName.return_value);
 }
 
@@ -404,17 +502,17 @@ bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* Ig
     }
 
     FHitResult Hit = {};
-    bool       bHitSomething = SDK::UKismetSystemLibrary::LineTraceSingle(
-        SDK::GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery1, true, IgnoredActors,
+    bool       bHitSomething = UKismetSystemLibrary::LineTraceSingle(
+        GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery1, true, IgnoredActors,
         EDrawDebugTrace::None, Hit, true, FLinearColor(0.f, 0.f, 0.f, 0.f), FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
 
     return !bHitSomething;
 }
 
 FVector Project3D(const FVector& Location) {
-    SDK::UCanvas* Canvas = GetCanvas();
+    UCanvas* Canvas = GetCanvas();
     if (!Canvas)
-        return SDK::FVector();
+        return FVector();
 
     FMatrix& ViewProjectionMatrix = Canvas->ViewProjectionMatrix;
     float    X = Location.X * ViewProjectionMatrix.M[0][0] + Location.Y * ViewProjectionMatrix.M[1][0] +

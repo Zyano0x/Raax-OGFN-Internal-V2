@@ -56,6 +56,22 @@ enum class EDrawDebugTrace : uint8_t {
     EDrawDebugTrace_MAX = 4,
 };
 
+enum class EMIDCreationFlags : uint8_t {
+    None = 0,
+    Transient = 1,
+    EMIDCreationFlags_MAX = 2,
+};
+
+enum class EBlendMode : uint8_t {
+    BLEND_Opaque = 0,
+    BLEND_Masked = 1,
+    BLEND_Translucent = 2,
+    BLEND_Additive = 3,
+    BLEND_Modulate = 4,
+    BLEND_AlphaComposite = 5,
+    BLEND_MAX = 6,
+};
+
 struct FHitResult {
   public:
     char UnknownData[0x100]; // Dummy data
@@ -155,6 +171,16 @@ class UKismetSystemLibrary : public UObject {
                                    const FLinearColor& TraceColor, const FLinearColor& TraceHitColor, float DrawTime);
 };
 
+class UKismetMaterialLibrary : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("KismetMaterialLibrary", UKismetMaterialLibrary);
+
+  public:
+    static class UMaterialInstanceDynamic* CreateDynamicMaterialInstance(class UObject*            WorldContextObject,
+                                                                         class UMaterialInterface* Parent,
+                                                                         class FName               OptionalName);
+};
+
 class UEngine : public UObject {
   public:
     STATICCLASS_DEFAULTOBJECT("Engine", UEngine);
@@ -170,6 +196,7 @@ class UWorld : public UObject {
   public:
     UPROPERTY(class ULevel*, PersistentLevel);
     UPROPERTY(TArray<class ULevel*>, Levels);
+    UPROPERTY(class AGameStateBase*, GameState);
 };
 
 class ULevel : public UObject {
@@ -262,7 +289,23 @@ class USceneComponent : public UObject {
     __declspec(property(get = getprop_ComponentToWorld)) FTransform ComponentToWorld;
 };
 
-class USkinnedMeshComponent : public USceneComponent {
+class UPrimitiveComponent : public USceneComponent {
+  public:
+    STATICCLASS_DEFAULTOBJECT("PrimitiveComponent", UPrimitiveComponent);
+
+  public:
+    void SetMaterial(int32_t ElementIndex, UMaterialInterface* Material);
+};
+
+class UMeshComponent : public UPrimitiveComponent {
+  public:
+    STATICCLASS_DEFAULTOBJECT("MeshComponent", UMeshComponent);
+
+  public:
+    TArray<UMaterialInterface*> GetMaterials();
+};
+
+class USkinnedMeshComponent : public UMeshComponent {
   public:
     STATICCLASS_DEFAULTOBJECT("SkinnedMeshComponent", USkinnedMeshComponent);
 
@@ -286,6 +329,30 @@ class USkeletalMeshComponent : public USkinnedMeshComponent {
     FVector    GetBoneLocation(int32_t BoneIndex, FTransform ComponentToWrld) const;
 };
 
+class UMaterialInterface : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("MaterialInterface", UMaterialInterface);
+};
+
+class UMaterial : public UMaterialInterface {
+  public:
+    STATICCLASS_DEFAULTOBJECT("Material", UMaterial);
+
+  public:
+    UPROPERTY_BITFIELD(bDisableDepthTest);
+    UPROPERTY(EBlendMode, BlendMode);
+    UPROPERTY_BITFIELD(WireFrame);
+};
+
+class UMaterialInstanceDynamic : public UMaterialInterface {
+  public:
+    STATICCLASS_DEFAULTOBJECT("MaterialInstanceDynamic", UMaterialInstanceDynamic);
+
+  public:
+    void SetVectorParameterValue(FName ParameterName, const FLinearColor& Value);
+    void SetScalarParameterValue(FName ParameterName, float Value);
+};
+
 class AActor : public UObject {
   public:
     STATICCLASS_DEFAULTOBJECT("Actor", AActor);
@@ -297,7 +364,15 @@ class AActor : public UObject {
     float WasRecentlyRendered(float Tolerence) const;
 };
 
-class AWorldSettings : AActor {
+class AGameStateBase : public AActor {
+  public:
+    STATICCLASS_DEFAULTOBJECT("GameStateBase", AGameStateBase);
+
+  public:
+    UPROPERTY(float, GameState);
+};
+
+class AWorldSettings : public AActor {
   public:
     STATICCLASS_DEFAULTOBJECT("WorldSettings", AWorldSettings);
 
@@ -315,7 +390,12 @@ class APlayerCameraManager : public AActor {
     float    GetFOVAngle() const;
 };
 
-class APlayerController : public AActor {
+class AController : public AActor {
+  public:
+    STATICCLASS_DEFAULTOBJECT("Controller", AController);
+};
+
+class APlayerController : public AController {
   public:
     STATICCLASS_DEFAULTOBJECT("PlayerController", APlayerController);
 
@@ -380,11 +460,16 @@ FVector2D Project(const FVector& Location);
 
 template <typename UEType = AActor, bool ClearVector = true>
     requires std::is_base_of_v<AActor, UEType>
-inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level = GetWorld()->PersistentLevel) {
+inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, UClass* Class = nullptr,
+                                ULevel* Level = GetWorld()->PersistentLevel) {
     if constexpr (ClearVector)
         OutVector.clear();
 
     if (!Level)
+        return;
+
+    UClass* SearchClass = Class ? Class : UEType::StaticClass();
+    if (!SearchClass)
         return;
 
     TArray<AActor*>& Actors = Level->Actors;
@@ -396,22 +481,26 @@ inline void GetAllActorsOfClass(std::vector<UEType*>& OutVector, ULevel* Level =
         if (!Actor)
             continue;
 
-        if (Actor->IsA(UEType::StaticClass()))
+        if (Actor->IsA(SearchClass))
             OutVector.push_back(static_cast<UEType*>(Actor));
     }
 }
 
 template <typename UEType = AActor, bool ClearVector = true>
-inline void GetAllActorsOfClassAllLevels(std::vector<UEType*>& OutVector) {
+inline void GetAllActorsOfClassAllLevels(std::vector<UEType*>& OutVector, UClass* Class = nullptr) {
     if constexpr (ClearVector)
         OutVector.clear();
+
+    UClass* SearchClass = Class ? Class : UEType::StaticClass();
+    if (!SearchClass)
+        return;
 
     TArray<ULevel*>& Levels = GetWorld()->Levels;
     if (!Levels.IsValid() || Levels.Num() <= 0)
         return;
 
     for (int i = 0; i < Levels.Num(); i++) {
-        GetAllActorsOfClass<UEType, false>(OutVector, Levels.GetByIndex(i));
+        GetAllActorsOfClass<UEType, false>(OutVector, SearchClass, Levels.GetByIndex(i));
     }
 }
 

@@ -150,10 +150,11 @@ static void PopulateDrawingInfo(PlayerInfo& Cache) {
 static void ForceRefreshIfNeeded() {
     // Force refresh cache every 5 seconds for player name changes, skin changes, etc
     // as these will invalidate some cached player info
-    static std::chrono::time_point<std::chrono::high_resolution_clock> LastCheckTime;
-    auto                                                               Now = std::chrono::steady_clock::now();
-    auto Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
-    if (Elapsed >= 5) {
+    static auto    LastCheckTime = std::chrono::steady_clock::now();
+    constexpr auto ReapplyInterval = std::chrono::seconds(5);
+
+    auto Now = std::chrono::steady_clock::now();
+    if (Now - LastCheckTime >= ReapplyInterval) {
         LastCheckTime = Now;
         CachedPlayers.clear();
     }
@@ -205,7 +206,7 @@ static void SharedInfoUpdate(PlayerInfo& Info) {
     }
 }
 
-static std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPawn* Pawn) {
+static std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPlayerPawnAthena* Pawn) {
     PlayerInfo Info;
 
     Info.Pawn = Pawn;
@@ -272,8 +273,8 @@ void UpdateCache() {
     ForceRefreshIfNeeded();
     ResetPlayerSeenFlags();
 
-    static std::vector<SDK::AFortPawn*> PlayerList;
-    SDK::GetAllActorsOfClass<SDK::AFortPawn>(PlayerList);
+    static std::vector<SDK::AFortPlayerPawnAthena*> PlayerList;
+    SDK::GetAllActorsOfClass<SDK::AFortPlayerPawnAthena>(PlayerList);
 
     for (const auto& Player : PlayerList) {
         if (!CachedPlayers.contains(Player)) {

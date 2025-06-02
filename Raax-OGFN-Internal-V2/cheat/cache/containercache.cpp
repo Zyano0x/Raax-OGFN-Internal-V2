@@ -4,20 +4,19 @@
 #include <chrono>
 
 #include <config/config.h>
+#include <utils/error.h>
 
 namespace Cache {
 namespace Container {
 
 // --- Cache Data ----------------------------------------------------
 
-static std::unordered_map<void*, ContainerInfo>     CachedContainers;
-static std::unordered_map<void*, GameplayActorInfo> CachedGameplayActors;
+static std::unordered_map<void*, ContainerInfo> CachedContainers;
 
 // --- Cache Utility Functions ---------------------------------------
 
-template <typename InfoClass, typename ActorClass, typename TypeEnum>
-static std::optional<InfoClass> CreateNewInfo(ActorClass Actor, TypeEnum Type) {
-    InfoClass Info = {};
+static std::optional<ContainerInfo> CreateNewInfo(SDK::ABuildingContainer* Actor, ContainerType Type) {
+    ContainerInfo Info = {};
     Info.Actor = Actor;
     Info.RootComponent = Info.Actor->RootComponent;
     if (!Info.RootComponent)
@@ -27,12 +26,13 @@ static std::optional<InfoClass> CreateNewInfo(ActorClass Actor, TypeEnum Type) {
     Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
 
     Info.Type = Type;
+    Info.AlreadySearched = Info.Actor->bAlreadySearched;
 
     Info.SeenThisFrame = true;
     return Info;
 }
 
-template <typename InfoClass> static bool UpdateExistingInfo(InfoClass& Info) {
+static bool UpdateExistingInfo(ContainerInfo& Info) {
     Info.RootComponent = Info.Actor->RootComponent;
     if (!Info.RootComponent)
         return false;
@@ -40,55 +40,52 @@ template <typename InfoClass> static bool UpdateExistingInfo(InfoClass& Info) {
     Info.RootWorldLocation = Info.RootComponent->RelativeLocation;
     Info.RootScreenLocation = SDK::Project(Info.RootWorldLocation);
 
+    Info.AlreadySearched = Info.Actor->bAlreadySearched;
+
     Info.SeenThisFrame = true;
     return true;
 }
 
-template <typename InfoMap> static void ResetSeenFlags(InfoMap& CacheMap) {
-    for (auto& [_, Info] : CacheMap) {
+static void ResetSeenFlags() {
+    for (auto& [_, Info] : CachedContainers) {
         Info.SeenThisFrame = false;
     }
 }
 
-template <typename InfoMap> static void RemoveUnseen(InfoMap& CacheMap) {
-    std::erase_if(CacheMap, [](const auto& Entry) { return !Entry.second.SeenThisFrame; });
+static void RemoveUnseen() {
+    std::erase_if(CachedContainers, [](const auto& Entry) { return !Entry.second.SeenThisFrame; });
 }
 
-template <typename T, typename InfoMap, typename InfoClass, typename ActorPtr, typename EnumType>
-static void CacheActorsOfType(std::vector<T*>& ActorList, InfoMap& CacheMap, EnumType Type) {
-    SDK::GetAllActorsOfClassAllLevels<T>(ActorList);
+static void CacheActorsOfType(std::vector<SDK::ABuildingContainer*>& ActorList, SDK::UClass* Class,
+                              ContainerType Type) {
+    SDK::GetAllActorsOfClassAllLevels(ActorList, Class);
     for (const auto& Actor : ActorList) {
-        if (!CacheMap.contains(Actor)) {
-            auto Info = CreateNewInfo<InfoClass, ActorPtr, EnumType>(Actor, Type);
+        if (!CachedContainers.contains(Actor)) {
+            auto Info = CreateNewInfo(Actor, Type);
             if (Info.has_value())
-                CacheMap[Actor] = Info.value();
+                CachedContainers[Actor] = Info.value();
         } else {
-            auto& Info = CacheMap.at(Actor);
+            auto& Info = CachedContainers.at(Actor);
             if (!UpdateExistingInfo(Info))
-                CacheMap.erase(Actor);
+                CachedContainers.erase(Actor);
         }
     }
 }
 
-template <typename T> static bool CheckIfStaticClassIsLoaded(float CheckDelayS) {
-    static bool Found = false;
-    if (Found)
-        return true;
+SDK::AFortAthenaMapInfo* GetMapInfo() {
+    SDK::UWorld* World = SDK::GetWorld();
+    if (!World)
+        return nullptr;
 
-    static std::chrono::time_point<std::chrono::high_resolution_clock> LastCheckTime;
-    auto                                                               Now = std::chrono::steady_clock::now();
-    auto Elapsed = std::chrono::duration_cast<std::chrono::seconds>(Now - LastCheckTime).count();
-    if (Elapsed < CheckDelayS)
-        return false;
+    SDK::AGameStateBase* GameState = World->GameState;
+    if (!GameState)
+        return nullptr;
 
-    LastCheckTime = Now;
+    auto GameStateAthena = SDK::Cast<SDK::AFortGameStateAthena>(GameState);
+    if (!GameStateAthena)
+        return nullptr;
 
-    if (T::StaticClass() && T::StaticClass()) {
-        Found = true;
-        return true;
-    }
-
-    return false;
+    return GameStateAthena->MapInfo;
 }
 
 // --- Public Cache Functions ----------------------------------------
@@ -97,51 +94,46 @@ const std::unordered_map<void*, ContainerInfo>& GetCachedContainers() {
     return CachedContainers;
 }
 
-const std::unordered_map<void*, GameplayActorInfo>& GetCachedGameplayActors() {
-    return CachedGameplayActors;
-}
-
 void UpdateCache() {
-    ResetSeenFlags(CachedContainers);
-    ResetSeenFlags(CachedGameplayActors);
+    ResetSeenFlags();
 
-    // For some reason, the ammo box class is loaded once you get in game (tested on 14.40)
-    // To fix performance issues we only check if the class is loaded every 5 seconds
-    if (!CheckIfStaticClassIsLoaded<SDK::ATiered_Chest_Athena_C>(5.f) ||
-        !CheckIfStaticClassIsLoaded<SDK::ATiered_Ammo_Athena_C>(5.f) ||
-        !CheckIfStaticClassIsLoaded<SDK::AAthenaSupplyDrop_C>(5.f) ||
-        !CheckIfStaticClassIsLoaded<SDK::AAthenaSupplyDrop_Llama_C>(5.f)) {
-        return;
+    SDK::AFortAthenaMapInfo* MapInfo = GetMapInfo();
+    if (MapInfo) {
+        const auto& Config = Config::g_Config.Visuals.Loot;
+        if (Config.ChestText && MapInfo->TreasureChestClass) {
+            static std::vector<SDK::ABuildingContainer*> ChestList;
+            CacheActorsOfType(ChestList, MapInfo->TreasureChestClass, ContainerType::Chest);
+        }
+
+        if (Config.AmmoBoxText && MapInfo->AmmoBoxClass) {
+            static std::vector<SDK::ABuildingContainer*> AmmoBoxList;
+            CacheActorsOfType(AmmoBoxList, MapInfo->TreasureChestClass, ContainerType::AmmoBox);
+        }
+
+        if (Config.SupplyDropText) {
+            static std::vector<SDK::ABuildingContainer*> SupplyDropList;
+            if (MapInfo->getpropinfo_SupplyDropClass(true).Found) {
+                CacheActorsOfType(SupplyDropList, MapInfo->SupplyDropClass, ContainerType::SupplyDrop);
+            } else if (MapInfo->getpropinfo_SupplyDropInfoList(true).Found) {
+                SDK::TArray<SDK::UFortSupplyDropInfo*>& SupplyDropInfoList = MapInfo->SupplyDropInfoList;
+                for (int i = 0; i < SupplyDropInfoList.Num(); i++) {
+                    SDK::UFortSupplyDropInfo* SupplyDropInfo = SupplyDropInfoList[i];
+                    if (SupplyDropInfo && SupplyDropInfo->SupplyDropClass) {
+                        CacheActorsOfType(SupplyDropList, SupplyDropInfo->SupplyDropClass, ContainerType::SupplyDrop);
+                    }
+                }
+            } else {
+                Error::ThrowError("Failed to find supply drop class! Please open an issue on GitHub.");
+            }
+        }
+
+        if (Config.LlamaText && MapInfo->LlamaClass) {
+            static std::vector<SDK::ABuildingContainer*> LlamaList;
+            CacheActorsOfType(LlamaList, MapInfo->LlamaClass, ContainerType::Llama);
+        }
     }
 
-    const auto& Config = Config::g_Config.Visuals.Loot;
-    if (Config.ChestText) {
-        static std::vector<SDK::ATiered_Chest_Athena_C*> ChestList;
-        CacheActorsOfType<SDK::ATiered_Chest_Athena_C, decltype(CachedContainers), ContainerInfo,
-                          SDK::ABuildingContainer*, ContainerType>(ChestList, CachedContainers, ContainerType::Chest);
-    }
-
-    if (Config.AmmoBoxText) {
-        static std::vector<SDK::ATiered_Ammo_Athena_C*> AmmoBoxList;
-        CacheActorsOfType<SDK::ATiered_Ammo_Athena_C, decltype(CachedContainers), ContainerInfo,
-                          SDK::ABuildingContainer*, ContainerType>(AmmoBoxList, CachedContainers,
-                                                                   ContainerType::AmmoBox);
-    }
-
-    if (Config.SupplyDropText) {
-        static std::vector<SDK::AAthenaSupplyDrop_C*> SupplyDropList;
-        CacheActorsOfType<SDK::AAthenaSupplyDrop_C, decltype(CachedGameplayActors), GameplayActorInfo, SDK::AActor*,
-                          GameplayActorType>(SupplyDropList, CachedGameplayActors, GameplayActorType::SupplyDrop);
-    }
-
-    if (Config.LlamaText) {
-        static std::vector<SDK::AAthenaSupplyDrop_Llama_C*> LlamaList;
-        CacheActorsOfType<SDK::AAthenaSupplyDrop_Llama_C, decltype(CachedGameplayActors), GameplayActorInfo,
-                          SDK::AActor*, GameplayActorType>(LlamaList, CachedGameplayActors, GameplayActorType::Llama);
-    }
-
-    RemoveUnseen(CachedContainers);
-    RemoveUnseen(CachedGameplayActors);
+    RemoveUnseen();
 }
 
 } // namespace Container

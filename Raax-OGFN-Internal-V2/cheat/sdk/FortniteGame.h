@@ -1,6 +1,8 @@
 #pragma once
 #include "Engine.h"
 
+#include <array>
+
 namespace SDK {
 
 // --- Classes & Structs ---------------------------------------------
@@ -38,6 +40,11 @@ struct FFortBaseWeaponStats : public UObject {
   public:
     UPROPERTY(float, ReloadTime);
     UPROPERTY(int32_t, AmmoCostPerFire);
+    UPROPERTY(float, MinChargeTime);
+    UPROPERTY(float, MaxChargeTime);
+    UPROPERTY(float, ChargeDownTime);
+    UPROPERTY(float, MinChargeDamageMultiplier);
+    UPROPERTY(float, MaxChargeDamageMultiplier);
 };
 
 struct FFortMeleeWeaponStats : public FFortBaseWeaponStats {
@@ -76,6 +83,34 @@ class FZiplinePawnState : public UObject {
     UPROPERTY_BITFIELD(bIsZiplining);
 };
 
+class UFortSupplyDropInfo final : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortSupplyDropInfo", UFortSupplyDropInfo);
+
+  public:
+    UPROPERTY(TSubclassOf<class ABuildingContainer>, SupplyDropClass);
+};
+
+class AFortGameStateAthena : public AGameStateBase {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortGameStateAthena", AFortGameStateAthena);
+
+  public:
+    UPROPERTY(class AFortAthenaMapInfo*, MapInfo);
+};
+
+class AFortAthenaMapInfo : public AActor {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortAthenaMapInfo", AFortAthenaMapInfo);
+
+  public:
+    UPROPERTY(TSubclassOf<class ABuildingContainer>, TreasureChestClass);
+    UPROPERTY(TSubclassOf<class ABuildingContainer>, AmmoBoxClass);
+    UPROPERTY(TSubclassOf<class ABuildingContainer>, LlamaClass);
+    UPROPERTY(TSubclassOf<class ABuildingContainer>, SupplyDropClass); // Older versions of Fortnite
+    UPROPERTY(TArray<class UFortSupplyDropInfo*>, SupplyDropInfoList); // Newer versions of Fortnite
+};
+
 class AFortPlayerController : public APlayerController {
   public:
     STATICCLASS_DEFAULTOBJECT("FortPlayerController", AFortPlayerController);
@@ -105,6 +140,12 @@ class AFortPlayerPawn : public AFortPawn {
 
   public:
     UPROPERTY(FZiplinePawnState, ZiplineState);
+
+  public:
+    std::array<USkeletalMeshComponent*, 8> GetCharacterPartSkeletalMeshComponents();
+
+  public:
+    void ServerReviveFromDBNO(SDK::AController* EventInstigator);
 };
 
 class AFortPlayerPawnAthena : public AFortPlayerPawn {
@@ -113,6 +154,7 @@ class AFortPlayerPawnAthena : public AFortPlayerPawn {
 
   public:
     UPROPERTY(float, ReviveFromDBNOTime);
+    UPROPERTY_BITFIELD(bADSWhileNotOnGround);
 };
 
 class AFortPlayerState : public APlayerState {
@@ -139,29 +181,9 @@ class ABuildingContainer : public AActor {
     UPROPERTY_BITFIELD(bAlreadySearched);
 };
 
-class ATiered_Chest_Athena_C : public ABuildingContainer {
+class ABuildingActor : public AActor {
   public:
-    STATICCLASS_DEFAULTOBJECT("Tiered_Chest_Athena_C", ATiered_Chest_Athena_C);
-};
-
-class ATiered_Ammo_Athena_C : public ABuildingContainer {
-  public:
-    STATICCLASS_DEFAULTOBJECT("Tiered_Ammo_Athena_C", ATiered_Ammo_Athena_C);
-};
-
-class AFortAthenaSupplyDrop : public AActor {
-  public:
-    STATICCLASS_DEFAULTOBJECT("FortAthenaSupplyDrop", AFortAthenaSupplyDrop);
-};
-
-class AAthenaSupplyDrop_C : public AFortAthenaSupplyDrop {
-  public:
-    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_C", AAthenaSupplyDrop_C);
-};
-
-class AAthenaSupplyDrop_Llama_C : public AFortAthenaSupplyDrop {
-  public:
-    STATICCLASS_DEFAULTOBJECT("AthenaSupplyDrop_Llama_C", AAthenaSupplyDrop_Llama_C);
+    STATICCLASS_DEFAULTOBJECT("BuildingActor", ABuildingActor);
 };
 
 class AFortPickup : public AActor {
@@ -183,6 +205,7 @@ class AFortWeapon : public AActor {
     UPROPERTY(class UFortWeaponItemDefinition*, WeaponData);
     UPROPERTY(int32_t, AmmoCount);
     UPROPERTY(float, LastFireTime);
+    UPROPERTY_BITFIELD(bIgnoreTryToFireSlotCooldownRestriction);
 
   public:
     int32_t GetBulletsPerClip() const;

@@ -35,7 +35,7 @@ enum class BoneIdx : int {
 struct PlayerInfo {
     // Required for cache to be valid
 
-    SDK::AFortPawn*              Pawn = nullptr;
+    SDK::AFortPlayerPawnAthena*  Pawn = nullptr;
     SDK::AFortPlayerStateAthena* PlayerState = nullptr;
     SDK::USkeletalMeshComponent* Mesh = nullptr;
     SDK::USceneComponent*        RootComponent = nullptr;

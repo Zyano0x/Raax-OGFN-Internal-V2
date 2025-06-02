@@ -47,6 +47,13 @@ struct ConfigData {
             bool  OSIMatchFOV = true;
             float OSIFOV = 10.f;
             float OSISize = 8.f;
+
+            bool              Chams = false;
+            bool              ChamsOnSelf = false;
+            bool              ChamsWireframe = false;
+            bool              ChamsThroughWalls = false;
+            float             ChamsEmissionIntensity = 1.f;
+            SDK::FLinearColor ChamsColor = SDK::FLinearColor(1.f, 0.f, 0.75f, 1.f);
         } Player;
 
         struct RadarConfig {
@@ -210,6 +217,8 @@ struct ConfigData {
         float NoRecoilAmount = 0.5f;
         bool  NoReload = false;
         float NoReloadAmount = 0.5f;
+        bool  NoCharge = false;
+        float NoChargeAmount = 0.5f;
 
         bool  RapidFire = false;
         float RapidFireAmount = 1.f;
@@ -218,12 +227,15 @@ struct ConfigData {
         float DamageMultiplierAmount = 1.f;
 
         bool AutomaticWeapons = false;
+        bool DoublePump = false;
+        bool ADSInAir = false;
 
         bool  FastPickaxe = false;
         float FastPickaxeSpeed = 1.f;
 
         bool ZiplineFly = false;
 
+        bool AutoReviveSelf = false;
         bool InstantRevive = false;
     } Exploit;
 

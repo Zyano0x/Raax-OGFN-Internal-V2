@@ -15,6 +15,7 @@
 #include <cheat/features/aimbot.h>
 #include <cheat/features/triggerbot.h>
 #include <cheat/features/exploits.h>
+#include <cheat/features/chams.h>
 #include <drawing/drawing.h>
 #include <config/keybind.h>
 #include <gui/mainwindow.h>
@@ -121,6 +122,7 @@ static void UpdateGlobalVariables() {
     g_PixelsPerDegree = g_ScreenSizeX / Math::RadiansToDegrees(
                                             (2.f * tan(0.5f * Math::DegreesToRadians(std::clamp(g_FOV, 0.f, 120.f)))));
 
+    g_LocalTeamIndex = -1;
     if (g_LocalPawn) {
         SDK::USceneComponent* RootComponent = g_LocalPawn->RootComponent;
         if (RootComponent) {
@@ -145,7 +147,7 @@ bool Init(void* hModule) {
 #endif
     LOG(LOG_TRACE, "Setting up core...");
     LOG(LOG_INFO, "Image Base: %llX", Memory::GetImageBase());
-    LOG(LOG_INFO, "Module Base: %llX", hModule);
+    LOG(LOG_INFO, "Module Base: %p", hModule);
     return Hooks::Init() && SDK::Init() && GUI::Init() && DrawTransition::Init();
 }
 
@@ -154,6 +156,7 @@ void Destroy() {
     DrawTransition::Destroy();
     Hooks::Destroy();
     AutoRevertFeature::Destroy();
+    Features::Chams::Destroy();
 
 #if CFG_SHOWCONSOLE
     Log::DestroyConsole();
@@ -172,10 +175,9 @@ void TickGameThread() {
     Tick::Player::TickGameThread();
 
     Features::WeaponUtils::TickGameThread();
-
     Features::Aimbot::TickGameThread();
     Features::TriggerBot::TickGameThread();
-
+    Features::Chams::TickGameThread();
     Features::Exploits::TickGameThread();
 
     // For engine builds, render and game thread is merged since rendering happens at DrawTransition ticks, which is
