@@ -12,6 +12,68 @@
 #include <gui/raaxgui/raaxgui.h>
 #endif
 
+#ifdef _ENGINE
+#define SameLine RaaxGUI::SameLine
+#define Button RaaxGUI::Button
+#define Checkbox RaaxGUI::Checkbox
+#define SliderFloat RaaxGUI::SliderFloat
+#define SlderInt RaaxGUI::SlderInt
+
+#define Text void(0)
+#define Combo void(0)
+#define ColorEdit4 void(0)
+
+#define SetItemTooltip void(0)
+#define SetClipboardText void(0)
+#define EndTabItem void(0)
+#define EndTabBar void(0)
+#define EndDisabled void(0)
+#define EndChild void(0)
+#define BeginTabBar void(0)
+#define BeginDisabled void(0)
+
+#define ImVec2 SDK::FVector2D
+
+using ImGuiChildFlags = int;
+using ImGuiWindowFlags = int;
+using ImGuiTabItemFlags = int;
+using ImGuiInputTextFlags = int;
+
+static bool BeginChild(const char* str_id, const ImVec2& size_arg, ImGuiChildFlags child_flags = 0,
+                       ImGuiWindowFlags window_flags = 0) {
+    return true;
+}
+static bool BeginTabItem(const char* label, bool* p_open = 0, ImGuiTabItemFlags flags = 0) {
+    return true;
+}
+static bool InputText(const char* label, char* buf, size_t buf_size = 0) {
+    return false;
+}
+#else
+#define SameLine ImGui::SameLine
+#define Button ImGui::Button
+#define Checkbox ImGui::Checkbox
+#define SliderFloat ImGui::SliderFloat
+#define SlderInt ImGui::SlderInt
+#define Text ImGui::Text
+#define EndChild ImGui::EndChild
+#define SetItemTooltip ImGui::SetItemTooltip
+#define InputText ImGui::InputText
+#define EndTabItem ImGui::EndTabItem
+#define ColorEdit4 ImGui::ColorEdit4
+#define Combo ImGui::Combo
+#define BeginDisabled ImGui::BeginDisabled
+#define EndDisabled ImGui::EndDisabled
+#define SetClipboardText ImGui::SetClipboardText
+#define EndTabBar ImGui::EndTabBar
+#define BeginTabBar ImGui::BeginTabBar
+#define BeginTabItem ImGui::BeginTabItem
+#define EndTabItem ImGui::EndTabItem
+#define BeginChild ImGui::BeginChild
+#define EndChild ImGui::EndChild
+
+#endif
+
 namespace GUI {
 namespace MainWindow {
 
@@ -58,14 +120,14 @@ static void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char
         ImVec2 Centered = ImVec2(ScreenSize.x / 2.f - WindowSize.x / 2.f, ScreenSize.y / 2.f - WindowSize.y / 2.f);
         ImGui::SetWindowPos(Centered);
 
-        ImGui::Text("Configure Keybind");
+        Text("Configure Keybind");
         ImGui::Separator();
 
-        ImGui::Text("Select a target");
-        if (ImGui::BeginChild("TargetSelection", ImVec2(0, 200), ImGuiChildFlags_Borders)) {
+        Text("Select a target");
+        if (BeginChild("TargetSelection", ImVec2(0, 200), ImGuiChildFlags_Borders)) {
             DisplayMembersInTree<Config::ConfigData>(&Config::g_Config, "", CurrentKeybind.ReflectedBool);
         }
-        ImGui::EndChild();
+        EndChild();
 
         ImGui::Spacing();
 
@@ -77,19 +139,19 @@ static void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char
         bool ReadyToConfirm = CurrentKeybind.Keybind != Input::KeyID::NONE && CurrentKeybind.ReflectedBool.Ptr;
 
         ImGui::SetCursorPosY(ImGui::GetWindowHeight() - ImGui::GetFrameHeightWithSpacing() - 5);
-        ImGui::BeginDisabled(!ReadyToConfirm);
-        if (ImGui::Button("Confirm", ImVec2(90, 0))) {
+        BeginDisabled(!ReadyToConfirm);
+        if (Button("Confirm", ImVec2(90, 0))) {
             Config::g_Config.Keybinds.Keybinds.push_back(CurrentKeybind);
             ImGui::CloseCurrentPopup();
         }
-        ImGui::EndDisabled();
+        EndDisabled();
 
-        ImGui::SameLine();
-        ImGui::BeginDisabled(!AllowCancelling);
-        if (ImGui::Button("Cancel", ImVec2(90, 0))) {
+        SameLine();
+        BeginDisabled(!AllowCancelling);
+        if (Button("Cancel", ImVec2(90, 0))) {
             ImGui::CloseCurrentPopup();
         }
-        ImGui::EndDisabled();
+        EndDisabled();
 
         ImGui::EndPopup();
     } else {
@@ -98,7 +160,7 @@ static void DisplayKeybindPopup(Keybind::KeybindData& CurrentKeybind, const char
 }
 
 static void AddKeybindButton() {
-    if (ImGui::Button("Add Keybind")) {
+    if (Button("Add Keybind")) {
         ImGui::OpenPopup("Keybind");
     }
 
@@ -109,18 +171,18 @@ static void AddKeybindButton() {
 static void ListKeybinds() {
     static Keybind::KeybindData CurrentKeybind = {};
 
-    if (ImGui::Button("Delete All Keybinds")) {
+    if (Button("Delete All Keybinds")) {
         Config::g_Config.Keybinds.Keybinds.clear();
     }
 
     static size_t EditingIdx = -1;
     static bool   bEditing = false;
 
-    if (ImGui::BeginChild("KeybindList", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+    if (BeginChild("KeybindList", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         size_t PendingDeleteIdx = -1;
 
         if (Config::g_Config.Keybinds.Keybinds.empty()) {
-            ImGui::Text("No keybinds!");
+            Text("No keybinds!");
         } else {
             for (size_t i = 0; i < Config::g_Config.Keybinds.Keybinds.size(); i++) {
                 auto& Keybind = Config::g_Config.Keybinds.Keybinds[i];
@@ -128,12 +190,12 @@ static void ListKeybinds() {
                 std::string KeybindInfoStr =
                     std::format("{} - {}", Input::GetKeyName(Keybind.Keybind), Keybind.ReflectedBool.Name.data());
                 ImGui::PushID(&Keybind);
-                ImGui::BeginDisabled(bEditing && i != EditingIdx);
+                BeginDisabled(bEditing && i != EditingIdx);
 
-                if (ImGui::Button("Delete")) {
+                if (Button("Delete")) {
                     PendingDeleteIdx = i;
                 }
-                ImGui::SameLine();
+                SameLine();
                 GUI::Keybind("Key", bEditing, Keybind.Keybind);
                 if (bEditing && EditingIdx == -1) {
                     EditingIdx = i;
@@ -141,10 +203,10 @@ static void ListKeybinds() {
                 if (!bEditing && EditingIdx != -1) {
                     EditingIdx = -1;
                 }
-                ImGui::SameLine();
-                ImGui::Text(Keybind.ReflectedBool.Name.data());
+                SameLine();
+                Text(Keybind.ReflectedBool.Name.data());
 
-                ImGui::EndDisabled();
+                EndDisabled();
                 ImGui::PopID();
             }
         }
@@ -155,362 +217,371 @@ static void ListKeybinds() {
     }
 
     DisplayKeybindPopup(CurrentKeybind, "Keybind (Edit)", false);
-    ImGui::EndChild();
+    EndChild();
 }
+#endif
 
 // --- Window Tab Functions & Data -----------------------------------
 
 static void AimbotTab() {
     auto DisplayAimbotConfig = [](Config::ConfigData::AimbotConfig::AimbotAmmoConfig& Config) {
-        ImGui::Checkbox("Enabled", &Config.Enabled);
-        ImGui::Checkbox("Use In Trigger Bot", &Config.UseInTriggerBot);
+        Checkbox("Enabled", &Config.Enabled);
+        Checkbox("Use In Trigger Bot", &Config.UseInTriggerBot);
 
-        ImGui::SliderFloat("Smoothness", &Config.Smoothness, 1.f, 20.f);
-        ImGui::SliderFloat("Max Distance", &Config.MaxDistance, 1.f, 500.f);
+        SliderFloat("Smoothness", &Config.Smoothness, 1.f, 20.f);
+        SliderFloat("Max Distance", &Config.MaxDistance, 1.f, 500.f);
 
-        ImGui::Checkbox("Visible Check", &Config.VisibleCheck);
-        ImGui::Checkbox("Sticky Target", &Config.StickyTarget);
+        Checkbox("Visible Check", &Config.VisibleCheck);
+        Checkbox("Sticky Target", &Config.StickyTarget);
 
-        ImGui::Checkbox("Show FOV", &Config.ShowFOV);
-        ImGui::SliderFloat("FOV", &Config.FOV, 0.25f, 180.f);
+        Checkbox("Show FOV", &Config.ShowFOV);
+        SliderFloat("FOV", &Config.FOV, 0.25f, 180.f);
 
         if (Config.DeadzoneFOV > Config.FOV)
             Config.DeadzoneFOV = Config.FOV;
 
-        ImGui::Checkbox("Use Deadzone", &Config.UseDeadzone);
+        Checkbox("Use Deadzone", &Config.UseDeadzone);
         if (Config.UseDeadzone) {
-            ImGui::Checkbox("Show Deadzone FOV", &Config.ShowDeadzoneFOV);
-            ImGui::SliderFloat("Deadzone FOV", &Config.DeadzoneFOV, 0.25f, Config.FOV);
+            Checkbox("Show Deadzone FOV", &Config.ShowDeadzoneFOV);
+            SliderFloat("Deadzone FOV", &Config.DeadzoneFOV, 0.25f, Config.FOV);
         }
 
-        ImGui::Combo("Target Selection", (int*)&Config.Selection, "Distance\000Degrees\000Combined");
-        ImGui::Combo("Target Bone", (int*)&Config.Bone, "Head\000Neck\000Chest\000Pelvis\000Random");
+        Combo("Target Selection", (int*)&Config.Selection, "Distance\000Degrees\000Combined");
+        Combo("Target Bone", (int*)&Config.Bone, "Head\000Neck\000Chest\000Pelvis\000Random");
 
         if (Config.Bone == Config::ConfigData::TargetBone::Random)
-            ImGui::SliderFloat("Random Bone Refresh Rate", &Config.RandomBoneRefreshRate, 0.1f, 3.f);
+            SliderFloat("Random Bone Refresh Rate", &Config.RandomBoneRefreshRate, 0.1f, 3.f);
     };
 
     auto& AimbotConfig = Config::g_Config.Aimbot;
 
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-        ImGui::Checkbox("Split By Ammo Type", &AimbotConfig.SplitAimbotByAmmo);
-        ImGui::SameLine();
-        ImGui::Checkbox("Bullet Prediction", &AimbotConfig.BulletPrediction);
-        ImGui::SameLine();
-        ImGui::Checkbox("Show Target Line", &AimbotConfig.ShowTargetLine);
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+        Checkbox("Split By Ammo Type", &AimbotConfig.SplitAimbotByAmmo);
+        SameLine();
+        Checkbox("Bullet Prediction", &AimbotConfig.BulletPrediction);
+        SameLine();
+        Checkbox("Show Target Line", &AimbotConfig.ShowTargetLine);
+
+        Checkbox("Bullet TP", &AimbotConfig.BulletTP);
+        SameLine();
+        BeginDisabled();
+        Checkbox("Silent Aim", &AimbotConfig.SilentAim);
+        SetItemTooltip("Coming soon...");
+        EndDisabled();
+
         static bool WaitingForKeybind = false;
         GUI::Keybind("Aim Keybind", WaitingForKeybind, AimbotConfig.AimbotKeybind);
 
-        if (ImGui::BeginChild("AimbotConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-            ImGui::BeginTabBar("Aimbot Tab");
+        if (BeginChild("AimbotConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+            BeginTabBar("Aimbot Tab");
 
             // Scuffed attempt to fix flickering when toggling SplitAimbotByAmmo
             static bool AllWeaponsSelected = false;
 
-            ImGui::BeginDisabled(!AllWeaponsSelected && AimbotConfig.SplitAimbotByAmmo);
-            if (ImGui::BeginTabItem("All Weapons", nullptr,
-                                    AimbotConfig.SplitAimbotByAmmo ? ImGuiTabItemFlags_None
-                                                                   : ImGuiTabItemFlags_SetSelected)) {
+            BeginDisabled(!AllWeaponsSelected && AimbotConfig.SplitAimbotByAmmo);
+            if (BeginTabItem("All Weapons", nullptr,
+                             AimbotConfig.SplitAimbotByAmmo ? ImGuiTabItemFlags_None : ImGuiTabItemFlags_SetSelected)) {
                 AllWeaponsSelected = true;
                 DisplayAimbotConfig(AimbotConfig.AllAimbot);
-                ImGui::EndTabItem();
+                EndTabItem();
             } else {
                 AllWeaponsSelected = false;
             }
-            ImGui::EndDisabled();
+            EndDisabled();
 
-            ImGui::BeginDisabled(!AimbotConfig.SplitAimbotByAmmo);
-            if (ImGui::BeginTabItem("Shells", nullptr,
-                                    (AllWeaponsSelected && AimbotConfig.SplitAimbotByAmmo)
-                                        ? ImGuiTabItemFlags_SetSelected
-                                        : ImGuiTabItemFlags_None)) {
+            BeginDisabled(!AimbotConfig.SplitAimbotByAmmo);
+            if (BeginTabItem("Shells", nullptr,
+                             (AllWeaponsSelected && AimbotConfig.SplitAimbotByAmmo) ? ImGuiTabItemFlags_SetSelected
+                                                                                    : ImGuiTabItemFlags_None)) {
                 DisplayAimbotConfig(AimbotConfig.ShellsAimbot);
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Light")) {
+            if (BeginTabItem("Light")) {
                 DisplayAimbotConfig(AimbotConfig.LightAimbot);
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Medium")) {
+            if (BeginTabItem("Medium")) {
                 DisplayAimbotConfig(AimbotConfig.MediumAimbot);
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Heavy")) {
+            if (BeginTabItem("Heavy")) {
                 DisplayAimbotConfig(AimbotConfig.HeavyAimbot);
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Other")) {
+            if (BeginTabItem("Other")) {
                 DisplayAimbotConfig(AimbotConfig.OtherAimbot);
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            ImGui::EndDisabled();
+            EndDisabled();
 
-            ImGui::EndTabBar();
+            EndTabBar();
         }
-        ImGui::EndChild();
+        EndChild();
     }
-    ImGui::EndChild();
+    EndChild();
 }
 
 static void TriggerBotTab() {
     auto& Config = Config::g_Config.TriggerBot;
 
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-        ImGui::Checkbox("Enabled", &Config.Enabled);
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+        Checkbox("Enabled", &Config.Enabled);
 
-        ImGui::Checkbox("Use Keybind", &Config.UseKeybind);
-        ImGui::SameLine();
+        Checkbox("Use Keybind", &Config.UseKeybind);
+        SameLine();
         static bool WaitingForKeybind = false;
         GUI::Keybind("Keybind", WaitingForKeybind, Config.Keybind);
 
-        ImGui::Checkbox("Show FOV", &Config.ShowFOV);
-        ImGui::SliderFloat("FOV", &Config.FOV, 0.25f, 180.f);
+        Checkbox("Show FOV", &Config.ShowFOV);
+        SliderFloat("FOV", &Config.FOV, 0.25f, 180.f);
 
-        ImGui::SliderFloat("Max Distance", &Config.MaxDistance, 0.f, 500.f);
-        ImGui::SliderFloat("Fire Delay (s)", &Config.FireDelayS, 0.f, 2.f);
+        SliderFloat("Max Distance", &Config.MaxDistance, 0.f, 500.f);
+        SliderFloat("Fire Delay (s)", &Config.FireDelayS, 0.f, 2.f);
     }
-    ImGui::EndChild();
+    EndChild();
 }
 
 static void VisualsTab() {
     auto& Config = Config::g_Config.Visuals;
 
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-        ImGui::BeginTabBar("Visuals Tab");
-        if (ImGui::BeginTabItem("Player")) {
-            ImGui::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
-            ImGui::SliderFloat("Font Size", &Config.Player.FontSize, 4.f, 32.f);
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+        BeginTabBar("Visuals Tab");
+        if (BeginTabItem("Player")) {
+            SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
+            SliderFloat("Font Size", &Config.Player.FontSize, 4.f, 32.f);
 
-            ImGui::Checkbox("Box", &Config.Player.Box);
+            Checkbox("Box", &Config.Player.Box);
             if (Config.Player.Box) {
-                ImGui::Combo("Box Type", (int*)&Config.Player.BoxType, "Full\000Cornered\000Full 3D");
-                ImGui::SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
-                ImGui::Checkbox("Filled Box", &Config.Player.FilledBox);
+                Combo("Box Type", (int*)&Config.Player.BoxType, "Full\000Cornered\000Full 3D");
+                SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
+                Checkbox("Filled Box", &Config.Player.FilledBox);
                 if (Config.Player.FilledBox)
-                    ImGui::ColorEdit4("Filled Box Color", (float*)&Config.Player.FilledBoxColor);
+                    ColorEdit4("Filled Box Color", (float*)&Config.Player.FilledBoxColor);
             }
 
-            ImGui::Checkbox("Skeleton", &Config.Player.Skeleton);
+            Checkbox("Skeleton", &Config.Player.Skeleton);
             if (Config.Player.Skeleton)
-                ImGui::SliderFloat("Skeleton Thickness", &Config.Player.SkeletonThickness, 1.f, 20.f);
+                SliderFloat("Skeleton Thickness", &Config.Player.SkeletonThickness, 1.f, 20.f);
 
-            ImGui::Checkbox("Tracer", &Config.Player.Tracer);
+            Checkbox("Tracer", &Config.Player.Tracer);
             if (Config.Player.Tracer) {
-                ImGui::SliderFloat("Tracer Thickness", &Config.Player.TracerThickness, 1.f, 20.f);
-                ImGui::Combo("Tracer Start", (int*)&Config.Player.TracerStart, "Top\000Middle\000Bottom");
-                ImGui::Combo("Tracer End", (int*)&Config.Player.TracerEnd, "Top\000Middle\000Bottom");
+                SliderFloat("Tracer Thickness", &Config.Player.TracerThickness, 1.f, 20.f);
+                Combo("Tracer Start", (int*)&Config.Player.TracerStart, "Top\000Middle\000Bottom");
+                Combo("Tracer End", (int*)&Config.Player.TracerEnd, "Top\000Middle\000Bottom");
             }
 
-            ImGui::Checkbox("Platform", &Config.Player.Platform);
-            ImGui::Checkbox("Name", &Config.Player.Name);
-            ImGui::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
-            ImGui::Checkbox("Distance", &Config.Player.Distance);
+            Checkbox("Platform", &Config.Player.Platform);
+            Checkbox("Name", &Config.Player.Name);
+            Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
+            Checkbox("Distance", &Config.Player.Distance);
 
-            ImGui::Checkbox("OSI", &Config.Player.OSI);
+            Checkbox("OSI", &Config.Player.OSI);
             if (Config.Player.OSI) {
-                ImGui::Checkbox("OSI Match FOV", &Config.Player.OSIMatchFOV);
-                ImGui::SliderFloat("OSI FOV", &Config.Player.OSIFOV, 0.25f, 180.f);
-                ImGui::SliderFloat("OSI Size", &Config.Player.OSISize, 1.f, 20.f);
+                Checkbox("OSI Match FOV", &Config.Player.OSIMatchFOV);
+                SliderFloat("OSI FOV", &Config.Player.OSIFOV, 0.25f, 180.f);
+                SliderFloat("OSI Size", &Config.Player.OSISize, 1.f, 20.f);
             }
 
-            ImGui::Checkbox("Chams", &Config.Player.Chams);
+            Checkbox("Chams", &Config.Player.Chams);
             if (Config.Player.Chams) {
-                ImGui::Checkbox("Chams On Self", &Config.Player.ChamsOnSelf);
-                ImGui::Checkbox("Chams Wireframe", &Config.Player.ChamsWireframe);
-                ImGui::Checkbox("Chams Through Walls", &Config.Player.ChamsThroughWalls);
-                ImGui::SliderFloat("Chams Emission Intensity", &Config.Player.ChamsEmissionIntensity, 0.f, 100.f);
-                ImGui::ColorEdit4("Chams Color", (float*)&Config.Player.ChamsColor);
+                Checkbox("Chams On Self", &Config.Player.ChamsOnSelf);
+                Checkbox("Chams Wireframe", &Config.Player.ChamsWireframe);
+                Checkbox("Chams Through Walls", &Config.Player.ChamsThroughWalls);
+                SliderFloat("Chams Emission Intensity", &Config.Player.ChamsEmissionIntensity, 0.f, 100.f);
+                ColorEdit4("Chams Color", (float*)&Config.Player.ChamsColor);
             }
 
-            ImGui::EndTabItem();
+            EndTabItem();
         }
-        if (ImGui::BeginTabItem("Radar")) {
+        if (BeginTabItem("Radar")) {
             float MaxPosition = 100.f - Config.Radar.Size;
             Config.Radar.PosX = std::min(Config.Radar.PosX, MaxPosition);
             Config.Radar.PosY = std::min(Config.Radar.PosY, MaxPosition);
 
-            ImGui::Checkbox("Enable Radar", &Config.Radar.Radar);
-            ImGui::Checkbox("Rotate With Camera", &Config.Radar.RotateWithCamera);
-            ImGui::Checkbox("Show Camera FOV", &Config.Radar.ShowCameraFOV);
-            ImGui::Checkbox("Show Guidelines", &Config.Radar.ShowGuidelines);
-            ImGui::SliderFloat("Max Distance", &Config.Radar.MaxDistance, 1.f, 500.f);
-            ImGui::SliderFloat("Position X", &Config.Radar.PosX, 0.f, MaxPosition);
-            ImGui::SliderFloat("Position Y", &Config.Radar.PosY, 0.f, MaxPosition);
-            ImGui::SliderFloat("Size", &Config.Radar.Size, 3.f, 100.f);
-            ImGui::ColorEdit4("Background Color", (float*)&Config.Radar.BackgroundColor);
-            ImGui::ColorEdit4("Color Visible", (float*)&Config.Radar.ColorVisible);
-            ImGui::ColorEdit4("Color Hidden", (float*)&Config.Radar.ColorHidden);
-            ImGui::EndTabItem();
+            Checkbox("Enable Radar", &Config.Radar.Radar);
+            Checkbox("Rotate With Camera", &Config.Radar.RotateWithCamera);
+            Checkbox("Show Camera FOV", &Config.Radar.ShowCameraFOV);
+            Checkbox("Show Guidelines", &Config.Radar.ShowGuidelines);
+            SliderFloat("Max Distance", &Config.Radar.MaxDistance, 1.f, 500.f);
+            SliderFloat("Position X", &Config.Radar.PosX, 0.f, MaxPosition);
+            SliderFloat("Position Y", &Config.Radar.PosY, 0.f, MaxPosition);
+            SliderFloat("Size", &Config.Radar.Size, 3.f, 100.f);
+            ColorEdit4("Background Color", (float*)&Config.Radar.BackgroundColor);
+            ColorEdit4("Color Visible", (float*)&Config.Radar.ColorVisible);
+            ColorEdit4("Color Hidden", (float*)&Config.Radar.ColorHidden);
+            EndTabItem();
         }
-        if (ImGui::BeginTabItem("Loot")) {
-            ImGui::Checkbox("Loot Text", &Config.Loot.LootText);
+        if (BeginTabItem("Loot")) {
+            Checkbox("Loot Text", &Config.Loot.LootText);
             if (Config.Loot.LootText) {
-                ImGui::Combo("Loot Minimum Tier", (int*)&Config.Loot.LootMinTier,
-                             "Common\000Uncommon\000Rare\000Epic\000Legendary\000Mythic");
-                ImGui::Checkbox("Loot Fade Off", &Config.Loot.LootFadeOff);
-                ImGui::SameLine();
-                ImGui::SliderFloat("Loot Max Distance", &Config.Loot.LootMaxDistance, 1.f, 1000.f);
+                Combo("Loot Minimum Tier", (int*)&Config.Loot.LootMinTier,
+                      "Common\000Uncommon\000Rare\000Epic\000Legendary\000Mythic");
+                Checkbox("Loot Fade Off", &Config.Loot.LootFadeOff);
+                SameLine();
+                SliderFloat("Loot Max Distance", &Config.Loot.LootMaxDistance, 1.f, 1000.f);
             }
 
-            ImGui::Checkbox("Chest Text", &Config.Loot.ChestText);
+            Checkbox("Chest Text", &Config.Loot.ChestText);
             if (Config.Loot.ChestText) {
-                ImGui::Checkbox("Chest Fade Off", &Config.Loot.ChestFadeOff);
-                ImGui::SameLine();
-                ImGui::SliderFloat("Chest Max Distance", &Config.Loot.ChestMaxDistance, 1.f, 1000.f);
+                Checkbox("Chest Fade Off", &Config.Loot.ChestFadeOff);
+                SameLine();
+                SliderFloat("Chest Max Distance", &Config.Loot.ChestMaxDistance, 1.f, 1000.f);
             }
 
-            ImGui::Checkbox("Ammo Box Text", &Config.Loot.AmmoBoxText);
+            Checkbox("Ammo Box Text", &Config.Loot.AmmoBoxText);
             if (Config.Loot.AmmoBoxText) {
-                ImGui::Checkbox("Ammo Box Fade Off", &Config.Loot.AmmoBoxFadeOff);
-                ImGui::SameLine();
-                ImGui::SliderFloat("Ammo Box Max Distance", &Config.Loot.AmmoBoxMaxDistance, 1.f, 1000.f);
+                Checkbox("Ammo Box Fade Off", &Config.Loot.AmmoBoxFadeOff);
+                SameLine();
+                SliderFloat("Ammo Box Max Distance", &Config.Loot.AmmoBoxMaxDistance, 1.f, 1000.f);
             }
 
-            ImGui::Checkbox("Supply Drop Text", &Config.Loot.SupplyDropText);
+            Checkbox("Supply Drop Text", &Config.Loot.SupplyDropText);
             if (Config.Loot.SupplyDropText) {
-                ImGui::Checkbox("Supply Drop Fade Off", &Config.Loot.SupplyDropFadeOff);
-                ImGui::SameLine();
-                ImGui::SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 2500.f);
+                Checkbox("Supply Drop Fade Off", &Config.Loot.SupplyDropFadeOff);
+                SameLine();
+                SliderFloat("Supply Drop Max Distance", &Config.Loot.SupplyDropMaxDistance, 1.f, 2500.f);
             }
 
-            ImGui::Checkbox("Llama Text", &Config.Loot.LlamaText);
+            Checkbox("Llama Text", &Config.Loot.LlamaText);
             if (Config.Loot.LlamaText) {
-                ImGui::Checkbox("Llama Fade Off", &Config.Loot.LlamaFadeOff);
-                ImGui::SameLine();
-                ImGui::SliderFloat("Llama Max Distance", &Config.Loot.LlamaMaxDistance, 1.f, 2500.f);
+                Checkbox("Llama Fade Off", &Config.Loot.LlamaFadeOff);
+                SameLine();
+                SliderFloat("Llama Max Distance", &Config.Loot.LlamaMaxDistance, 1.f, 2500.f);
             }
-            ImGui::EndTabItem();
+            EndTabItem();
         }
-        if (ImGui::BeginTabItem("Colors")) {
+        if (BeginTabItem("Colors")) {
             auto& ColorConfig = Config::g_Config.Color;
-            ImGui::ColorEdit4("Primary Color Visible", (float*)&ColorConfig.PrimaryColorVisible);
-            ImGui::ColorEdit4("Primary Color Hidden", (float*)&ColorConfig.PrimaryColorHidden);
-            ImGui::ColorEdit4("Secondary Color Visible", (float*)&ColorConfig.SecondaryColorVisible);
-            ImGui::ColorEdit4("Secondary Color Hidden", (float*)&ColorConfig.SecondaryColorHidden);
-            ImGui::EndTabItem();
+            ColorEdit4("Primary Color Visible", (float*)&ColorConfig.PrimaryColorVisible);
+            ColorEdit4("Primary Color Hidden", (float*)&ColorConfig.PrimaryColorHidden);
+            ColorEdit4("Secondary Color Visible", (float*)&ColorConfig.SecondaryColorVisible);
+            ColorEdit4("Secondary Color Hidden", (float*)&ColorConfig.SecondaryColorHidden);
+            EndTabItem();
         }
-        ImGui::EndTabBar();
+        EndTabBar();
     }
-    ImGui::EndChild();
+    EndChild();
 }
 
 static void ExploitsTab() {
     auto& Config = Config::g_Config.Exploit;
 
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-        ImGui::BeginTabBar("Exploits Tab");
-        if (ImGui::BeginTabItem("Weapon")) {
-            ImGui::Checkbox("No Spread", &Config.NoSpread);
-            ImGui::SameLine();
-            ImGui::SliderFloat("Multiplier##0", &Config.NoSpreadAmount, 0.f, 1.f);
-            ImGui::Checkbox("No Recoil", &Config.NoRecoil);
-            ImGui::SameLine();
-            ImGui::SliderFloat("Multiplier##1", &Config.NoRecoilAmount, 0.f, 1.f);
-            ImGui::Checkbox("No Reload", &Config.NoReload);
-            ImGui::SameLine();
-            ImGui::SliderFloat("Time##2", &Config.NoReloadAmount, 0.f, 1.f);
-            ImGui::Checkbox("No Charge", &Config.NoCharge);
-            ImGui::SameLine();
-            ImGui::SliderFloat("Time##3", &Config.NoChargeAmount, 0.f, 1.f);
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+        BeginTabBar("Exploits Tab");
+        if (BeginTabItem("Weapon")) {
+            Checkbox("No Spread", &Config.NoSpread);
+            SameLine();
+            SliderFloat("Multiplier##0", &Config.NoSpreadAmount, 0.f, 1.f);
+            Checkbox("No Recoil", &Config.NoRecoil);
+            SameLine();
+            SliderFloat("Multiplier##1", &Config.NoRecoilAmount, 0.f, 1.f);
+            Checkbox("No Reload", &Config.NoReload);
+            SameLine();
+            SliderFloat("Time##2", &Config.NoReloadAmount, 0.f, 1.f);
+            Checkbox("No Charge", &Config.NoCharge);
+            SameLine();
+            SliderFloat("Time##3", &Config.NoChargeAmount, 0.f, 1.f);
 
-            ImGui::Checkbox("Rapid Fire", &Config.RapidFire);
-            Config.RapidFireAmount *= 50.f; // scuffed fix for now
-            ImGui::SameLine();
-            ImGui::SliderFloat("Speed##3", &Config.RapidFireAmount, 1.f, 50.f);
-            Config.RapidFireAmount /= 50.f;
+            Checkbox("Rapid Fire", &Config.RapidFire);
+            static float RapidFireAmount = Config.RapidFireAmount *= 50.f;
+            SameLine();
+            SliderFloat("Speed##3", &RapidFireAmount, 1.f, 50.f);
+            Config.RapidFireAmount = RapidFireAmount / 50.f;
 
-            ImGui::Checkbox("Damage Multiplier", &Config.DamageMultiplier);
-            Config.DamageMultiplierAmount *= 50.f; // scuffed fix for now
-            ImGui::SameLine();
-            ImGui::SliderFloat("Multiplier##4", &Config.DamageMultiplierAmount, 1.f, 50.f);
-            Config.DamageMultiplierAmount /= 50.f;
+            Checkbox("Damage Multiplier", &Config.DamageMultiplier);
+            static float DamageMultiplierAmount = Config.DamageMultiplierAmount *= 50.f;
+            SameLine();
+            SliderFloat("Multiplier##4", &DamageMultiplierAmount, 1.f, 50.f);
+            Config.DamageMultiplierAmount = DamageMultiplierAmount / 50.f;
 
-            ImGui::Checkbox("Fast Pickaxe", &Config.FastPickaxe);
-            Config.FastPickaxeSpeed *= 50.f; // scuffed fix for now
-            ImGui::SameLine();
-            ImGui::SliderFloat("Speed##5", &Config.FastPickaxeSpeed, 1.f, 50.f);
-            Config.FastPickaxeSpeed /= 50.f;
+            Checkbox("Fast Pickaxe", &Config.FastPickaxe);
+            static float FastPickaxeSpeed = Config.FastPickaxeSpeed *= 50.f;
+            SameLine();
+            SliderFloat("Speed##5", &FastPickaxeSpeed, 1.f, 50.f);
+            Config.FastPickaxeSpeed = FastPickaxeSpeed / 50.f;
 
-            ImGui::Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
-            ImGui::Checkbox("Double Pump", &Config.DoublePump);
-            ImGui::Checkbox("ADS In Air", &Config.ADSInAir);
-            ImGui::EndTabItem();
+            Checkbox("Automatic Weapons", &Config.AutomaticWeapons);
+            Checkbox("Double Pump", &Config.DoublePump);
+            Checkbox("ADS In Air", &Config.ADSInAir);
+            EndTabItem();
         }
-        if (ImGui::BeginTabItem("Player")) {
-            ImGui::Checkbox("Zipline Fly", &Config.ZiplineFly);
-            ImGui::Checkbox("Auto Revive Self", &Config.AutoReviveSelf);
-            ImGui::Checkbox("Instant Revive", &Config.InstantRevive);
+        if (BeginTabItem("Player")) {
+            Checkbox("Zipline Fly", &Config.ZiplineFly);
+            Checkbox("Auto Revive Self", &Config.AutoReviveSelf);
+            Checkbox("Instant Revive", &Config.InstantRevive);
 
             static char InputName[1024];
-            ImGui::InputText("New Name", InputName, sizeof(InputName));
-            if (ImGui::Button("Server Change Name")) {
+            InputText("New Name", InputName, sizeof(InputName));
+            if (Button("Server Change Name")) {
                 std::string             InputNameStr = InputName;
                 std::wstring            InputNameWStr = std::wstring(InputNameStr.begin(), InputNameStr.end());
                 SDK::APlayerController* Controller = SDK::GetLocalController();
                 if (Controller)
                     Controller->ServerChangeName(SDK::FString(InputNameWStr.c_str()));
             }
-            ImGui::EndTabItem();
+            EndTabItem();
         }
-        ImGui::EndTabBar();
+        EndTabBar();
     }
-    ImGui::EndChild();
+    EndChild();
 }
 
+#ifndef _ENGINE
 static void KeybindsTab() {
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         AddKeybindButton();
         ListKeybinds();
     }
-    ImGui::EndChild();
+    EndChild();
 }
+#endif
 
 static void ConfigTab() {
     static char InputConfigData[8196];
     static bool InputConfigIsValid = false;
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
-        if (ImGui::InputText("Config Data", InputConfigData, sizeof(InputConfigData))) {
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+        if (InputText("Config Data", InputConfigData, sizeof(InputConfigData))) {
             Config::ConfigData TestConfig = {};
             InputConfigIsValid = TestConfig.DeserializeConfig(InputConfigData);
         }
         if (InputConfigData[0] == '\0') // ImGui seems to not always return true when deleting the final character
             InputConfigIsValid = false;
 
-        if (ImGui::Button("Copy Config")) {
-            ImGui::SetClipboardText(Config::g_Config.SerializeConfig(false).c_str());
+        if (Button("Copy Config")) {
+            SetClipboardText(Config::g_Config.SerializeConfig(false).c_str());
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Copy Full Config")) {
-            ImGui::SetClipboardText(Config::g_Config.SerializeConfig(true).c_str());
+        SameLine();
+        if (Button("Copy Full Config")) {
+            SetClipboardText(Config::g_Config.SerializeConfig(true).c_str());
         }
 
-        ImGui::BeginDisabled(!InputConfigIsValid);
-        if (ImGui::Button("Load Config")) {
+        BeginDisabled(!InputConfigIsValid);
+        if (Button("Load Config")) {
             Config::g_Config.DeserializeConfig(InputConfigData);
             InputConfigIsValid = false;
             InputConfigData[0] = '\00';
         }
-        ImGui::EndDisabled();
-        ImGui::SameLine();
-        if (ImGui::Button("Load Default Config")) {
+        EndDisabled();
+        SameLine();
+        if (Button("Load Default Config")) {
             Config::g_Config = Config::ConfigData();
         }
     }
-    ImGui::EndChild();
+    EndChild();
 }
 
 static void MiscTab() {
     auto& ColorConfig = Config::g_Config.Color;
 
-    if (ImGui::BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
+    if (BeginChild("ConfigRegion", ImVec2(0, 0), ImGuiChildFlags_Borders)) {
         static bool WaitingForKeybind = false;
         GUI::Keybind("Menu Keybind", WaitingForKeybind, Config::g_Config.MenuKeybind);
 
-        ImGui::Text("Thank you for using my cheat! Join my Discord and star the repository!");
-        ImGui::Text("Made by Raax with help from Toxy, Parkie & NotTacs");
-        ImGui::Text("2ly.link/26uAo - github.com/raax7");
+        Text("Thank you for using my cheat! Join my Discord and star the repository!");
+        Text("Made by Raax with help from Toxy, Parkie & NotTacs");
+        Text("2ly.link/26uAo - github.com/raax7");
     }
-    ImGui::EndChild();
+    EndChild();
 }
 
 // --- Public Tick Functions -----------------------------------------
@@ -520,91 +591,106 @@ void Tick() {
         GUI::MainWindow::g_WindowOpen = !GUI::MainWindow::g_WindowOpen;
 
     if (GUI::MainWindow::g_WindowOpen) {
-        ImGuiIO& io = ImGui::GetIO();
-        ImGui::GetForegroundDrawList()->AddCircle(io.MousePos, 5.f, ImColor(0.f, 0.f, 0.f));
-        ImGui::GetForegroundDrawList()->AddCircle(io.MousePos, 4.f, ImColor(1.f, 1.f, 1.f));
-
+#ifndef _ENGINE
         ImGui::SetNextWindowSize(ImVec2(700.f, 375.f), ImGuiCond_Once);
         if (ImGui::Begin("Raax-OGFN-Internal V2", nullptr,
                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
-            ImGui::BeginTabBar("Menu Tab");
-            if (ImGui::BeginTabItem("Aimbot")) {
+            BeginTabBar("Menu Tab");
+            if (BeginTabItem("Aimbot")) {
                 AimbotTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Trigger Bot")) {
+            if (BeginTabItem("Trigger Bot")) {
                 TriggerBotTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Visuals")) {
+            if (BeginTabItem("Visuals")) {
                 VisualsTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Exploits")) {
+            if (BeginTabItem("Exploits")) {
                 ExploitsTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Keybinds")) {
+            if (BeginTabItem("Keybinds")) {
                 KeybindsTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Config")) {
+            if (BeginTabItem("Config")) {
                 ConfigTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            if (ImGui::BeginTabItem("Misc")) {
+            if (BeginTabItem("Misc")) {
                 MiscTab();
-                ImGui::EndTabItem();
+                EndTabItem();
             }
-            ImGui::EndTabBar();
+            EndTabBar();
         }
         ImGui::End();
-    }
-}
 #else
-void Tick() {
-    if (Input::WasKeyJustReleased(Config::g_Config.MenuKeybind))
-        GUI::MainWindow::g_WindowOpen = !GUI::MainWindow::g_WindowOpen;
-
-    if (GUI::MainWindow::g_WindowOpen) {
         RaaxGUI::NewFrame();
         RaaxGUI::SetNextWindowSize(SDK::FVector2D(700.f, 375.f));
         if (RaaxGUI::Begin("Raax-OGFN-Internal V2")) {
-            auto& Config = Config::g_Config.Visuals;
-            auto& AimbotConfig = Config::g_Config.Aimbot;
-
             static int Tab = 0;
-            if (RaaxGUI::Button("Test")) {
+            if (Button("Aimbot")) {
                 Tab = 0;
             }
-            RaaxGUI::SameLine();
-            if (RaaxGUI::Button("Test 2")) {
+            SameLine();
+            if (Button("Trigger Bot")) {
                 Tab = 1;
             }
+            SameLine();
+            if (Button("Visuals")) {
+                Tab = 2;
+            }
+            SameLine();
+            if (Button("Exploits")) {
+                Tab = 3;
+            }
+            SameLine();
+            if (Button("Config")) {
+                Tab = 5;
+            }
+            SameLine();
+            if (Button("Misc")) {
+                Tab = 6;
+            }
 
-            if (Tab == 0) {
-                RaaxGUI::Checkbox("Box", &Config.Player.Box);
-                RaaxGUI::Checkbox("Platform", &Config.Player.Platform);
-                RaaxGUI::Checkbox("Name", &Config.Player.Name);
-                RaaxGUI::Checkbox("Current Weapon", &Config.Player.CurrentWeapon);
-                RaaxGUI::Checkbox("Distance", &Config.Player.Distance);
-
-                RaaxGUI::SliderFloat("Max Distance", &Config.Player.MaxDistance, 0.f, 500.f);
-                RaaxGUI::SliderFloat("Box Thickness", &Config.Player.BoxThickness, 1.f, 20.f);
-            } else if (Tab == 1) {
-                RaaxGUI::Checkbox("Split By Ammo Type", &AimbotConfig.SplitAimbotByAmmo);
-                RaaxGUI::Checkbox("Bullet Prediction", &AimbotConfig.BulletPrediction);
-                RaaxGUI::Checkbox("Show Target Line", &AimbotConfig.ShowTargetLine);
+            switch (Tab) {
+            case 0:
+                AimbotTab();
+                break;
+            case 1:
+                TriggerBotTab();
+                break;
+            case 2:
+                VisualsTab();
+                break;
+            case 3:
+                ExploitsTab();
+                break;
+            case 5:
+                ConfigTab();
+                break;
+            case 6:
+                MiscTab();
+                break;
             }
         }
         RaaxGUI::End();
         RaaxGUI::EndFrame();
+#endif
 
+#ifndef _ENGINE
+        ImGuiIO& io = ImGui::GetIO();
+        ImGui::GetForegroundDrawList()->AddCircle(io.MousePos, 5.f, ImColor(0.f, 0.f, 0.f));
+        ImGui::GetForegroundDrawList()->AddCircle(io.MousePos, 4.f, ImColor(1.f, 1.f, 1.f));
+#else
         SDK::FVector2D MousePos = RaaxGUI::Impl::GetMousePos();
         Drawing::Circle(MousePos, 5.f, 12, SDK::FLinearColor::White, 4.f);
+#endif
     }
 }
-#endif
 
 // --- Global Variables ----------------------------------------------
 

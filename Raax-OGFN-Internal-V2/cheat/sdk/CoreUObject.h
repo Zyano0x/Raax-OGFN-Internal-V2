@@ -180,11 +180,15 @@ class UStruct : public UObject {
     static inline uint32_t SuperStruct_Offset;
     static inline uint32_t Children_Offset;
     static inline uint32_t ChildProperties_Offset;
+    static inline uint32_t PropertiesSize_Offset;
+    static inline uint32_t MinAlignment_Offset;
 
   public:
     UPROPERTY_OFFSET(class UStruct*, SuperStruct, SuperStruct_Offset);
     UPROPERTY_OFFSET(class UField*, Children, Children_Offset);
     UPROPERTY_OFFSET(class FField*, ChildProperties, ChildProperties_Offset);
+    UPROPERTY_OFFSET(int32_t, PropertiesSize, PropertiesSize_Offset);
+    UPROPERTY_OFFSET(int32_t, MinAlignment, MinAlignment_Offset);
 
   public:
     PropertyInfo     FindProperty(const FName& Name) const;

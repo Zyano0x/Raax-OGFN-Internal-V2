@@ -196,14 +196,8 @@ static void SharedInfoUpdate(PlayerInfo& Info) {
     Info.IsDead = Info.Pawn->bIsDying;
     Info.IsDBNO = Info.Pawn->bIsDBNO;
 
-    // Small optimisation. Checking for head visible with a line trace took 0.7% CPU time, adding this quick check
-    // allows us avoid unnecassary line traces. This brought CPU time down to 0.2% for non visible targets on srceen.
-    if (Info.IsOnScreen && !Info.Pawn->WasRecentlyRendered(0.1f)) {
-        Info.HeadVisible = false;
-    } else {
-        Info.HeadVisible =
-            SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
-    }
+    Info.HeadVisible =
+        SDK::IsPositionVisible(Info.BoneWorldPos[static_cast<int>(BoneIdx::Head)], Info.Pawn, SDK::GetLocalPawn());
 }
 
 static std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPlayerPawnAthena* Pawn) {

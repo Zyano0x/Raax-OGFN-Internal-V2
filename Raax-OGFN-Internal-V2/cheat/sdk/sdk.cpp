@@ -222,6 +222,27 @@ static bool Setup_UStruct_ChildProperties() {
         UStruct::ChildProperties_Offset);
     return true;
 }
+static bool Setup_UStruct_StructSize() {
+    std::vector<std::pair<void*, int32_t>> Pairs = {{UObject::FindObjectFast("Color"), 0x4},
+                                                    {UObject::FindObjectFast("Guid"), 0x10}};
+
+    LOG(LOG_INFO, "%p %p", Pairs[0].first, Pairs[1].first);
+
+    UStruct::PropertiesSize_Offset = Memory::FindMatchingValueOffset(Pairs);
+    if (UStruct::PropertiesSize_Offset) {
+        LOG(LOG_INFO, "Found UStruct::PropertiesSize offset: 0x%X", UStruct::PropertiesSize_Offset);
+        return true;
+    }
+
+    Error::ThrowError("Failed to find UStruct::PropertiesSize offset!");
+    return false;
+}
+static bool Setup_UStruct_MinAlignment() {
+    UStruct::MinAlignment_Offset = UStruct::PropertiesSize_Offset + 4; // Potentially unsafe to be hardcoded.
+    LOG(LOG_INFO, "Using potentially unsafe hardcoded UStruct::MinAlignment offset: 0x%X",
+        UStruct::MinAlignment_Offset);
+    return true;
+}
 static bool Setup_UField_Next() {
     std::vector<std::pair<void*, void*>> Pairs = {
         {UObject::FindObjectFast<UClass>("KismetArrayLibrary", EClassCastFlags::Class)->Children,
@@ -295,6 +316,10 @@ static bool SetupUnrealStructOffsets() {
     if (!Setup_UStruct_Children())
         return false;
     if (!Setup_UStruct_ChildProperties())
+        return false;
+    if (!Setup_UStruct_StructSize())
+        return false;
+    if (!Setup_UStruct_MinAlignment())
         return false;
     if (!Setup_UField_Next())
         return false;
@@ -480,6 +505,96 @@ static bool SetupComponentSpaceTransformsArray() {
     Error::ThrowError("Failed to find USkinnedMeshComponent::ComponentSpaceTransformsArray offset!");
     return false;
 }
+static bool SetupGetTargetingTransform() {
+    auto FortPawn = UObject::FindObjectFast<AFortPawn>("Default__FortPawn");
+    if (!FortPawn) {
+        Error::ThrowError("Failed to get Default__FortPawn to find GetTargetingTransform offset!");
+        return false;
+    }
+
+    UStruct* Super = FortPawn->Class->SuperStruct;
+    int32_t  StructSize = Super->PropertiesSize;
+    int32_t  MinAlignment = Super->MinAlignment;
+
+    // long ahh code to align properly to get afortpawn class start addr
+    int32_t RequiredAlign = MinAlignment - (StructSize % MinAlignment);
+    int32_t FortPawnClassStart = StructSize + (RequiredAlign != MinAlignment ? RequiredAlign : 0x0);
+
+    // AFortPawn has several interfaces:
+    // AFGF_Character, IGameplayTagAssetInterface, IFortDamageableActorInterface, IFortSpottableActorInterface,
+    // IFortAbilitySystemInterface, IGameplayCueInterface, IFortTargetSelectionInterface,
+    // IFortAIEncounterInfoOwnerInterface, IVisualLoggerDebugSnapshotInterface, IFortHealthRegenInterface,
+    // IAISightTargetInterface, IFortAutoFireTargetInterface, IFortLockOnTargetInterface,
+    // IAbilitySystemReplicationProxyInterface, IFortCurieInterface, IFortReplicationGraphInterface,
+    // IFortSoundIndicatorInterface
+    //
+    // The way this gets compiled is that AFortPawn has a pointer to each one of these interfaces at the start of the
+    // class, which it can swap out at runtime if it pleases.
+    //
+    // The interface we want to find is the IFortTargetSelectionInterface, which is usually the 8th or 9th interface,
+    // depending on the game version
+    //
+    // What we will do is scan these interfaces to find a VFT and check its 3rd function (VFT index doesnt change afaik)
+    // for a few byte patterns I have found reliable across game versions.
+
+    // Never seen the VFT be further than this
+    int32_t MaxSearchOffset = FortPawnClassStart + 0x100;
+
+    constexpr int32_t VFTIndex = 2;
+    for (int32_t Offset = FortPawnClassStart; Offset < MaxSearchOffset; Offset += sizeof(void*)) {
+        void** VFT = *reinterpret_cast<void***>(reinterpret_cast<uintptr_t>(FortPawn) + Offset);
+        if (!Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(VFT)))
+            continue;
+
+        void* Function = VFT[VFTIndex];
+        if (!Memory::IsAddressInsideImage(reinterpret_cast<uintptr_t>(Function)))
+            continue;
+
+        struct PatternInfo {
+            const char* Pattern;
+            int32_t     SearchSize;
+            int32_t     ByteCount;
+        };
+        std::vector<PatternInfo> Patterns = {
+            {"41 54", 0x25, 2},                          // push r12
+            {"41 56 41 57", 0x5, 4},                     // push r14
+                                                         // push r15
+            {"48 8B DA", 0x50, 3},                       // mov rbx, rdx
+            {"48 85 C9 74", 0x10, 4},                    // test rcx, rcx
+                                                         // jz
+            {"0F C6 C1 55 0F C6 C9 AA F3 0F", 0x50, 10}, // shufps xmm0, xmm1, 0x55
+                                                         // shufps xmm1, xmm1, 0xAA
+                                                         // movss dword ptr
+            {"F3 0F", 0x10, 2},                          // movss   dword ptr
+            {"EB", 0x10, 1}                              // jmp
+        };
+
+        bool FailedToFindPattern = false;
+
+        int32_t SearchOffset = 0;
+        for (const auto& Pattern : Patterns) {
+            // SearchOffset will be the last search offset
+            uintptr_t SearchAddr = reinterpret_cast<uintptr_t>(Function) + SearchOffset;
+            uintptr_t PatternAddr = Memory::PatternScanRange(SearchAddr, Pattern.SearchSize, Pattern.Pattern);
+            if (!PatternAddr) {
+                FailedToFindPattern = true;
+                break;
+            }
+
+            SearchOffset = Pattern.ByteCount + (PatternAddr - reinterpret_cast<uintptr_t>(Function));
+        }
+
+        if (!FailedToFindPattern) {
+            AFortPawn::pGetTargetingTransform = reinterpret_cast<decltype(AFortPawn::pGetTargetingTransform)>(Function);
+            LOG(LOG_INFO, "Found AFortPawn::IFortAbilityTargetSelection->GetTargetingTransform offset: %p",
+                reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(Function) - Memory::GetImageBase()));
+            return true;
+        }
+    }
+
+    Error::ThrowError("Failed to find AFortPawn::IFortAbilityTargetSelection->GetTargetingTransform!");
+    return false;
+}
 #ifdef _ENGINE
 static bool SetupCanvas() {
     UCanvas::Canvas_Offset = UCanvas::ViewProjectionMatrix_Offset - (sizeof(void*) * 2);
@@ -644,6 +759,8 @@ static bool SetupUnrealFortniteOffsets() {
     if (!SetupLevelActors())
         return false;
     if (!SetupComponentSpaceTransformsArray())
+        return false;
+    if (!SetupGetTargetingTransform())
         return false;
 #ifdef _ENGINE
     if (!SetupCanvas())

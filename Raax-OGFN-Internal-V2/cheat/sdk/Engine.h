@@ -5,8 +5,6 @@
 
 #include <vector>
 
-#include <utils/log.h>
-
 namespace SDK {
 
 // --- Classes & Structs ---------------------------------------------
@@ -359,9 +357,6 @@ class AActor : public UObject {
 
   public:
     UPROPERTY(class USceneComponent*, RootComponent);
-
-  public:
-    float WasRecentlyRendered(float Tolerence) const;
 };
 
 class AGameStateBase : public AActor {

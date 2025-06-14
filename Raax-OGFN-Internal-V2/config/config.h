@@ -197,6 +197,10 @@ struct ConfigData {
         bool         SplitAimbotByAmmo = true;
         bool         BulletPrediction = true;
         bool         ShowTargetLine = true;
+
+        bool         BulletTP = false;
+        bool         SilentAim = false;
+
         Input::KeyID AimbotKeybind = Input::KeyID::RightMouseButton;
     } Aimbot;
 
@@ -226,12 +230,12 @@ struct ConfigData {
         bool  DamageMultiplier = false;
         float DamageMultiplierAmount = 1.f;
 
+        bool  FastPickaxe = false;
+        float FastPickaxeSpeed = 1.f;
+
         bool AutomaticWeapons = false;
         bool DoublePump = false;
         bool ADSInAir = false;
-
-        bool  FastPickaxe = false;
-        float FastPickaxeSpeed = 1.f;
 
         bool ZiplineFly = false;
 

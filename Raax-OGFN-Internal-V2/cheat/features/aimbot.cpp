@@ -6,6 +6,7 @@
 
 #include <cheat/features/weaponutils.h>
 #include <cheat/input.h>
+#include <cheat/hooks.h>
 #include <extern/imgui/imgui.h>
 #include <cheat/sdk/sdk.h>
 #include <cheat/core.h>
@@ -13,6 +14,7 @@
 #include <config/config.h>
 #include <drawing/drawing.h>
 #include <utils/math.h>
+#include <utils/error.h>
 
 namespace Features {
 namespace Aimbot {
@@ -21,8 +23,10 @@ namespace Aimbot {
 
 struct TargetInfo {
     SDK::AFortPawn* Pawn = nullptr;
+    SDK::FRotator   Rotation;
     SDK::FRotator   RotationDelta;
     SDK::FVector2D  ScreenPos;
+    SDK::FVector    WorldPos;
     float           DistDeg = 0.f;
     float           DistanceM = 0.f;
     float           DistCombined = 0.f;
@@ -30,9 +34,46 @@ struct TargetInfo {
     bool            Visible = false;
 
     void Reset() { Pawn = nullptr; }
-} static target;
+} static Target;
 
 static float WorldGravityZ = 0.f;
+
+// --- Hook Functions ------------------------------------------------
+
+static SDK::FTransform* (*o_GetTargetingTransform)(SDK::FTransform* result, void* TargetingLocationInfo,
+                                                   uint8_t Source) = nullptr;
+static SDK::FTransform* h_GetTargetingTransform(SDK::FTransform* result, void* TargetingLocationInfo, uint8_t Source) {
+    SDK::FTransform* Return = o_GetTargetingTransform(result, TargetingLocationInfo, Source);
+    if (!Target.Pawn || !TargetingLocationInfo)
+        return Return;
+
+    if (Config::g_Config.Aimbot.BulletTP) {
+        Return->Translation = Target.WorldPos;
+        Return->Translation.Z += 50.f; // Makes sure always hits target bone
+    } else if (Config::g_Config.Aimbot.SilentAim) {
+        // doesnt work, no idea why, probably some 3rd person camera lag bullshit since it works with first person guns.
+        // please kill me im not adding 2 more hooks for getplayerviewpoint and getviewpoint when logically you should
+        // be able to do it right here
+        Return->Rotation = Math::RotatorToQuat(Target.Rotation);
+    }
+
+    return Return;
+}
+
+static void ApplyHooks() {
+    static bool AppliedHooks = false;
+    if (!AppliedHooks && (Config::g_Config.Aimbot.BulletTP || Config::g_Config.Aimbot.SilentAim)) {
+        AppliedHooks = true;
+        if (!Hooks::CreateHook(SDK::AFortPawn::pGetTargetingTransform, &h_GetTargetingTransform,
+                               reinterpret_cast<void**>(&o_GetTargetingTransform))) {
+            Error::ThrowError("Failed to create GetTargetingTransform hook!");
+        }
+
+        if (!Hooks::EnableHook(SDK::AFortPawn::pGetTargetingTransform)) {
+            Error::ThrowError("Failed to enable GetTargetingTransform hook!");
+        }
+    }
+}
 
 // --- Global Data Functions -----------------------------------------
 
@@ -56,13 +97,11 @@ static void UpdateWorldGravityZ() {
 
 static bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
     auto& s = WeaponUtils::GetState();
-    if (Info.DistanceM > s.Config.MaxDistance) {
+    if (Info.DistanceM > s.Config.MaxDistance)
         return false;
-    }
 
-    if (s.Config.VisibleCheck && !Info.HeadVisible) {
+    if (s.Config.VisibleCheck && !Config::g_Config.Aimbot.BulletTP && !Info.HeadVisible)
         return false;
-    }
 
     int BoneIdx = static_cast<int>(s.CurrentBone);
 
@@ -93,28 +132,29 @@ static bool EvaluateTarget(const Cache::Player::PlayerInfo& Info) {
         InDeadZone = DistDeg <= s.Config.DeadzoneFOV;
     }
 
-    if (target.Pawn && Info.Pawn != target.Pawn) {
-        if ((s.Config.Selection == Config::ConfigData::TargetSelection::Distance && DistanceM > target.DistanceM) ||
-            (s.Config.Selection == Config::ConfigData::TargetSelection::Degrees && DistDeg > target.DistDeg) ||
-            (s.Config.Selection == Config::ConfigData::TargetSelection::Combined && DistCombined > target.DistCombined))
+    if (Target.Pawn && Info.Pawn != Target.Pawn) {
+        if ((s.Config.Selection == Config::ConfigData::TargetSelection::Distance && DistanceM > Target.DistanceM) ||
+            (s.Config.Selection == Config::ConfigData::TargetSelection::Degrees && DistDeg > Target.DistDeg) ||
+            (s.Config.Selection == Config::ConfigData::TargetSelection::Combined && DistCombined > Target.DistCombined))
             return false;
     }
 
-    // accept this target
-    target.Pawn = Info.Pawn;
-    target.ScreenPos = TargetScreenPos;
-    target.DistDeg = DistDeg;
-    target.DistanceM = DistanceM;
-    target.DistCombined = DistCombined;
-    target.InDeadZone = InDeadZone;
-    target.Visible = Info.HeadVisible;
+    Target.Pawn = Info.Pawn;
+    Target.Rotation = AimRot;
+    Target.ScreenPos = TargetScreenPos;
+    Target.WorldPos = TargetWorldPos;
+    Target.DistDeg = DistDeg;
+    Target.DistanceM = DistanceM;
+    Target.DistCombined = DistCombined;
+    Target.InDeadZone = InDeadZone;
+    Target.Visible = Info.HeadVisible;
 
     SDK::FRotator RotationDelta(AimRot.Pitch - Core::g_CameraRotation.Pitch, AimRot.Yaw - Core::g_CameraRotation.Yaw,
                                 0.f);
     RotationDelta.Normalize();
     RotationDelta = RotationDelta / s.EffectiveSmooth;
     RotationDelta.Normalize();
-    target.RotationDelta = RotationDelta;
+    Target.RotationDelta = RotationDelta;
     return true;
 }
 
@@ -122,19 +162,19 @@ static void AcquireTarget() {
     auto& s = WeaponUtils::GetState();
 
     bool Found = false;
-    if (target.Pawn) {
+    if (Target.Pawn) {
         for (auto& [_, Info] : Cache::Player::GetCachedPlayers()) {
             if (Info.DistanceM >= Config::g_Config.Visuals.Player.MaxDistance || Info.IsDBNO || Info.IsDead)
                 continue;
 
-            if (Info.Pawn == target.Pawn) {
+            if (Info.Pawn == Target.Pawn) {
                 Found = EvaluateTarget(Info);
                 break;
             }
         }
     }
     if (!Found)
-        target.Reset();
+        Target.Reset();
     else if (s.IsTargeting && s.Config.StickyTarget)
         return;
 
@@ -146,21 +186,29 @@ static void AcquireTarget() {
     }
 }
 
+// --- Aimbot Functions ----------------------------------------------
+
+static void ApplyAimbot() {
+    auto& s = WeaponUtils::GetState();
+    if (!s.Config.Enabled || s.CurrentAmmo == WeaponUtils::AmmoType::Unknown || !Target.Pawn || !s.IsTargeting)
+        return;
+
+    if (s.Config.UseDeadzone && Target.InDeadZone)
+        return;
+
+    SDK::APlayerController* Controller = SDK::GetLocalController();
+    if (Controller) {
+        Controller->AddPitchInput(Target.RotationDelta.Pitch / Controller->InputPitchScale);
+        Controller->AddYawInput(Target.RotationDelta.Yaw / Controller->InputYawScale);
+    }
+}
+
 // --- Public Tick Functions -----------------------------------------
 
 void TickGameThread() {
-    auto& s = WeaponUtils::GetState();
+    ApplyHooks();
     AcquireTarget();
-
-    if (s.Config.Enabled && s.CurrentAmmo != WeaponUtils::AmmoType::Unknown && target.Pawn && s.IsTargeting) {
-        if (!s.Config.UseDeadzone || !target.InDeadZone) {
-            SDK::APlayerController* Controller = SDK::GetLocalController();
-            if (Controller) {
-                Controller->AddPitchInput(target.RotationDelta.Pitch / Controller->InputPitchScale);
-                Controller->AddYawInput(target.RotationDelta.Yaw / Controller->InputYawScale);
-            }
-        }
-    }
+    ApplyAimbot();
 }
 
 void TickRenderThread() {
@@ -172,7 +220,7 @@ void TickRenderThread() {
     SDK::FVector2D Center =
         SDK::FVector2D(static_cast<float>(Core::g_ScreenCenterX), static_cast<float>(Core::g_ScreenCenterY));
     SDK::FLinearColor TargetColor =
-        target.Visible ? Config::g_Config.Color.PrimaryColorVisible : Config::g_Config.Color.PrimaryColorHidden;
+        Target.Visible ? Config::g_Config.Color.PrimaryColorVisible : Config::g_Config.Color.PrimaryColorHidden;
 
     if (s.Config.ShowFOV)
         Drawing::Circle(Center, s.Config.FOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::White);
@@ -180,8 +228,8 @@ void TickRenderThread() {
     if (s.Config.UseDeadzone && s.Config.ShowDeadzoneFOV)
         Drawing::Circle(Center, s.Config.DeadzoneFOV * Core::g_PixelsPerDegree, 64, SDK::FLinearColor::Red);
 
-    if (Config::g_Config.Aimbot.ShowTargetLine && target.Pawn)
-        Drawing::Line(Center, target.ScreenPos, TargetColor);
+    if (Config::g_Config.Aimbot.ShowTargetLine && Target.Pawn)
+        Drawing::Line(Center, Target.ScreenPos, TargetColor);
 }
 
 } // namespace Aimbot

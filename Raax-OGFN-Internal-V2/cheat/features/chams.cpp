@@ -72,7 +72,6 @@ static void ApplyChamsToPlayer(SDK::AFortPlayerPawn* Pawn, const SDK::FLinearCol
 
     if (!HasMaterialsToReplace)
         return;
-    LOG(LOG_INFO, "Applying 3!");
 
     auto& State = ChamsAppliedPlayers[Pawn];
 
@@ -85,7 +84,6 @@ static void ApplyChamsToPlayer(SDK::AFortPlayerPawn* Pawn, const SDK::FLinearCol
         ChamsAppliedPlayers.erase(Pawn);
         return;
     }
-    LOG(LOG_INFO, "Applying 4!");
 
     UpdateMaterialSettings(State.ChamsMaterial, Color, EmissionIntensity);
 

@@ -83,6 +83,14 @@ class FZiplinePawnState : public UObject {
     UPROPERTY_BITFIELD(bIsZiplining);
 };
 
+class FFortCameraInstanceEntry final : public UObject {
+  public:
+    STATICCLASS_DEFAULTOBJECT("FortCameraInstanceEntry", FFortCameraInstanceEntry);
+
+  public:
+    UPROPERTY(class UFortCameraMode*, Camera);
+};
+
 class UFortSupplyDropInfo final : public UObject {
   public:
     STATICCLASS_DEFAULTOBJECT("FortSupplyDropInfo", UFortSupplyDropInfo);
@@ -125,6 +133,11 @@ class AFortPlayerController : public APlayerController {
 };
 
 class AFortPawn : public ACharacter {
+  public:
+    static inline FTransform* (*pGetTargetingTransform)(
+        FTransform* result, void* /* FGameplayAbilityTargetingLocationInfo* */ TargetingLocationInfo,
+        uint8_t /* EFortAbilityTargetingSource */ Source) = nullptr;
+
   public:
     STATICCLASS_DEFAULTOBJECT("FortPawn", AFortPawn);
 

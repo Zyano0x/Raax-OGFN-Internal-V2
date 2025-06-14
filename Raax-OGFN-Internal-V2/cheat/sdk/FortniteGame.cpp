@@ -1,5 +1,7 @@
 #include "FortniteGame.h"
 
+#include <utils/log.h>
+
 namespace SDK {
 
 // --- Classes & Structs ---------------------------------------------

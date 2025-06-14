@@ -50,8 +50,6 @@ UMaterialInstanceDynamic* UKismetMaterialLibrary::CreateDynamicMaterialInstance(
         params_CreateDynamicMaterialInstance1.CreationFlags = EMIDCreationFlags::None;
         params_CreateDynamicMaterialInstance1.OptionalName = OptionalName;
 
-        LOG(LOG_INFO, "Using this 1!");
-
         StaticClass()->ProcessEvent(Func, &params_CreateDynamicMaterialInstance1);
         return params_CreateDynamicMaterialInstance1.ReturnValue;
     } else if (g_EngineVersion >= 4.21) {
@@ -66,8 +64,6 @@ UMaterialInstanceDynamic* UKismetMaterialLibrary::CreateDynamicMaterialInstance(
         params_CreateDynamicMaterialInstance2.Parent = Parent;
         params_CreateDynamicMaterialInstance2.OptionalName = OptionalName;
 
-        LOG(LOG_INFO, "Using this 2!");
-
         StaticClass()->ProcessEvent(Func, &params_CreateDynamicMaterialInstance2);
         return params_CreateDynamicMaterialInstance2.ReturnValue;
     } else {
@@ -79,8 +75,6 @@ UMaterialInstanceDynamic* UKismetMaterialLibrary::CreateDynamicMaterialInstance(
 
         params_CreateDynamicMaterialInstance3.WorldContextObject = WorldContextObject;
         params_CreateDynamicMaterialInstance3.Parent = Parent;
-
-        LOG(LOG_INFO, "Using this 3!");
 
         StaticClass()->ProcessEvent(Func, &params_CreateDynamicMaterialInstance3);
         return params_CreateDynamicMaterialInstance3.ReturnValue;
@@ -292,20 +286,6 @@ void UMaterialInstanceDynamic::SetScalarParameterValue(FName ParameterName, floa
     ProcessEvent(Func, &params_SetScalarParameterValue);
 }
 
-float AActor::WasRecentlyRendered(float Tolerence) const {
-    static UFunction* Func = GetFunction("Actor", "WasRecentlyRendered");
-    struct {
-        float Tolerence;
-        float ReturnValue;
-    } params_WasRecentlyRendered{};
-
-    params_WasRecentlyRendered.Tolerence = Tolerence;
-
-    ProcessEvent(Func, &params_WasRecentlyRendered);
-
-    return params_WasRecentlyRendered.ReturnValue;
-}
-
 FVector APlayerCameraManager::GetCameraLocation() const {
     static UFunction* Func = GetFunction("PlayerCameraManager", "GetCameraLocation");
     struct {
@@ -503,7 +483,7 @@ bool IsPositionVisible(const FVector& Position, AActor* IgnoredActor, AActor* Ig
 
     FHitResult Hit = {};
     bool       bHitSomething = UKismetSystemLibrary::LineTraceSingle(
-        GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery1, true, IgnoredActors,
+        GetWorld(), Core::g_CameraLocation, Position, ETraceTypeQuery::TraceTypeQuery21, true, IgnoredActors,
         EDrawDebugTrace::None, Hit, true, FLinearColor(0.f, 0.f, 0.f, 0.f), FLinearColor(0.f, 0.f, 0.f, 0.f), 0.f);
 
     return !bHitSomething;

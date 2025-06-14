@@ -12,17 +12,18 @@ void RaaxWindow::Render() {
     if (!m_Open)
         return;
 
-    // If we get rendered then we are in a new frame and can reset the current element position.
-    m_CurrentElementPos = g_Style.ElementSpacing;
-    m_IsFirstElement = true;
-
     DrawFilledRect(m_Pos, m_Size, g_Style.WindowCol);
 
     RemoveUnseenElements();
-    for (auto& [_, Elem] : m_Elements) {
-        Elem.first = false;
-        Elem.second->Render();
+
+    m_IsFirstElement = true;
+    for (int Id : m_ElementOrder) {
+        if (m_Elements[Id].first) {
+            m_Elements[Id].second->Render();
+        }
     }
+
+    m_ElementOrder.clear();
 }
 
 void RaaxWindow::RemoveUnseenElements() {
@@ -36,6 +37,9 @@ RaaxElement* RaaxWindow::AddButton(int Id, const char* Name) {
     auto& It = m_Elements[Id];
     auto  Elem = static_cast<RaaxButton*>(It.second.get());
     It.first = true;
+    if (Elem)
+        m_ElementOrder.push_back(Id);
+
     return Elem;
 }
 RaaxElement* RaaxWindow::AddCheckbox(int Id, const char* Name, bool* pValue) {
@@ -46,6 +50,9 @@ RaaxElement* RaaxWindow::AddCheckbox(int Id, const char* Name, bool* pValue) {
     auto  Elem = static_cast<RaaxCheckbox*>(It.second.get());
     It.first = true;
     Elem->Update(pValue);
+    if (Elem)
+        m_ElementOrder.push_back(Id);
+
     return Elem;
 }
 RaaxElement* RaaxWindow::AddSliderInt(int Id, const char* Name, int* pValue, int Min, int Max) {
@@ -56,6 +63,9 @@ RaaxElement* RaaxWindow::AddSliderInt(int Id, const char* Name, int* pValue, int
     auto  Elem = static_cast<RaaxSlider<int>*>(It.second.get());
     It.first = true;
     Elem->Update(pValue, Min, Max);
+    if (Elem)
+        m_ElementOrder.push_back(Id);
+
     return Elem;
 }
 RaaxElement* RaaxWindow::AddSliderFloat(int Id, const char* Name, float* pValue, float Min, float Max) {
@@ -66,19 +76,29 @@ RaaxElement* RaaxWindow::AddSliderFloat(int Id, const char* Name, float* pValue,
     auto  Elem = static_cast<RaaxSlider<float>*>(It.second.get());
     It.first = true;
     Elem->Update(pValue, Min, Max);
+    if (Elem)
+        m_ElementOrder.push_back(Id);
+
     return Elem;
 }
 
 Vec2 RaaxWindow::GetNextElementPos(const Vec2& ElementSize, bool SameLine) {
+    if (m_IsFirstElement) {
+        m_CurrentElementPos = g_Style.ElementSpacing;
+
+        m_IsFirstElement = false;
+        m_LastElementSize = ElementSize;
+        return m_CurrentElementPos + m_Pos;
+    }
+
     if (SameLine) {
         m_CurrentElementPos.X += g_Style.ElementSpacing.X + ElementSize.X;
     } else {
         m_CurrentElementPos.X = g_Style.ElementSpacing.X;
-        if (!m_IsFirstElement)
-            m_CurrentElementPos.Y += g_Style.ElementSpacing.Y + ElementSize.Y;
+        m_CurrentElementPos.Y += g_Style.ElementSpacing.Y + m_LastElementSize.Y;
     }
 
-    m_IsFirstElement = false;
+    m_LastElementSize = ElementSize;
     return m_CurrentElementPos + m_Pos;
 }
 

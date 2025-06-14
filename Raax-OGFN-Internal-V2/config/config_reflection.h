@@ -112,6 +112,8 @@ template <> constexpr auto DescribeMembers<Config::ConfigData::AimbotConfig>() {
                            MemberDescriptor<T, bool>{"SplitAimbotByAmmo", &T::SplitAimbotByAmmo, {}},
                            MemberDescriptor<T, bool>{"BulletPrediction", &T::BulletPrediction, {}},
                            MemberDescriptor<T, bool>{"ShowTargetLine", &T::ShowTargetLine, {}},
+                           MemberDescriptor<T, bool>{"BulletTP", &T::BulletTP, {}},
+                           MemberDescriptor<T, bool>{"SilentAim", &T::SilentAim, {}},
                            MemberDescriptor<T, Input::KeyID>{"AimbotKeybind", &T::AimbotKeybind, {}});
 }
 

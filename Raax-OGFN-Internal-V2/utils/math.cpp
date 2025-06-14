@@ -59,6 +59,29 @@ float RadiansToDegrees(float Radians) {
     return Radians * (180.0f / M_PI);
 }
 
+SDK::FQuat RotatorToQuat(const SDK::FRotator& Rotator) {
+    const float DEG_TO_RAD = M_PI / (180.f);
+    const float RADS_DIVIDED_BY_2 = DEG_TO_RAD / 2.f;
+    float       SP, SY, SR;
+    float       CP, CY, CR;
+
+    const float PitchNoWinding = fmodf(Rotator.Pitch, 360.0f);
+    const float YawNoWinding = fmodf(Rotator.Yaw, 360.0f);
+    const float RollNoWinding = fmodf(Rotator.Roll, 360.0f);
+
+    SinCos(&SP, &CP, PitchNoWinding * RADS_DIVIDED_BY_2);
+    SinCos(&SY, &CY, YawNoWinding * RADS_DIVIDED_BY_2);
+    SinCos(&SR, &CR, RollNoWinding * RADS_DIVIDED_BY_2);
+
+    SDK::FQuat RotationQuat;
+    RotationQuat.X = CR * SP * SY - SR * CP * CY;
+    RotationQuat.Y = -CR * SP * CY - SR * CP * SY;
+    RotationQuat.Z = CR * CP * SY - SR * SP * CY;
+    RotationQuat.W = CR * CP * CY + SR * SP * SY;
+
+    return RotationQuat;
+}
+
 SDK::FRotator FindLookAtRotation(const SDK::FVector& Start, const SDK::FVector& Target) {
     SDK::FVector Direction = Target - Start;
 

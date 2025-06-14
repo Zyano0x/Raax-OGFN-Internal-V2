@@ -49,6 +49,7 @@ class RaaxWindow final : public RaaxElement {
   private:
     Vec2 m_ClickPos;
     Vec2 m_CurrentElementPos;
+    Vec2 m_LastElementSize;
     bool m_IsFirstElement;
 
     std::string m_Name;
@@ -56,6 +57,7 @@ class RaaxWindow final : public RaaxElement {
     Vec2        m_Size;
     bool        m_Open = false;
 
+    std::vector<int>                                                       m_ElementOrder;
     std::unordered_map<int, std::pair<bool, std::unique_ptr<RaaxElement>>> m_Elements;
 
   public:
