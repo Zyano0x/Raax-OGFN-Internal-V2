@@ -61,6 +61,10 @@ static SDK::FTransform* h_GetTargetingTransform(SDK::FTransform* result, void* T
 }
 
 static void ApplyHooks() {
+    // Cannot apply hooks since we couldn't find the function address
+    if (!SDK::AFortPawn::pGetTargetingTransform)
+        return;
+
     static bool AppliedHooks = false;
     if (!AppliedHooks && (Config::g_Config.Aimbot.BulletTP || Config::g_Config.Aimbot.SilentAim)) {
         AppliedHooks = true;
