@@ -176,4 +176,4 @@ Raax (me)
 [Toxy](https://github.com/Toxy121) - SDK improvements  
 [NotTacs](https://github.com/NotTacs) - Llama & supply drop ESP  
 [parkie](https://github.com/mlodyskiny) - GUI improvements
-rikogmez - Media
+[rikogmez](https://www.youtube.com/channel/UCh617js1hv9F247Rf4wKXhw) - Media
