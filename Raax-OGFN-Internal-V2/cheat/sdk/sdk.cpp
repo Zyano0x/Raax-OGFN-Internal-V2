@@ -717,7 +717,7 @@ static void FindGetWeaponStats() {
                 (uintptr_t)VTable[i], 0x35,
                 {0x48, 0x8B, 0x60, -0x01, -0x01, 0x00, 0x00, 0x48, -0x01, -0x01, 0x8B, 0xFA})) {
             AFortWeapon::GetWeaponStats_Idx = i;
-            LOG(LOG_INFO, "Found AFortWeapon::GetWeaponStats VFT index: 0x%X", UGameViewportClient::DrawTransition_Idx);
+            LOG(LOG_INFO, "Found AFortWeapon::GetWeaponStats VFT index: 0x%X", AFortWeapon::GetWeaponStats_Idx);
             return;
         }
     }
