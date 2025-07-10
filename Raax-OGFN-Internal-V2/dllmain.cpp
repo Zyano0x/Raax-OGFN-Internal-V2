@@ -21,6 +21,7 @@ static DWORD Main(LPVOID hModule) {
         Sleep(100);
     }
 
+    // TODO: Wait until game thread and render thread are finished instead of arbitrary sleep
     Sleep(1000);
     FreeLibraryAndExitThread(static_cast<HMODULE>(hModule), 0);
 #endif

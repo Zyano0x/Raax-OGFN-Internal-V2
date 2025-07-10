@@ -40,8 +40,8 @@ UMaterialInstanceDynamic* UKismetMaterialLibrary::CreateDynamicMaterialInstance(
             UObject*                  WorldContextObject;
             UMaterialInterface*       Parent;
             EMIDCreationFlags         CreationFlags;
-            uint8_t                   Pad[0x7];
             FName                     OptionalName;
+            uint8_t                   Pad[0x7];
             UMaterialInstanceDynamic* ReturnValue;
         } params_CreateDynamicMaterialInstance1{};
 

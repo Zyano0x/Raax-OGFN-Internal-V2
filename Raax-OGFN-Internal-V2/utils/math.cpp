@@ -1,6 +1,7 @@
 #include "math.h"
 
 #include <algorithm>
+#include <numbers>
 
 #include <cheat/core.h>
 
@@ -52,15 +53,15 @@ float InvSqrt(float F) {
 }
 
 float DegreesToRadians(float Degrees) {
-    return Degrees * (M_PI / 180.0f);
+    return Degrees * (std::numbers::pi_v<float> / 180.0f);
 }
 
 float RadiansToDegrees(float Radians) {
-    return Radians * (180.0f / M_PI);
+    return Radians * (180.0f / std::numbers::pi_v<float>);
 }
 
 SDK::FQuat RotatorToQuat(const SDK::FRotator& Rotator) {
-    const float DEG_TO_RAD = M_PI / (180.f);
+    const float DEG_TO_RAD = std::numbers::pi_v<float> / (180.f);
     const float RADS_DIVIDED_BY_2 = DEG_TO_RAD / 2.f;
     float       SP, SY, SR;
     float       CP, CY, CR;
@@ -85,10 +86,10 @@ SDK::FQuat RotatorToQuat(const SDK::FRotator& Rotator) {
 SDK::FRotator FindLookAtRotation(const SDK::FVector& Start, const SDK::FVector& Target) {
     SDK::FVector Direction = Target - Start;
 
-    float Yaw = atan2f(Direction.Y, Direction.X) * 180.0f / M_PI;
+    float Yaw = atan2f(Direction.Y, Direction.X) * 180.0f / std::numbers::pi_v<float>;
 
     float HorizontalDistance = sqrtf(Direction.X * Direction.X + Direction.Y * Direction.Y);
-    float Pitch = atan2f(Direction.Z, HorizontalDistance) * 180.0f / M_PI;
+    float Pitch = atan2f(Direction.Z, HorizontalDistance) * 180.0f / std::numbers::pi_v<float>;
 
     SDK::FVector RotationAngles = {Pitch, Yaw, 0.0f};
     return SDK::FRotator(RotationAngles.X, RotationAngles.Y, RotationAngles.Z);

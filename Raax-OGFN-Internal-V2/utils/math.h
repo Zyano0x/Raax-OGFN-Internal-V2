@@ -1,8 +1,6 @@
 #pragma once
 #include <cheat/sdk/Basic.h>
 
-constexpr auto M_PI = 3.14159265358979323f;
-
 namespace Math {
 
 void          SinCos(float* Sine, float* Cosine, float AngleRad);
