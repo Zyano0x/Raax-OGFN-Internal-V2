@@ -1,7 +1,7 @@
 <h1 align="center">Raax-OGFN-Internal V2</h1>
 
 <p align="center">
-Universal Fortnite internal cheat for Season 2-19.
+Universal Fortnite internal cheat for Season 1-19.
 </p>
 <p align="center">
 This project is an improvement on my previous cheat, OG-Fortnite-Cheat.<br>
