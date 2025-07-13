@@ -431,6 +431,9 @@ class APlayerState : public AActor {
     STATICCLASS_DEFAULTOBJECT("PlayerState", APlayerState);
 
   public:
+    UPROPERTY(FString, PlayerName);
+
+  public:
     FString GetPlayerName() const;
 };
 

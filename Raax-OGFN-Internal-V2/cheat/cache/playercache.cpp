@@ -217,7 +217,13 @@ static std::optional<PlayerInfo> CreateNewPlayerInfo(SDK::AFortPlayerPawnAthena*
         return std::nullopt;
 
     Info.PlayerName = Info.PlayerState->GetPlayerName().ToString();
-    Info.Platform = Info.PlayerState->Platform.ToString();
+
+    // Some old game versions, like 1.8, don't have a Platform member
+    if (Info.PlayerState->getpropinfo_Platform(true).Found)
+        Info.Platform = Info.PlayerState->Platform.ToString();
+    else
+        Info.Platform = "Unknown";
+
     for (int i = 0; i < static_cast<int>(BoneIdx::NUM); i++) {
         if (i == static_cast<int>(BoneIdx::Chest))
             continue;

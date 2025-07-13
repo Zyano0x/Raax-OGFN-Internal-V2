@@ -14,7 +14,7 @@ enum EFindName { FNAME_Find, FNAME_Add };
 class FName {
   public:
     static inline void (*FNameToString)(const FName*, class FString*) = nullptr;
-    static inline void (*FNameConstructorW)(const FName*, const wchar_t*, EFindName) = nullptr;
+    static inline void (*FNameConstructorW)(FName*, const wchar_t*, EFindName) = nullptr;
 
   public:
     int32_t ComparisonIndex;

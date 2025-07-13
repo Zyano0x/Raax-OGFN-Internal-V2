@@ -30,8 +30,7 @@ FName::FName(const wchar_t* Name) : ComparisonIndex(0), Number(0) {
     FNameConstructorW(this, Name, FNAME_Add);
 }
 FName::FName(const char* Name) : ComparisonIndex(0), Number(0) {
-    std::string NameStr = Name;
-    FNameConstructorW(this, std::wstring(NameStr.begin(), NameStr.end()).c_str(), FNAME_Add);
+    FNameConstructorW(this, String::NarrowToWide(Name).c_str(), FNAME_Add);
 }
 
 FString FName::ToFString() const {
@@ -77,14 +76,10 @@ void FName::operator=(const FName& Other) {
     Number = Other.Number;
 }
 void FName::operator=(const wchar_t* Name) {
-    FName New(Name);
-    ComparisonIndex = New.ComparisonIndex;
-    Number = New.Number;
+    *this = FName(Name);
 }
 void FName::operator=(const char* Name) {
-    FName New(Name);
-    ComparisonIndex = New.ComparisonIndex;
-    Number = New.Number;
+    *this = FName(Name);
 }
 
 bool FVector::Normalize(float Tolerance) {

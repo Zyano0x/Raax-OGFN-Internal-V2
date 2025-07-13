@@ -143,6 +143,8 @@ class FString : public TArray<wchar_t> {
         memcpy(Data, Str, Length * sizeof(wchar_t));
         Data[Length] = L'\0';
     }
+
+    FString(const FString& Other) : TArray<wchar_t>(Other) {}
     FString(FString&& Other) noexcept : TArray<wchar_t>(std::move(Other)) {}
 
     FString& operator=(FString&& Other) noexcept {

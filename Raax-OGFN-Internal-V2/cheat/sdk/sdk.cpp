@@ -57,14 +57,23 @@ static bool SetupFMemoryRealloc() {
     return false;
 }
 static bool SetupFNameToString() {
-    uintptr_t StringRef = Memory::FindStringRef(L"TSoftObjectPtr<%s%s>");
-    if (StringRef) {
-        uintptr_t FNameToString = Memory::PatternScanRange<int32_t>(StringRef, 0x50, "E8 ? ? ? ? 48", true, 1, true);
-        if (FNameToString) {
-            FName::FNameToString = reinterpret_cast<decltype(FName::FNameToString)>(FNameToString);
-            LOG(LOG_INFO, "Found FNameToString offset: 0x%p",
-                reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameToString) - Memory::GetImageBase()));
-            return true;
+    // Two standard patterns for finding FNameToString across different game versions.
+    static const std::vector<std::pair<const std::wstring, const std::string>> Patterns = {
+        {L"TSoftObjectPtr<%s%s>", "E8 ? ? ? ? 48"},
+        {L"Error uncompressing data.  Format: %f, Filename: %s", "E8 ? ? ? ? EB"}};
+
+    for (const auto& [String, Pattern] : Patterns) {
+        uintptr_t StringRef = Memory::FindStringRef(String.c_str());
+        if (StringRef) {
+            uintptr_t FNameToString =
+                Memory::PatternScanRange<int32_t>(StringRef, 0x50, Pattern.c_str(), true, 1, true);
+            if (FNameToString) {
+                FName::FNameToString = reinterpret_cast<decltype(FName::FNameToString)>(FNameToString);
+                LOG(LOG_INFO, "Found FNameToString offset: 0x%p",
+                    reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(FName::FNameToString) -
+                                            Memory::GetImageBase()));
+                return true;
+            }
         }
     }
 
@@ -226,8 +235,6 @@ static bool Setup_UStruct_StructSize() {
     std::vector<std::pair<void*, int32_t>> Pairs = {{UObject::FindObjectFast("Color"), 0x4},
                                                     {UObject::FindObjectFast("Guid"), 0x10}};
 
-    LOG(LOG_INFO, "%p %p", Pairs[0].first, Pairs[1].first);
-
     UStruct::PropertiesSize_Offset = Memory::FindMatchingValueOffset(Pairs);
     if (UStruct::PropertiesSize_Offset) {
         LOG(LOG_INFO, "Found UStruct::PropertiesSize offset: 0x%X", UStruct::PropertiesSize_Offset);
@@ -369,6 +376,8 @@ static bool SetupProcessEvent() {
 static bool SetupEngineVersion() {
     FString EngineVersionStr = UKismetSystemLibrary::GetEngineVersion();
 
+    LOG(LOG_INFO, "Found EngineVersion String: %s", EngineVersionStr.ToString().c_str());
+
     std::istringstream stream(EngineVersionStr.ToString());
     std::string        line;
     while (std::getline(stream, line)) {
@@ -382,12 +391,16 @@ static bool SetupEngineVersion() {
         std::string CLStr = line.substr(DashPos + 1, PlusPos - DashPos - 1);
 
         g_EngineVersion = std::stof(EngineStr.substr(0, EngineStr.find_last_of('.')));
-        g_GameVersion = std::stof(GameStr);
         g_CL = std::stoi(CLStr);
+
+        // Scuffed fix for game version 1.8 and likely lower
+        if (GameStr == "Live")
+            g_GameVersion = 1.f; // 1.f default value
+        else
+            g_GameVersion = std::stof(GameStr);
     }
 
-    LOG(LOG_INFO, "EngineVersion: %f, GameVersions: %f, CL: %d (%s)", g_EngineVersion, g_GameVersion, g_CL,
-        EngineVersionStr.ToString().c_str());
+    LOG(LOG_INFO, "EngineVersion: %f, GameVersions: %f, CL: %d", g_EngineVersion, g_GameVersion, g_CL);
     return true;
 }
 static bool SetupDrawTransition() {

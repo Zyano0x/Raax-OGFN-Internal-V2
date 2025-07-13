@@ -4,7 +4,6 @@
 #include "FProperty.h"
 
 #include <string>
-#include <type_traits>
 
 /* @brief Sets up StaticClass() and GetDefaultObj() functions. */
 #define STATICCLASS_DEFAULTOBJECT(ClassNameStr, Type)                                                                  \

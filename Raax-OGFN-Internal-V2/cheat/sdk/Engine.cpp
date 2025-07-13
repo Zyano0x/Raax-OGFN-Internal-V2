@@ -402,13 +402,19 @@ void APlayerController::ServerChangeName(const FString& S) {
 }
 
 FString APlayerState::GetPlayerName() const {
-    static UFunction* Func = GetFunction("PlayerState", "GetPlayerName");
-    struct {
-        FString return_value;
-    } params_GetPlayerName{};
+    static UFunction* Func = GetFunction("PlayerState", "GetPlayerName", true);
+    if (Func) {
+        struct {
+            FString return_value;
+        } params_GetPlayerName{};
 
-    ProcessEvent(Func, &params_GetPlayerName);
-    return std::move(params_GetPlayerName.return_value);
+        ProcessEvent(Func, &params_GetPlayerName);
+        return std::move(params_GetPlayerName.return_value);
+    }
+    else {
+        // Some old game versions, like 1.8, doesn't have a function for getting the player name
+        return PlayerName;
+    }
 }
 
 // --- Public Functions ----------------------------------------------

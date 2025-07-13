@@ -127,7 +127,7 @@ void UpdateCache() {
             }
         }
 
-        if (Config.LlamaText && MapInfo->LlamaClass) {
+        if (Config.LlamaText && MapInfo->getpropinfo_LlamaClass(true).Found && MapInfo->LlamaClass) {
             static std::vector<SDK::ABuildingContainer*> LlamaList;
             CacheActorsOfType(LlamaList, MapInfo->LlamaClass, ContainerType::Llama);
         }
